@@ -116,7 +116,20 @@ const INTERNAS = [
   },
 ].map((c) => ({ ...c, type: 'base', ...SEM_ACESSO_DIRETO }));
 
-const colecoes = [...COLECOES.map(colecaoPB), ...INTERNAS];
+// Ids de campo fixos (derivados de coleção + nome): assim uma migração nova
+// reconhece o campo existente em vez de tentar criar outro com o mesmo nome.
+// Atenção: o PocketBase não troca o TIPO de um campo existente; para isso,
+// escreva uma migração à mão (renomeie, copie os dados e apague o antigo).
+function comIdsFixos<T extends { name: string; fields: CampoPB[] }>(c: T): T {
+  return {
+    ...c,
+    fields: c.fields.map((f) =>
+      f.name === 'id' ? f : { id: `${f.type}${createHash('sha1').update(`${c.name}.${f.name}`).digest('hex').slice(0, 10)}`, ...f },
+    ),
+  };
+}
+
+const colecoes = [...COLECOES.map(colecaoPB), ...INTERNAS].map(comIdsFixos);
 const texto = JSON.stringify(colecoes, null, 1);
 const hash = createHash('sha256').update(texto).digest('hex').slice(0, 10);
 

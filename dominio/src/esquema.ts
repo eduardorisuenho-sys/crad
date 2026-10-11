@@ -94,7 +94,15 @@ const o = (nome: string, opcoes: readonly string[], obrigatorio = false, multipl
 // listas fechadas -----------------------------------------------------------
 export const BIOMAS = ['amazonia', 'caatinga', 'cerrado', 'mata_atlantica', 'pampa', 'pantanal'] as const;
 export const GRAUS_CERTEZA = ['certo', 'provavel', 'a_identificar'] as const;
-export const PARTES_PLANTA = ['folha', 'casca', 'flor', 'fruto', 'semente', 'arvore', 'muda', 'outro'] as const;
+export const PARTES_PLANTA = ['arvore', 'tronco', 'casca', 'folha', 'ramo', 'flor', 'fruto', 'semente', 'muda', 'outro'] as const;
+/** fotos obrigatórias no cadastro da matriz */
+export const FOTOS_OBRIGATORIAS_MATRIZ = ['arvore', 'tronco', 'folha'] as const;
+export const FENOFASES = ['folha', 'flor', 'fruto_verde', 'fruto_maduro', 'sem_folha'] as const;
+/** embalagens usadas hoje (planilha de controle de mudas) */
+export const RECIPIENTES = ['tubete', 'saquinho', 'sementeira', 'outros'] as const;
+export const TIPOS_LOCAL_MATRIZ = ['app', 'mata', 'praca', 'propriedade_rural', 'beira_estrada', 'outro'] as const;
+export const SITUACOES_VALIDACAO = ['pendente', 'aprovada', 'reprovada'] as const;
+export const ORIGENS_ESPECIE = ['nativa', 'naturalizada', 'cultivada', 'exotica', 'desconhecida'] as const;
 /** [hipótese] fases do viveiro — conferir com a especificação */
 export const FASES_MUDA = ['semeadura', 'germinacao', 'repicagem', 'crescimento', 'rustificacao', 'pronta'] as const;
 export const SITUACOES_DOACAO = [
@@ -220,15 +228,20 @@ export const COLECOES: Colecao[] = [
       n('dias_germinacao'),
       n('meses_ate_pronta'),
       t('grupo_sucessional'),
+      o('origem', ORIGENS_ESPECIE),
       b('ficticia'),
       b('publicada'),
+      // importação: casos que a equipe precisa conferir (família conflitante, nome ambíguo…)
+      b('revisar'),
+      t('nota_revisao'),
+      o('fonte_cadastro', ['planilha', 'flora_funga', 'manual']),
     ],
-    indices: ['nome_cientifico', 'familia'],
+    indices: ['nome_cientifico', 'familia', 'flora_id'],
     leitura: 'todos',
     escrita: SO_GESTOR,
   },
   { nome: 'sinonimo', natureza: 'cadastro', porViveiro: false, campos: [r('especie_id', 'especie', true), t('nome', true)], indices: ['especie_id', 'nome'], leitura: 'todos', escrita: SO_GESTOR },
-  { nome: 'nome_popular', natureza: 'cadastro', porViveiro: false, campos: [r('especie_id', 'especie', true), t('nome', true), t('regiao')], indices: ['especie_id', 'nome'], leitura: 'todos', escrita: SO_GESTOR },
+  { nome: 'nome_popular', natureza: 'cadastro', porViveiro: false, campos: [r('especie_id', 'especie', true), t('nome', true), t('nome_busca'), t('regiao')], indices: ['especie_id', 'nome', 'nome_busca'], leitura: 'todos', escrita: SO_GESTOR },
   {
     nome: 'especie_ocorrencia',
     natureza: 'cadastro',
@@ -273,14 +286,21 @@ export const COLECOES: Colecao[] = [
       t('descricao_local'),
       r('proprietario_pessoa_id', 'pessoa'),
       b('autorizacao_proprietario'),
+      o('tipo_local', TIPOS_LOCAL_MATRIZ),
       n('dap_cm'),
+      n('cap_cm'),
       n('altura_m'),
-      t('estado_arvore'),
+      o('estado_fitossanitario', ['bom', 'regular', 'ruim']),
       o('situacao', ['ativa', 'inativa', 'morta']),
       r('coletor_id', 'users'),
       t('observacao'),
+      // validação pelo gestor: só matriz aprovada vai para coleta
+      o('situacao_validacao', SITUACOES_VALIDACAO),
+      r('validado_por', 'users'),
+      d('validado_em'),
+      t('nota_validacao'),
     ],
-    indices: ['codigo', 'especie_id', 'municipio_id'],
+    indices: ['codigo', 'especie_id', 'municipio_id', 'situacao_validacao'],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: ['coletor', 'gestor'],
   },
@@ -303,6 +323,16 @@ export const COLECOES: Colecao[] = [
     indices: ['matriz_id'],
     leitura: SO_GESTOR,
     escrita: SO_GESTOR,
+  },
+  {
+    // Registro de fenologia a cada visita (calendário de frutificação).
+    nome: 'fenologia',
+    natureza: 'evento',
+    porViveiro: true,
+    campos: [r('matriz_id', 'matriz', true), d('data', true), o('fases', FENOFASES, true, true), t('observacao')],
+    indices: ['matriz_id', 'data'],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: ['coletor', 'viveirista', 'gestor'],
   },
   { nome: 'rota_campo', natureza: 'cadastro', porViveiro: true, campos: [r('coletor_id', 'users'), d('data'), j('matrizes_planejadas'), t('observacao')], leitura: TODOS_EXCETO_SOLICITANTE, escrita: ['coletor', 'gestor'] },
 
@@ -364,7 +394,7 @@ export const COLECOES: Colecao[] = [
     natureza: 'cadastro',
     porViveiro: true,
     prefixoCodigo: 'LM',
-    campos: [t('codigo', true), r('lote_sementes_id', 'lote_sementes', true), r('especie_id', 'especie', true), d('data_semeadura'), n('sementes_semeadas'), n('sementes_semeadas_g'), t('recipiente'), t('canteiro'), o('fase_atual', FASES_MUDA), o('situacao', ['ativo', 'encerrado'])],
+    campos: [t('codigo', true), r('lote_sementes_id', 'lote_sementes', true), r('especie_id', 'especie', true), d('data_semeadura'), n('sementes_semeadas'), n('sementes_semeadas_g'), o('recipiente', RECIPIENTES), t('canteiro'), o('fase_atual', FASES_MUDA), o('situacao', ['ativo', 'encerrado'])],
     indices: ['codigo', 'lote_sementes_id', 'especie_id', 'fase_atual'],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: EQUIPE_VIVEIRO,

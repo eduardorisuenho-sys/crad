@@ -83,7 +83,7 @@ export function limparDados(col: Colecao, dados: Record<string, unknown>): { lim
 function faltando(col: Colecao, reg: Record<string, unknown>): string[] {
   const obrig = col.campos.filter((c) => c.obrigatorio && c.tipo !== 'arquivo').map((c) => c.nome);
   if (col.porViveiro) obrig.push('viveiro_id');
-  return obrig.filter((k) => reg[k] === undefined || reg[k] === null || reg[k] === '');
+  return obrig.filter((k) => reg[k] === undefined || reg[k] === null || reg[k] === '' || (Array.isArray(reg[k]) && !(reg[k] as unknown[]).length));
 }
 
 function ajustarCodigo(col: Colecao, reg: Registro, porta: PortaServidor): { de: string; para: string } | undefined {

@@ -68,7 +68,12 @@ var o = (nome, opcoes, obrigatorio = false, multiplo = false) => ({
 });
 var BIOMAS = ["amazonia", "caatinga", "cerrado", "mata_atlantica", "pampa", "pantanal"];
 var GRAUS_CERTEZA = ["certo", "provavel", "a_identificar"];
-var PARTES_PLANTA = ["folha", "casca", "flor", "fruto", "semente", "arvore", "muda", "outro"];
+var PARTES_PLANTA = ["arvore", "tronco", "casca", "folha", "ramo", "flor", "fruto", "semente", "muda", "outro"];
+var FENOFASES = ["folha", "flor", "fruto_verde", "fruto_maduro", "sem_folha"];
+var RECIPIENTES = ["tubete", "saquinho", "sementeira", "outros"];
+var TIPOS_LOCAL_MATRIZ = ["app", "mata", "praca", "propriedade_rural", "beira_estrada", "outro"];
+var SITUACOES_VALIDACAO = ["pendente", "aprovada", "reprovada"];
+var ORIGENS_ESPECIE = ["nativa", "naturalizada", "cultivada", "exotica", "desconhecida"];
 var FASES_MUDA = ["semeadura", "germinacao", "repicagem", "crescimento", "rustificacao", "pronta"];
 var SITUACOES_DOACAO = [
   "rascunho",
@@ -190,15 +195,20 @@ var COLECOES = [
       n("dias_germinacao"),
       n("meses_ate_pronta"),
       t("grupo_sucessional"),
+      o("origem", ORIGENS_ESPECIE),
       b("ficticia"),
-      b("publicada")
+      b("publicada"),
+      // importação: casos que a equipe precisa conferir (família conflitante, nome ambíguo…)
+      b("revisar"),
+      t("nota_revisao"),
+      o("fonte_cadastro", ["planilha", "flora_funga", "manual"])
     ],
-    indices: ["nome_cientifico", "familia"],
+    indices: ["nome_cientifico", "familia", "flora_id"],
     leitura: "todos",
     escrita: SO_GESTOR
   },
   { nome: "sinonimo", natureza: "cadastro", porViveiro: false, campos: [r("especie_id", "especie", true), t("nome", true)], indices: ["especie_id", "nome"], leitura: "todos", escrita: SO_GESTOR },
-  { nome: "nome_popular", natureza: "cadastro", porViveiro: false, campos: [r("especie_id", "especie", true), t("nome", true), t("regiao")], indices: ["especie_id", "nome"], leitura: "todos", escrita: SO_GESTOR },
+  { nome: "nome_popular", natureza: "cadastro", porViveiro: false, campos: [r("especie_id", "especie", true), t("nome", true), t("nome_busca"), t("regiao")], indices: ["especie_id", "nome", "nome_busca"], leitura: "todos", escrita: SO_GESTOR },
   {
     nome: "especie_ocorrencia",
     natureza: "cadastro",
@@ -242,14 +252,21 @@ var COLECOES = [
       t("descricao_local"),
       r("proprietario_pessoa_id", "pessoa"),
       b("autorizacao_proprietario"),
+      o("tipo_local", TIPOS_LOCAL_MATRIZ),
       n("dap_cm"),
+      n("cap_cm"),
       n("altura_m"),
-      t("estado_arvore"),
+      o("estado_fitossanitario", ["bom", "regular", "ruim"]),
       o("situacao", ["ativa", "inativa", "morta"]),
       r("coletor_id", "users"),
-      t("observacao")
+      t("observacao"),
+      // validação pelo gestor: só matriz aprovada vai para coleta
+      o("situacao_validacao", SITUACOES_VALIDACAO),
+      r("validado_por", "users"),
+      d("validado_em"),
+      t("nota_validacao")
     ],
-    indices: ["codigo", "especie_id", "municipio_id"],
+    indices: ["codigo", "especie_id", "municipio_id", "situacao_validacao"],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: ["coletor", "gestor"]
   },
@@ -272,6 +289,16 @@ var COLECOES = [
     indices: ["matriz_id"],
     leitura: SO_GESTOR,
     escrita: SO_GESTOR
+  },
+  {
+    // Registro de fenologia a cada visita (calendário de frutificação).
+    nome: "fenologia",
+    natureza: "evento",
+    porViveiro: true,
+    campos: [r("matriz_id", "matriz", true), d("data", true), o("fases", FENOFASES, true, true), t("observacao")],
+    indices: ["matriz_id", "data"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: ["coletor", "viveirista", "gestor"]
   },
   { nome: "rota_campo", natureza: "cadastro", porViveiro: true, campos: [r("coletor_id", "users"), d("data"), j("matrizes_planejadas"), t("observacao")], leitura: TODOS_EXCETO_SOLICITANTE, escrita: ["coletor", "gestor"] },
   // ---- módulo 2: coleta e sementes ---------------------------------------
@@ -331,7 +358,7 @@ var COLECOES = [
     natureza: "cadastro",
     porViveiro: true,
     prefixoCodigo: "LM",
-    campos: [t("codigo", true), r("lote_sementes_id", "lote_sementes", true), r("especie_id", "especie", true), d("data_semeadura"), n("sementes_semeadas"), n("sementes_semeadas_g"), t("recipiente"), t("canteiro"), o("fase_atual", FASES_MUDA), o("situacao", ["ativo", "encerrado"])],
+    campos: [t("codigo", true), r("lote_sementes_id", "lote_sementes", true), r("especie_id", "especie", true), d("data_semeadura"), n("sementes_semeadas"), n("sementes_semeadas_g"), o("recipiente", RECIPIENTES), t("canteiro"), o("fase_atual", FASES_MUDA), o("situacao", ["ativo", "encerrado"])],
     indices: ["codigo", "lote_sementes_id", "especie_id", "fase_atual"],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: EQUIPE_VIVEIRO
@@ -595,7 +622,7 @@ function limparDados(col, dados) {
 function faltando(col, reg) {
   const obrig = col.campos.filter((c) => c.obrigatorio && c.tipo !== "arquivo").map((c) => c.nome);
   if (col.porViveiro) obrig.push("viveiro_id");
-  return obrig.filter((k) => reg[k] === void 0 || reg[k] === null || reg[k] === "");
+  return obrig.filter((k) => reg[k] === void 0 || reg[k] === null || reg[k] === "" || Array.isArray(reg[k]) && !reg[k].length);
 }
 function ajustarCodigo(col, reg, porta2) {
   if (!col.prefixoCodigo || typeof reg.codigo !== "string") return void 0;
