@@ -19,7 +19,13 @@ export function Tela({ titulo, children, voltar = true }: { titulo: string; chil
         <h1>{titulo}</h1>
       </header>
       <BarraSync />
-      <main className="conteudo">{children}</main>
+      <main className="conteudo">
+        {children}
+        <svg className="ondas" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 22 C 80 4, 160 36, 240 18 S 360 8, 400 16 V40 H0Z" fill="var(--azul)" />
+          <path d="M0 30 C 90 16, 170 40, 250 26 S 360 22, 400 28 V40 H0Z" fill="var(--azul-escuro)" />
+        </svg>
+      </main>
     </div>
   );
 }

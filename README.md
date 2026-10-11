@@ -241,6 +241,14 @@ No app, entre como gestor e vá em **Espécies → Importar**.
 - Ainda não há lista de municípios com contorno (IBGE). Por isso o filtro do
   assistente por município fica para quando essa base for importada. O filtro
   por bioma e época já funciona.
+- Visual:
+  - O app usa só as cores da logo do CRAD: verde `#48672f`, azul `#259ad4`,
+    azul-escuro `#33618d`, branco e tons claros dessas cores. A única exceção
+    são as figuras de cor de flor do assistente, porque ali a cor é a resposta.
+  - Do sistema SIACOB vêm só a tipografia, os tipos de botão e os grafismos
+    (círculos azuis, ondas). A estrutura das telas é a do próprio CRAD.
+  - A fonte (Inter, licença SIL OFL) fica dentro do app e funciona sem internet.
+  - As cores ficam em `app/src/estilo.css`, nas variáveis do topo.
 - Licença: **AGPL-3.0** (arquivo `LICENSE`). Quem adaptar e hospedar o app
   (outros municípios, consórcios) precisa manter o código aberto.
 
@@ -249,8 +257,6 @@ No app, entre como gestor e vá em **Espécies → Importar**.
 - `especificacao.md`: o projeto segue o prompt inicial. As regras marcadas
   como **[hipótese]** no modelo de dados continuam valendo até haver uma
   especificação.
-- Modelo visual (design): a ser enviado. As cores e os tamanhos estão em
-  `app/src/estilo.css` (variáveis no topo), para facilitar a troca.
 - Base de municípios do Tocantins com contorno (IBGE), para o filtro por
   município e o pacote de campo.
 - Modelo do termo de doação de mudas (PDF da retirada, Módulo 5).

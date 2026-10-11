@@ -47,12 +47,16 @@ export function Inicio() {
       <nav className="grade-blocos">
         {visiveis.map((b) => (
           <Link key={b.rota} to={b.rota} className="bloco">
-            <Icone nome={b.icone} tamanho={48} />
+            <span className="circulo">
+              <Icone nome={b.icone} tamanho={42} />
+            </span>
             <span>{b.rotulo}</span>
           </Link>
         ))}
         <Link to="/configuracoes" className="bloco bloco-secundario">
-          <Icone nome="configuracoes" tamanho={48} />
+          <span className="circulo">
+            <Icone nome="configuracoes" tamanho={42} />
+          </span>
           <span>Ajustes</span>
         </Link>
       </nav>

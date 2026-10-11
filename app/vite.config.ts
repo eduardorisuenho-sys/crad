@@ -8,17 +8,17 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['icones/*.png', 'icones/*.svg'],
+      includeAssets: ['icones/*.png', 'marca/*.png'],
       manifest: {
-        name: 'CRADS — Mudas Nativas',
-        short_name: 'CRADS',
+        name: 'CRAD — Mudas Nativas',
+        short_name: 'CRAD',
         description: 'Da árvore matriz ao plantio: matrizes, sementes, viveiro, doação e pós-plantio.',
         lang: 'pt-BR',
         start_url: '/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#f4f7f2',
-        theme_color: '#1f6f43',
+        background_color: '#ffffff',
+        theme_color: '#ffffff',
         icons: [
           { src: '/icones/icone-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icones/icone-512.png', sizes: '512x512', type: 'image/png' },

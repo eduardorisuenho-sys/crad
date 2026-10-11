@@ -49,7 +49,7 @@ export function Instalar() {
           <li>
             <img src="/icones/icone-192.png" alt="" width={48} height={48} />
             <span>
-              Abra sempre pelo <strong>ícone do CRADS</strong>. Assim o iPhone não apaga o que você guardou sem internet.
+              Abra sempre pelo <strong>ícone do CRAD</strong>. Assim o iPhone não apaga o que você guardou sem internet.
             </span>
           </li>
         </ol>

@@ -27,9 +27,7 @@ export function Entrar() {
   return (
     <div className="tela tela-entrar">
       <div className="marca">
-        <img src="/icones/icone-192.png" alt="" width={96} height={96} />
-        <h1>CRADS</h1>
-        <p>Mudas nativas do Tocantins</p>
+        <img src="/marca/logo-completa.png" alt="CRAD — Centro de Recuperação de Áreas Degradadas" />
       </div>
       <form onSubmit={aoEnviar} className="formulario">
         <label>
