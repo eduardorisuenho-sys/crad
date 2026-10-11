@@ -12,6 +12,7 @@ import { MiniaturaBlob } from '../../componentes/Miniatura';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { acompanharPosicao, type PosicaoGps } from '../../plataforma/gps';
+import { CAMPO_DECIMAL, lerNumero } from '../../plataforma/numero';
 import { Assistente, type GrauCerteza } from '../assistente/Assistente';
 import { FiguraOpcao } from '../assistente/FiguraOpcao';
 import { EscolherEspecie } from '../especies/EscolherEspecie';
@@ -26,9 +27,9 @@ interface Rascunho {
   grau_certeza?: GrauCerteza;
   metodo_identificacao?: 'assistente' | 'manual';
   respostas_assistente?: Record<string, string>;
-  altura_m?: number | null;
+  altura_m?: string;
   medida?: 'dap' | 'cap';
-  diametro_cm?: number | null;
+  diametro_cm?: string;
   estado_fitossanitario?: string;
   tipo_local?: string;
   descricao_local?: string;
@@ -123,6 +124,7 @@ export function NovaMatriz() {
     setErro('');
     try {
       const codigo = await repo.proximoCodigo('MT');
+      const diametro = lerNumero(r.diametro_cm ?? '');
       let proprietario: Registro | undefined;
       if (r.proprietario_nome?.trim()) {
         proprietario = await repo.salvar('pessoa', { nome: r.proprietario_nome.trim(), tipo: 'fisica' });
@@ -139,9 +141,9 @@ export function NovaMatriz() {
         lon: r.gps?.lon ?? null,
         precisao_m: r.gps?.precisao_m ?? null,
         altitude: r.gps?.altitude ?? null,
-        altura_m: r.altura_m ?? null,
-        dap_cm: r.medida !== 'cap' ? r.diametro_cm ?? null : r.diametro_cm ? Math.round((r.diametro_cm / Math.PI) * 10) / 10 : null,
-        cap_cm: r.medida === 'cap' ? r.diametro_cm ?? null : null,
+        altura_m: lerNumero(r.altura_m ?? ''),
+        dap_cm: r.medida !== 'cap' ? diametro : diametro ? Math.round((diametro / Math.PI) * 10) / 10 : null,
+        cap_cm: r.medida === 'cap' ? diametro : null,
         estado_fitossanitario: r.estado_fitossanitario ?? null,
         tipo_local: r.tipo_local ?? null,
         descricao_local: r.descricao_local ?? null,
@@ -343,7 +345,7 @@ export function NovaMatriz() {
           <h2 className="pergunta">Sobre a árvore</h2>
           <label>
             Altura (metros, aproximada)
-            <input type="number" inputMode="decimal" value={r.altura_m ?? ''} onChange={(e) => atualizar({ altura_m: e.target.value === '' ? null : Number(e.target.value) })} />
+            <input {...CAMPO_DECIMAL} value={r.altura_m ?? ''} onChange={(e) => atualizar({ altura_m: e.target.value })} />
           </label>
           <fieldset className="meses">
             <legend>Medida do tronco a 1,30 m do chão</legend>
@@ -356,7 +358,7 @@ export function NovaMatriz() {
           </fieldset>
           <label>
             {r.medida === 'cap' ? 'CAP' : 'DAP'} (centímetros)
-            <input type="number" inputMode="decimal" value={r.diametro_cm ?? ''} onChange={(e) => atualizar({ diametro_cm: e.target.value === '' ? null : Number(e.target.value) })} />
+            <input {...CAMPO_DECIMAL} value={r.diametro_cm ?? ''} onChange={(e) => atualizar({ diametro_cm: e.target.value })} />
           </label>
           <fieldset className="meses">
             <legend>Como está a árvore?</legend>

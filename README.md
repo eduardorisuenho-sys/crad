@@ -18,8 +18,37 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 |---|---|
 | 1. Base de dados e sincronização offline | **pronta** |
 | 2. Módulo 1, Matrizes, com o assistente de identificação | **pronta** |
-| 3. Módulo 2, Coleta e lotes de sementes | próxima |
-| 4 a 8. Viveiro, Catálogo, Doação (com Plantando Água), Pós-plantio, Relatórios | a fazer |
+| 3. Módulo 2, Coleta e lotes de sementes | **pronta** |
+| 4. Módulo 3, Viveiro | próxima |
+| 5 a 8. Catálogo, Doação (com Plantando Água), Pós-plantio, Relatórios | a fazer |
+
+O que o Módulo 2 entrega (tudo funciona sem internet):
+
+- **Registrar coleta**, uma coisa por tela:
+  - a matriz vem pela plaqueta (QR), pela busca ou pela lista ordenada por distância do GPS;
+  - quantidade em kg, g, litros ou frutos (aceita vírgula: "2,5");
+  - frutos ou sementes, foto opcional e GPS da coleta.
+  - **Só matriz aprovada pelo gestor recebe coleta.**
+- **Rota de coleta:** mapa simples, sem mapa de fundo, com as matrizes
+  aprovadas, quem teve **fruto maduro** nos últimos 45 dias, a posição do
+  coletor e a distância até cada matriz.
+- **Lotes de sementes** (viveirista e gestor):
+  - para formar o lote, escolha a espécie e as coletas. Uma espécie por lote,
+    e cada coleta entra em um lote só;
+  - **alerta de diversidade** quando o lote tem menos matrizes que o parâmetro
+    (12);
+  - informe peso, sementes estimadas, umidade e validade;
+  - código `LS-AAAA-NNN` e **etiqueta com QR** para o saco ou pote.
+- **Ficha do lote:**
+  - saldo, que é sempre a soma das movimentações;
+  - teste de germinação (%), descarte, ajuste e mudança de lugar;
+  - **saída maior que o saldo é bloqueada**;
+  - aviso de validade;
+  - **matrizes de origem**, o rastreio do lote até as árvores.
+- **Armazenamento** "como numa farmácia":
+  - endereço legível (ex.: `PAL-CAMARAFRIA1-E2-P3-CX4`) com QR;
+  - busca por código, lote ou espécie, que mostra onde a semente está;
+  - a leitura do QR da etiqueta abre o lote ou o endereço.
 
 O que o Módulo 1 entrega (tudo funciona sem internet):
 
@@ -229,6 +258,9 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   tabelas fica só para o superusuário.
 - A sessão do aparelho vale 30 dias sem internet (parâmetro
   `dias_sessao_offline`).
+- A rota de coleta ainda não tem mapa de fundo (ruas, rios): mostra os pontos
+  e as distâncias. O mapa de fundo offline entra com o pacote de campo.
+- Campos decimais aceitam vírgula ou ponto ("2,5" ou "2.5").
 - Gravação de trilha GPS não existe. Só o ponto da matriz, da coleta e da foto.
 - Fotos: lado maior de 1280 px (JPEG) e miniatura de 320 px. A miniatura fica
   no aparelho para ver as fotos sem internet.

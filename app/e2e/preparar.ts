@@ -18,6 +18,14 @@ export default async function preparar() {
   await criar('usuario_viveiro', { usuario_id: coletor.id, perfil: 'coletor', viveiro_id: VIVEIRO_TESTE });
   const especie = await criar('especie', { nome_cientifico: 'Ficticia campestris', familia: 'Ficticiaceae', ficticia: true });
   await criar('nome_popular', { especie_id: especie.id, nome: 'Árvore-de-campo-fictícia', nome_busca: 'arvore de campo ficticia' });
+  // Módulo 2: viveirista e uma matriz já aprovada, com fruto maduro.
+  const viveirista = await criarUsuario(s, 'viveirista@teste.local', { name: 'Viveirista Teste' });
+  await criar('usuario_viveiro', { usuario_id: viveirista.id, perfil: 'viveirista', viveiro_id: VIVEIRO_TESTE });
+  const matriz = await criar('matriz', {
+    codigo: 'MT-9001', especie_id: especie.id, grau_certeza: 'certo', situacao: 'ativa', situacao_validacao: 'aprovada',
+    lat: -10.19, lon: -48.34, viveiro_id: VIVEIRO_TESTE,
+  });
+  await criar('fenologia', { matriz_id: matriz.id, data: new Date().toISOString().slice(0, 10), fases: ['fruto_maduro'], viveiro_id: VIVEIRO_TESTE });
   process.env.CRADS_PB_URL = s.url;
   process.env.CRADS_PB_ADMIN = s.admin;
   return () => s.parar();

@@ -17,6 +17,12 @@ import { DetalheMatriz } from './modulos/matrizes/DetalheMatriz';
 import { LerQr } from './modulos/matrizes/LerQr';
 import { ListaMatrizes } from './modulos/matrizes/ListaMatrizes';
 import { NovaMatriz } from './modulos/matrizes/NovaMatriz';
+import { Armazenamento } from './modulos/coleta/Armazenamento';
+import { DetalheLote } from './modulos/coleta/DetalheLote';
+import { InicioColeta } from './modulos/coleta/InicioColeta';
+import { ListaLotes, NovoLote } from './modulos/coleta/Lotes';
+import { NovaColeta } from './modulos/coleta/NovaColeta';
+import { RotaColeta } from './modulos/coleta/RotaColeta';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -42,12 +48,19 @@ function Rotas() {
       <Route path="/matrizes/nova" element={<NovaMatriz />} />
       <Route path="/matrizes/:id" element={<DetalheMatriz />} />
       <Route path="/ler-qr" element={<LerQr />} />
+      <Route path="/coleta" element={<InicioColeta />} />
+      <Route path="/coleta/nova" element={<NovaColeta />} />
+      <Route path="/coleta/rota" element={<RotaColeta />} />
+      <Route path="/coleta/lotes" element={<ListaLotes />} />
+      <Route path="/coleta/lotes/novo" element={<NovoLote />} />
+      <Route path="/coleta/lotes/:id" element={<DetalheLote />} />
+      <Route path="/coleta/armazenamento" element={<Armazenamento />} />
       <Route path="/especies/importar" element={<ImportarEspecies />} />
       <Route path="/especies/:id" element={<FichaEspecie />} />
       <Route path="/avisos" element={<Avisos />} />
       <Route path="/instalar" element={<Instalar />} />
       <Route path="/configuracoes" element={<Configuracoes />} />
-      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes'].includes(b.rota)).map((b) => (
+      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta'].includes(b.rota)).map((b) => (
         <Route key={b.rota} path={`${b.rota}/*`} element={<EmBreve titulo={b.rotulo} icone={b.icone} />} />
       ))}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -204,6 +204,11 @@ progress { width: 100%; height: 14px; accent-color: var(--verde); }
 .qr svg { width: 100%; height: 100%; }
 .video-qr { width: 100%; max-height: 50vh; background: var(--azul-escuro); border-radius: var(--raio); object-fit: cover; }
 label.opcao, label.botao-grande { cursor: pointer; }
+.mapa-rota { width: 100%; height: auto; display: block; }
+.ponto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; }
+.ponto.verde { background: var(--verde); }
+.ponto.azul { background: var(--azul); }
+.ponto.escuro { background: var(--azul-escuro); }
 
 @media (min-width: 960px) {
   .grade-blocos { grid-template-columns: repeat(4, 1fr); }

@@ -306,7 +306,7 @@ var COLECOES = [
     nome: "coleta",
     natureza: "cadastro",
     porViveiro: true,
-    campos: [r("matriz_id", "matriz", true), d("data", true), r("coletor_id", "users"), o("material", ["fruto", "semente"]), n("quantidade"), o("unidade", ["g", "kg", "unidades", "litros"]), n("lat"), n("lon"), t("observacao")],
+    campos: [r("matriz_id", "matriz", true), d("data", true), r("coletor_id", "users"), o("material", ["fruto", "semente"]), n("quantidade"), o("unidade", ["g", "kg", "litros", "frutos", "unidades"]), n("lat"), n("lon"), t("observacao")],
     indices: ["matriz_id", "data"],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: ["coletor", "viveirista", "gestor"]

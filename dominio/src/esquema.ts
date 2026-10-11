@@ -341,7 +341,7 @@ export const COLECOES: Colecao[] = [
     nome: 'coleta',
     natureza: 'cadastro',
     porViveiro: true,
-    campos: [r('matriz_id', 'matriz', true), d('data', true), r('coletor_id', 'users'), o('material', ['fruto', 'semente']), n('quantidade'), o('unidade', ['g', 'kg', 'unidades', 'litros']), n('lat'), n('lon'), t('observacao')],
+    campos: [r('matriz_id', 'matriz', true), d('data', true), r('coletor_id', 'users'), o('material', ['fruto', 'semente']), n('quantidade'), o('unidade', ['g', 'kg', 'litros', 'frutos', 'unidades']), n('lat'), n('lon'), t('observacao')],
     indices: ['matriz_id', 'data'],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: ['coletor', 'viveirista', 'gestor'],
@@ -508,5 +508,6 @@ export const PARAMETROS_PADRAO: Record<string, { valor: unknown; descricao: stri
   dias_sessao_offline: { valor: 30, descricao: 'Dias que o aparelho pode ficar sem entrar na internet antes de pedir login de novo' },
   fotos_obrigatorias_matriz: { valor: ['arvore', 'folha'], descricao: 'Fotos que o coletor precisa tirar para salvar a matriz' },
   precisao_gps_maxima_m: { valor: 30, descricao: 'Precisão do GPS (metros) a partir da qual o app aceita o ponto sem perguntar' },
+  aviso_validade_sementes_dias: { valor: 60, descricao: 'Avisar quando faltar este número de dias para a validade de um lote de sementes' },
   tamanho_faixa_codigos: { valor: 20, descricao: 'Quantos códigos cada aparelho reserva por tipo no pacote de campo' },
 };

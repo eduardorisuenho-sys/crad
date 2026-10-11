@@ -37,7 +37,9 @@ Vieram da planilha de controle de mudas e da construção do Módulo 1:
   (figura desenhada no app).
 - `lote_mudas.recipiente` virou lista fechada: tubete, saquinho, sementeira
   e outros (embalagens da planilha).
-- Novos parâmetros: `fotos_obrigatorias_matriz` e `precisao_gps_maxima_m`.
+- Novos parâmetros: `fotos_obrigatorias_matriz`, `precisao_gps_maxima_m` e
+  `aviso_validade_sementes_dias`.
+- `coleta.unidade`: g, kg, litros, frutos e unidades.
 
 ## 1. Cadeia de rastreio (o “fio” do lote)
 

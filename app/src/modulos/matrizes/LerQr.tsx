@@ -1,6 +1,6 @@
 /** Lê o QR da plaqueta com a câmera e abre a ficha (funciona sem internet). */
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { lerCodigo } from '@crads/dominio';
 import { BotaoFoto } from '../../componentes/BotaoFoto';
 import { Icone } from '../../componentes/Icone';
@@ -11,21 +11,31 @@ import { lerQrDeImagem, lerQrDoVideo } from '../../plataforma/qr';
 /** Onde procurar cada tipo de código (os outros módulos entram aqui). */
 const ROTAS: Record<string, { colecao: string; rota: string }> = {
   MT: { colecao: 'matriz', rota: '/matrizes' },
+  LS: { colecao: 'lote_sementes', rota: '/coleta/lotes' },
 };
 
 export function LerQr() {
   const { db } = useApp();
   const navegar = useNavigate();
+  const [params] = useSearchParams();
+  const para = params.get('para');
   const video = useRef<HTMLVideoElement>(null);
   const [erro, setErro] = useState('');
   const [digitado, setDigitado] = useState('');
 
   async function abrir(texto: string) {
-    const c = lerCodigo(texto);
+    const codigo = texto.trim().toUpperCase();
+    const c = lerCodigo(codigo);
     const destino = c ? ROTAS[c.tipo] : undefined;
-    if (!c || !destino) return setErro(`O código "${texto}" não é de uma plaqueta do CRADS.`);
-    const reg = await db.colecao(destino.colecao).where('codigo').equals(texto.trim().toUpperCase()).first();
+    if (!c || !destino) {
+      // Etiqueta de endereço do armazenamento (ex.: PAL-CAMARAFRIA1-E2-P3)
+      const en = await db.colecao('endereco_armazenamento').where('codigo').equals(codigo).first();
+      if (en) return navegar(`/coleta/armazenamento?endereco=${encodeURIComponent(codigo)}`, { replace: true });
+      return setErro(`O código "${texto}" não é de uma plaqueta ou etiqueta do CRAD.`);
+    }
+    const reg = await db.colecao(destino.colecao).where('codigo').equals(codigo).first();
     if (!reg) return setErro(`${texto} ainda não está neste aparelho. Sincronize quando houver sinal.`);
+    if (para === 'coleta' && c.tipo === 'MT') return navegar(`/coleta/nova?matriz=${reg.id}`, { replace: true });
     navegar(`${destino.rota}/${reg.id}`, { replace: true });
   }
 

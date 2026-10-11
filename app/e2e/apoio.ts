@@ -16,6 +16,7 @@ export async function entrar(page: Page, email: string, saudacao: string) {
 
 export const entrarComoGestora = (page: Page) => entrar(page, 'gestora@teste.local', 'Olá, Gestora');
 export const entrarComoColetor = (page: Page) => entrar(page, 'coletor@teste.local', 'Olá, Coletor');
+export const entrarComoViveirista = (page: Page) => entrar(page, 'viveirista@teste.local', 'Olá, Viveirista');
 
 export async function lerDoServidor(colecao: string) {
   const r = await fetch(`${PB()}/api/collections/${colecao}/records?perPage=500`, { headers: { authorization: process.env.CRADS_PB_ADMIN! } });

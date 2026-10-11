@@ -1,8 +1,8 @@
 /** Ficha da matriz: plaqueta com QR, fotos, fenologia e validação do gestor. */
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { bloqueioAprovacao, FENOFASES, matrizesProximas, parametro, type MatrizResumo } from '@crads/dominio';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { bloqueioAprovacao, FENOFASES, matrizesProximas, parametro, podeColetar, type MatrizResumo } from '@crads/dominio';
 import { CodigoQr } from '../../componentes/CodigoQr';
 import { Icone } from '../../componentes/Icone';
 import { Miniatura } from '../../componentes/Miniatura';
@@ -94,6 +94,12 @@ export function DetalheMatriz() {
       <button className="botao-secundario nao-imprimir" onClick={() => window.print()}>
         Imprimir plaqueta
       </button>
+
+      {podeColetar(m as MatrizResumo) && (
+        <Link to={`/coleta/nova?matriz=${m.id}`} className="botao-principal nao-imprimir">
+          <Icone nome="semente" /> Registrar coleta
+        </Link>
+      )}
 
       <dl className="ficha nao-imprimir">
         <dt>Identificação</dt>
