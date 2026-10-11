@@ -314,7 +314,11 @@ export function NovaMatriz() {
                 <BotaoFoto
                   key={p.parte}
                   className={`opcao ${tiradas.length ? 'ativa' : ''}`}
-                  aoEscolher={async (arquivo) => setFotos([...fotos, await prepararFoto(arquivo, p.parte, r.gps ?? null)])}
+                  aoEscolher={async (arquivo) => {
+                    // A compressão é assíncrona: junta à lista atual, não à de quando a foto foi tirada.
+                    const nova = await prepararFoto(arquivo, p.parte, r.gps ?? null);
+                    setFotos((atuais) => [...atuais, nova]);
+                  }}
                 >
                   {tiradas.length ? <MiniaturaBlob blob={tiradas[tiradas.length - 1].miniatura} alt={p.rotulo} tamanho={72} /> : <FiguraOpcao nome={p.figura} />}
                   <span>
