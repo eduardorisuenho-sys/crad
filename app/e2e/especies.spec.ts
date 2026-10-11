@@ -20,11 +20,12 @@ test('gestora importa o modelo de planilha sem internet e as espécies sobem qua
 
   await page.getByLabel('Buscar espécie').fill('arvore de exemplo');
   await expect(page.getByText('Árvore-de-exemplo')).toBeVisible();
-  await expect(page.getByText('fictícia')).toBeVisible();
+  await expect(page.getByText('fictícia', { exact: true })).toBeVisible();
 
   await context.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
-  const especies = await lerDoServidor('especie');
+  // (outros testes rodam ao mesmo tempo no mesmo servidor: filtra pelo que este teste importou)
+  const especies = (await lerDoServidor('especie')).filter((e) => e.fonte_cadastro === 'planilha');
   expect(especies).toEqual([expect.objectContaining({ nome_cientifico: 'Ficticia exemplaris Fulano', ficticia: true, publicada: false, meses_flor: [9, 10, 11] })]);
-  expect((await lerDoServidor('nome_popular')).map((n) => n.nome)).toEqual(['Árvore-de-exemplo']);
+  expect((await lerDoServidor('nome_popular')).filter((n) => n.especie_id === especies[0].id).map((n) => n.nome)).toEqual(['Árvore-de-exemplo']);
 });

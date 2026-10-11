@@ -10,3 +10,6 @@ export * from './especies/nomes';
 export * from './especies/importar';
 export * from './especies/flora';
 export * from './planilha/xlsx';
+export * from './geo';
+export * from './assistente';
+export * from './exemplos';

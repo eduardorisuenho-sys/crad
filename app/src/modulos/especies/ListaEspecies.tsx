@@ -6,10 +6,12 @@ import { buscarNomes } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
+import { criarEspeciesFicticias, criarPerguntasPadrao } from '../assistente/dados';
 import { indiceBusca } from './dados';
 
 export function ListaEspecies() {
-  const { db, perfis } = useApp();
+  const { db, repo, perfis } = useApp();
+  const [aviso, setAviso] = useState('');
   const [busca, setBusca] = useState('');
   const [soRevisar, setSoRevisar] = useState(false);
   const especies = useLiveQuery(async () => (await db.colecao('especie').toArray()).filter((e) => !e.excluido), [db]) ?? [];
@@ -53,6 +55,21 @@ export function ListaEspecies() {
             <Icone nome="mais" /> Nova espécie
           </Link>
         </div>
+      )}
+      {gestor && (
+        <details className="cartao">
+          <summary>Assistente de identificação</summary>
+          <p className="dica">As perguntas padrão (folha, disposição, látex, espinhos, casca, flor, fruto) servem para marcar as características de cada espécie na ficha.</p>
+          <div className="acoes">
+            <button className="botao-secundario" onClick={async () => setAviso(`${await criarPerguntasPadrao(db, repo)} pergunta(s) criada(s).`)}>
+              Criar perguntas padrão
+            </button>
+            <button className="botao-secundario" onClick={async () => setAviso(`${await criarEspeciesFicticias(db, repo)} espécie(s) fictícia(s) criada(s) para treino.`)}>
+              Espécies fictícias de treino
+            </button>
+          </div>
+          {aviso && <p className="mensagem">{aviso}</p>}
+        </details>
       )}
       <ul className="lista">
         {lista.slice(0, 200).map((e) => (

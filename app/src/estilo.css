@@ -131,3 +131,21 @@ a { color: var(--verde-escuro); }
 a.item-lista { text-decoration: none; color: inherit; }
 a.botao-secundario { text-decoration: none; }
 progress { width: 100%; height: 20px; }
+
+/* assistente */
+.assistente { display: flex; flex-direction: column; gap: 14px; }
+.pergunta { font-size: 1.35rem; margin: 0; text-align: center; }
+.contador { margin: 0; text-align: center; color: var(--suave); }
+.link { background: none; border: 0; color: var(--verde-escuro); text-decoration: underline; font-weight: 700; padding: 0; }
+.grade-opcoes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.opcao { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 140px; padding: 10px; border-radius: var(--raio); background: #fff; border: 2px solid var(--borda); color: var(--verde-escuro); font-weight: 700; text-align: center; }
+.opcao.ativa { border-color: var(--verde); background: var(--verde-claro); }
+.opcao.nao-sei { color: var(--suave); }
+.opcao:active { background: var(--verde-claro); }
+.candidata input[type=checkbox] { width: 28px; height: 28px; }
+.alerta-texto { color: var(--alerta) !important; }
+.comparar { display: grid; gap: 8px; }
+.comparar .coluna { background: #fff; border: 2px solid var(--borda); border-radius: var(--raio); padding: 10px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.comparar .coluna p { margin: 0; }
+.mini-figuras { display: flex; gap: 4px; flex-wrap: wrap; }
+.dica { color: var(--suave); font-size: 0.95rem; margin: 0 0 8px; }

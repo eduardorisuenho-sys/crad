@@ -262,8 +262,8 @@ export const COLECOES: Colecao[] = [
     leitura: 'todos',
     escrita: SO_GESTOR,
   },
-  { nome: 'pergunta', natureza: 'cadastro', porViveiro: false, campos: [t('texto', true), o('parte', PARTES_PLANTA), n('ordem'), b('ativa')], indices: ['ordem'], leitura: 'todos', escrita: SO_GESTOR },
-  { nome: 'opcao', natureza: 'cadastro', porViveiro: false, campos: [r('pergunta_id', 'pergunta', true), t('rotulo', true), arq('figura'), n('ordem')], indices: ['pergunta_id'], leitura: 'todos', escrita: SO_GESTOR },
+  { nome: 'pergunta', natureza: 'cadastro', porViveiro: false, campos: [t('texto', true), t('chave'), o('parte', PARTES_PLANTA), n('ordem'), b('ativa')], indices: ['ordem', 'chave'], leitura: 'todos', escrita: SO_GESTOR },
+  { nome: 'opcao', natureza: 'cadastro', porViveiro: false, campos: [r('pergunta_id', 'pergunta', true), t('rotulo', true), t('chave'), arq('figura'), t('figura_padrao'), n('ordem')], indices: ['pergunta_id', 'chave'], leitura: 'todos', escrita: SO_GESTOR },
   { nome: 'especie_opcao', natureza: 'cadastro', porViveiro: false, campos: [r('especie_id', 'especie', true), r('opcao_id', 'opcao', true)], indices: ['especie_id', 'opcao_id'], leitura: 'todos', escrita: SO_GESTOR },
 
   // ---- módulo 1: matrizes -------------------------------------------------
