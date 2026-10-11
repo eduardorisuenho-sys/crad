@@ -37,6 +37,12 @@ export interface Aviso {
   resolvido: boolean;
 }
 
+/** Miniatura guardada no aparelho para mostrar a foto mesmo sem internet. */
+export interface Miniatura {
+  id: string;
+  blob: Blob;
+}
+
 export interface Meta {
   chave: string;
   valor: unknown;
@@ -52,6 +58,7 @@ export class BancoCrads extends Dexie {
   _avisos!: Table<Aviso, string>;
   _meta!: Table<Meta, string>;
   _faixas!: Table<FaixaLocal, number>;
+  _miniaturas!: Table<Miniatura, string>;
 
   constructor(nome = 'crads') {
     super(nome);
@@ -61,6 +68,7 @@ export class BancoCrads extends Dexie {
       _avisos: 'id, resolvido, registro_id',
       _meta: 'chave',
       _faixas: '++n, [tipo+ano]',
+      _miniaturas: 'id',
     };
     for (const c of COLECOES) {
       const idx = new Set<string>(['seq']);
@@ -69,7 +77,7 @@ export class BancoCrads extends Dexie {
       lojas[c.nome] = ['id', ...idx].join(', ');
     }
     // Ao mudar o esquema, aumente a versão (o Dexie migra os índices sozinho).
-    this.version(3).stores(lojas);
+    this.version(4).stores(lojas);
   }
 
   colecao(nome: string): Table<Registro, string> {

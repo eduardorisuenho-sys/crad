@@ -17,6 +17,7 @@ const CAMINHOS: Record<string, string> = {
   sair: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
   certo: 'M5 13l4 4 10-10',
   compartilhar: 'M12 3v12M7 8l5-5 5 5M5 13v8h14v-8',
+  lupa: 'M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM14.5 14.5L21 21',
   sinal: 'M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0M12 20v.5',
   semSinal: 'M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0M12 20v.5M3 3l18 18',
 };

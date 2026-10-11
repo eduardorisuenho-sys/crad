@@ -13,3 +13,4 @@ export * from './planilha/xlsx';
 export * from './geo';
 export * from './assistente';
 export * from './exemplos';
+export * from './matrizes';

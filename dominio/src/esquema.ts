@@ -506,5 +506,7 @@ export const PARAMETROS_PADRAO: Record<string, { valor: unknown; descricao: stri
   limite_mudas_por_pedido: { valor: 1000, descricao: 'Máximo de mudas num pedido' },
   perfis_aprovadores: { valor: ['gestor'], descricao: 'Perfis que podem aprovar doações' },
   dias_sessao_offline: { valor: 30, descricao: 'Dias que o aparelho pode ficar sem entrar na internet antes de pedir login de novo' },
+  fotos_obrigatorias_matriz: { valor: ['arvore', 'folha'], descricao: 'Fotos que o coletor precisa tirar para salvar a matriz' },
+  precisao_gps_maxima_m: { valor: 30, descricao: 'Precisão do GPS (metros) a partir da qual o app aceita o ponto sem perguntar' },
   tamanho_faixa_codigos: { valor: 20, descricao: 'Quantos códigos cada aparelho reserva por tipo no pacote de campo' },
 };

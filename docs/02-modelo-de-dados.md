@@ -21,6 +21,24 @@ Todo registro sincronizável tem estes campos de controle (omitidos nas tabelas 
 Quantidades de sementes ficam em **gramas** e/ou **unidades estimadas**. Mudas
 ficam sempre em **unidades**.
 
+## Mudanças depois da aprovação
+
+Vieram da planilha de controle de mudas e da construção do Módulo 1:
+
+- `especie`: `origem` (nativa, naturalizada, cultivada, exótica), `revisar`,
+  `nota_revisao` e `fonte_cadastro` (planilha, flora_funga, manual).
+- `nome_popular`: `nome_busca` (sem acento, para a busca).
+- `matriz`: `tipo_local`, `cap_cm`, `estado_fitossanitario` (bom, regular,
+  ruim) e validação (`situacao_validacao`, `validado_por`, `validado_em`,
+  `nota_validacao`).
+- Nova coleção `fenologia` (evento): matriz, data e fases (folha, flor, fruto
+  verde, fruto maduro, sem folha).
+- `pergunta` e `opcao` ganharam `chave`, e `opcao` ganhou `figura_padrao`
+  (figura desenhada no app).
+- `lote_mudas.recipiente` virou lista fechada: tubete, saquinho, sementeira
+  e outros (embalagens da planilha).
+- Novos parâmetros: `fotos_obrigatorias_matriz` e `precisao_gps_maxima_m`.
+
 ## 1. Cadeia de rastreio (o “fio” do lote)
 
 ```

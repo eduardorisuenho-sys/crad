@@ -17,8 +17,42 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | Etapa | Situação |
 |---|---|
 | 1. Base de dados e sincronização offline | **pronta** |
-| 2. Módulo 1, Matrizes, com o assistente de identificação | próxima |
-| 3 a 8. Coleta, Viveiro, Catálogo, Doação (com Plantando Água), Pós-plantio, Relatórios | a fazer |
+| 2. Módulo 1, Matrizes, com o assistente de identificação | **pronta** |
+| 3. Módulo 2, Coleta e lotes de sementes | próxima |
+| 4 a 8. Viveiro, Catálogo, Doação (com Plantando Água), Pós-plantio, Relatórios | a fazer |
+
+O que o Módulo 1 entrega (tudo funciona sem internet):
+
+- **Espécies:**
+  - lista com busca tolerante (sem acento, variação regional, erro de digitação);
+  - ficha editável pelo gestor;
+  - nomes populares;
+  - marcação **"revisar"** com o motivo.
+- **Importação de espécies** pela tela do gestor, sempre com prévia antes de gravar:
+  - da planilha de controle atual (aba "Espécies") ou do modelo completo `dados/modelo-especies.xlsx`;
+  - do pacote de dados abertos da **Flora e Funga do Brasil**, filtrado por UF e forma de vida.
+- **Assistente de identificação:**
+  - uma pergunta por tela, com figuras;
+  - "não sei" não pesa, e um engano é tolerado;
+  - filtro por bioma e época (flor/fruto no mês);
+  - comparação lado a lado;
+  - grau de certeza (certo, provável, a identificar).
+- **Cadastro de matriz:**
+  - GPS com a precisão em metros;
+  - espécie pelo assistente ou pelo nome;
+  - **alerta de matriz da mesma espécie a menos de 100 m**;
+  - fotos comprimidas no aparelho, com as obrigatórias definidas por parâmetro;
+  - dados da árvore (altura, DAP/CAP, estado, local);
+  - proprietário, com o telefone visível só para o gestor;
+  - plaqueta com QR code para imprimir.
+- **Ficha da matriz:**
+  - fotos, mesmo sem internet;
+  - registro de fenologia a cada visita;
+  - **validação do gestor**: confirma a espécie e aprova ou reprova. Só aprova com espécie "certa" e GPS válido.
+- **Lista de matrizes:**
+  - fila "para validar";
+  - **metas por espécie** (ex.: 12);
+  - leitura da plaqueta pelo QR (câmera, foto do QR ou digitando o código).
 
 O que a etapa 1 entrega:
 
@@ -142,8 +176,41 @@ uso. O app mostra esse aviso e um guia com figuras.
 
 ## Importar a planilha de espécies
 
-Chega com o Módulo 1, a próxima etapa. Os campos da ficha já estão no esquema
-(tabela `especie` e as tabelas ligadas a ela).
+No app, entre como gestor e vá em **Espécies → Importar**.
+
+- **Planilha (.xlsx, .xlsm ou .csv):**
+  - O app acha as colunas pelo título: *Nome popular* (aceita "Nome Polular"),
+    *Família* e *Nome científico*. As outras colunas da ficha são opcionais.
+  - Pode ser a planilha de controle usada hoje: só a lista de espécies é lida,
+    sem quantidades.
+  - O modelo completo, com instruções, está em `dados/modelo-especies.xlsx`.
+  - A mesma espécie em várias linhas vira um registro só, com todos os nomes
+    populares. "Pau-de-óleo/Copaíba" vira dois nomes.
+  - Variedades e subespécies ficam separadas.
+  - É marcado **"revisar"**, com o motivo: família diferente na mesma espécie,
+    nome com "ou" ou "et al." e nome só até o gênero.
+  - A importação **nunca sobrescreve** a ficha: só completa campos vazios e
+    acrescenta nomes populares. Pode importar de novo sem duplicar.
+  - A linha de exemplo do modelo (família "Ficticiaceae") entra marcada como
+    fictícia e não aparece no catálogo.
+- **Flora e Funga do Brasil (.zip):**
+  - Baixe o pacote "Darwin Core Archive" da Lista de Espécies da Flora do
+    Brasil no IPT do JBRJ (ipt.jbrj.gov.br) e envie o .zip.
+  - Entram as espécies aceitas que ocorrem na UF (TO), por padrão árvores,
+    arbustos e palmeiras, com nomes populares, sinônimos, biomas e origem
+    (nativa, cultivada…).
+  - Se o nome da planilha for sinônimo na Flora, a espécie é marcada
+    "revisar" com o nome aceito. A troca de nome fica com a equipe.
+  - Atenção: este importador foi testado com um pacote de exemplo no formato
+    oficial, mas não com o arquivo real, porque a rede usada no
+    desenvolvimento não alcança o site do JBRJ. Teste com o arquivo verdadeiro
+    na primeira importação e confira a prévia.
+- **Assistente:** em **Espécies → Assistente de identificação**:
+  - "Criar perguntas padrão" cria as perguntas de folha, disposição, látex,
+    espinhos, casca, flor e fruto;
+  - na ficha de cada espécie, o gestor marca as respostas que valem para ela;
+  - "Espécies fictícias de treino" cria 5 espécies inventadas para
+    treinar a equipe.
 
 ## Decisões pequenas tomadas sem consulta
 
@@ -162,14 +229,29 @@ Chega com o Módulo 1, a próxima etapa. Os campos da ficha já estão no esquem
   tabelas fica só para o superusuário.
 - A sessão do aparelho vale 30 dias sem internet (parâmetro
   `dias_sessao_offline`).
+- Gravação de trilha GPS não existe. Só o ponto da matriz, da coleta e da foto.
+- Fotos: lado maior de 1280 px (JPEG) e miniatura de 320 px. A miniatura fica
+  no aparelho para ver as fotos sem internet.
+- As fotos obrigatórias da matriz (árvore inteira e folhas) e a precisão
+  mínima do GPS (30 m) são parâmetros do gestor.
+- O QR da plaqueta guarda só o código (ex.: `MT-0123`): qualquer leitor
+  mostra o código, e o CRADS abre a ficha.
+- O gestor aprova uma matriz só com a espécie confirmada como "certo" e com
+  GPS válido. Só matriz aprovada poderá fornecer sementes (Módulo 2).
+- Ainda não há lista de municípios com contorno (IBGE). Por isso o filtro do
+  assistente por município fica para quando essa base for importada. O filtro
+  por bioma e época já funciona.
 - Licença: **AGPL-3.0** (arquivo `LICENSE`). Quem adaptar e hospedar o app
   (outros municípios, consórcios) precisa manter o código aberto.
 
 ## Pendências
 
-- `especificacao.md`: ainda **não foi adicionada** ao repositório. As regras
-  marcadas como **[hipótese]** no modelo de dados serão conferidas contra ela.
-- Tabela de sementes e mudas (para os campos de espécie, lote e estoque e para
-  a importação inicial).
+- `especificacao.md`: o projeto segue o prompt inicial. As regras marcadas
+  como **[hipótese]** no modelo de dados continuam valendo até haver uma
+  especificação.
+- Modelo visual (design): a ser enviado. As cores e os tamanhos estão em
+  `app/src/estilo.css` (variáveis no topo), para facilitar a troca.
+- Base de municípios do Tocantins com contorno (IBGE), para o filtro por
+  município e o pacote de campo.
 - Modelo do termo de doação de mudas (PDF da retirada, Módulo 5).
 - Modelo da ficha de solicitação de mudas.

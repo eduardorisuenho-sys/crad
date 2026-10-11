@@ -30,5 +30,5 @@ test('o app abre e grava sem internet, e envia quando o sinal volta', async ({ p
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await expect(page.getByText('não enviado')).toHaveCount(0);
 
-  expect(await lerDoServidor('viveiro')).toEqual([expect.objectContaining({ nome: 'Viveiro de Palmas', sigla: 'PAL', versao: 1 })]);
+  expect((await lerDoServidor('viveiro')).filter((v) => v.sigla === 'PAL')).toEqual([expect.objectContaining({ nome: 'Viveiro de Palmas', versao: 1 })]);
 });

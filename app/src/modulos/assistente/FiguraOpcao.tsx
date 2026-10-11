@@ -39,6 +39,7 @@ const FIGURAS: Record<string, JSX.Element> = {
   fruto_alado: <><ellipse cx={22} cy={40} rx={7} ry={9} fill="#8d6e53" /><path d="M26 34c8-16 22-26 30-26-2 12-14 26-30 30z" fill="#d7c4a3" stroke="#8d6e53" strokeWidth={2} /></>,
   fruto_capsula: <><path d="M32 10c-10 10-12 30 0 46 12-16 10-36 0-46z" fill="#a1887f" stroke="#4e342e" strokeWidth={2} /><path d="M32 12v42" stroke="#4e342e" strokeWidth={2} /></>,
   fruto_coco: <><ellipse cx={32} cy={36} rx={18} ry={22} fill="#8d6e53" stroke="#4e342e" strokeWidth={2} /><circle cx={26} cy={26} r={2.5} fill="#3e2723" /><circle cx={36} cy={24} r={2.5} fill="#3e2723" /></>,
+  arvore: <><rect x={28} y={36} width={8} height={24} fill="#8d6e53" /><circle cx={32} cy={24} r={18} fill="#7fb38f" stroke="#1f6f43" strokeWidth={2} /></>,
   nao_sei: <><circle cx={32} cy={32} r={24} {...T} /><path d="M25 25a7 7 0 1 1 9 7c-2 1-2 3-2 6M32 46v1" {...T} /></>,
 };
 
