@@ -34,10 +34,12 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
       op({ colecao: 'lote_sementes_coleta', tipo: 'criar', dados: { lote_sementes_id: ls, coleta_id: col, viveiro_id: VIV } }),
       op({ colecao: 'lote_mudas', registro_id: lm, tipo: 'criar', dados: { codigo: 'LM-2026-777-A', lote_sementes_id: ls, especie_id: especie, data_semeadura: '2026-02-01', fase_atual: 'pronta', viveiro_id: VIV } }),
       op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: lm, tipo: 'entrada', quantidade: 80, data: '2026-03-01', viveiro_id: VIV } }),
-      op({ colecao: 'reserva', tipo: 'criar', dados: { doacao_item_id: 'x', lote_mudas_id: lm, quantidade: 30, situacao: 'ativa', viveiro_id: VIV } }),
     ];
     const r = await chamar(s, gestor.token, 'POST', '/api/crads/sync/enviar', { dispositivo_id: 'aparelho0000009', operacoes: ops });
     expect(r.dados.resultados.every((x: { status: string }) => x.status === 'aplicada')).toBe(true);
+    // Reserva só nasce no servidor (na análise do pedido); aqui, direto pelo painel.
+    const res = await chamar(s, s.admin, 'POST', '/api/collections/reserva/records', { doacao_item_id: 'x', lote_mudas_id: lm, quantidade: 30, situacao: 'ativa', viveiro_id: VIV });
+    expect(res.status).toBe(200);
   }, 30_000);
   afterAll(() => s?.parar());
 
