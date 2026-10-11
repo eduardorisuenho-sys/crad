@@ -116,7 +116,7 @@ a lado com fotos. O coletor marca o grau de certeza (`certo`, `provavel` ou
 | `matriz` | `codigo` MT-0123, `especie_id` (vazio se “a identificar”), `grau_certeza`, `metodo_identificacao` (assistente ou manual), `respostas_assistente` (JSON), viveiro, município, `lat`, `lon`, `precisao_m`, altitude, descrição do local, `proprietario_pessoa_id`, autorização do proprietário, DAP (cm), altura (m), estado da árvore, situação (ativa, inativa, morta), coletor |
 | `foto` (genérica) | `entidade` + `registro_id`, parte da planta, arquivo comprimido, miniatura, `lat`/`lon` e data no momento da foto, autor, situação de envio |
 | `sugestao_identificacao` | matriz, fonte (Pl@ntNet ou iNaturalist), espécie sugerida, pontuação, situação (pendente, aceita, rejeitada), revisado por. **Fase posterior**, só no servidor. |
-| `rota_campo` | coletor, data, matrizes planejadas, trilha gravada (GeoJSON) |
+| `rota_campo` | coletor, data, matrizes planejadas (sem gravação de trilha) |
 
 ## 6. Módulo 2 — Coleta e lotes de sementes
 

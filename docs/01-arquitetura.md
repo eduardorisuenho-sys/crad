@@ -13,13 +13,13 @@
 
 | Requisito | PWA (React + TS + Vite) | Nativo (React Native / Expo) |
 |---|---|---|
-| **Offline** | Service Worker (Workbox) guarda o app; dados em IndexedDB (Dexie). No Android/Chrome, `navigator.storage.persist()` protege os dados contra limpeza automática. É confiável no Android. No iOS o navegador pode apagar os dados, mas o público é Android. | SQLite nativo, que é o mais robusto. Vantagem pequena no Android. |
+| **Offline** | Service Worker (Workbox) guarda o app; dados em IndexedDB (Dexie). `navigator.storage.persist()` protege os dados contra limpeza automática (Chrome Android e Safari 17+). **No iPhone o app precisa ser instalado na tela de início**: no Safari comum, os dados podem ser apagados após 7 dias sem uso. O app mostra um guia de instalação no primeiro acesso. | SQLite nativo, que é o mais robusto. |
 | **GPS** | API de Geolocalização funciona sem internet (usa o chip GPS). **Limite:** não grava a trilha com a tela desligada. | Grava em segundo plano. |
 | **Câmera + compressão** | `<input capture>` ou `getUserMedia` + compressão em canvas (JPEG/WebP, ~1280 px, ~150 KB). Funciona bem em aparelhos simples. | Equivalente. |
-| **QR code** | `BarcodeDetector` (nativo do Chrome Android) com reserva em `zxing-wasm` para navegadores sem a API. | Equivalente (expo-camera). |
+| **QR code** | `BarcodeDetector` no Chrome Android; `zxing-wasm` no iPhone (Safari não tem a API) e em navegadores antigos. | Equivalente (expo-camera). |
 | **Mapa offline** | MapLibre GL + arquivo **PMTiles** da região, guardado no aparelho (OPFS/IndexedDB). Funciona, com um pouco mais de código. | MapLibre nativo tem “pacotes offline” prontos. Vantagem nativa. |
 | **Computador (gestor, relatórios, portal)** | O mesmo app, no navegador. | Exige `react-native-web`, mais fraco para telas de administração, ou um segundo app web. |
-| **Distribuição e atualização** | Um link, “Instalar na tela inicial”, e atualização automática. Sem loja. | Play Store (US$ 25), builds (cota gratuita do EAS limitada), revisões da loja e usuários com versões antigas. |
+| **Distribuição e atualização** | Um link, “Instalar na tela inicial”, e atualização automática. Sem loja, no Android e no iPhone. | Play Store (US$ 25) **e App Store (US$ 99 por ano, que quebra o custo zero)**, builds (cota gratuita do EAS limitada), revisões das lojas e usuários com versões antigas. |
 | **Custo e manutenção** | Um código, hospedagem estática gratuita, equipe web comum. | Dois alvos e mais ferramentas. |
 | **Adoção por outros municípios** | Basta hospedar os arquivos estáticos e o servidor. | É preciso publicar outro app na loja ou usar o mesmo app multi-instalação. |
 
@@ -27,12 +27,13 @@
 
 **PWA**, como você sugeriu. As únicas vantagens reais do nativo são a trilha GPS
 em segundo plano e os pacotes de mapa offline. A segunda resolve-se com PMTiles.
-A primeira não é exigida: “mapa da rota” significa mostrar a rota e as matrizes
-planejadas offline, e gravar a trilha só com o app aberto **[hipótese]**.
+A primeira **não é exigida** (confirmado): o app grava offline só o **ponto
+GPS da matriz**, e o mapa da rota mostra as matrizes e a posição atual, sem
+gravar trilha. Como há usuários de **iPhone**, o nativo também exigiria a
+App Store (US$ 99/ano). Isso reforça a escolha do PWA.
 
-**Saída de emergência:** se um dia for preciso GPS em segundo plano ou
-armazenamento garantido, o mesmo código pode ser empacotado com **Capacitor**
-(APK) sem reescrever nada. Por isso a lógica de câmera, GPS e arquivos fica
+**Saída de emergência:** se um dia for preciso armazenamento garantido, o
+mesmo código pode ser empacotado com **Capacitor** (APK) sem reescrever nada. Por isso a lógica de câmera, GPS e arquivos fica
 atrás de uma camada `plataforma/`.
 
 ## 2. Backend: PocketBase (recomendado) × Supabase
@@ -46,10 +47,11 @@ atrás de uma camada `plataforma/`.
 | LGPD | Regras de acesso por coleção. CPF e telefone ficam numa coleção separada que só o gestor lê. | RLS por linha e coluna. |
 | Sincronização offline | Nenhuma pronta nos dois. Será um endpoint próprio (`/api/sync`), descrito abaixo. | Igual. |
 
-**Recomendação: PocketBase.** O plano gratuito do Supabase pausar sozinho e ter
-1 GB de arquivos são os pontos que decidem. Se a secretaria já tiver Postgres e
-equipe para mantê-lo, Supabase passa a fazer sentido. **Essa é uma das
-perguntas abaixo.**
+**Decisão: PocketBase na VM gratuita da Oracle Cloud (Always Free)**,
+confirmada pela opção “hospedagem gratuita”. O README terá o passo a passo.
+Cuidado conhecido: a Oracle pode recuperar VMs gratuitas ociosas, por isso o
+backup diário automático para armazenamento externo gratuito (R2/B2) é
+obrigatório, e a reinstalação deve levar poucos minutos com o script.
 
 ## 3. Stack proposta
 
@@ -141,13 +143,11 @@ docs/         este plano, modelo de dados, decisões
 Cada etapa traz testes das regras de negócio em Vitest e um teste do fluxo sem
 internet em Playwright.
 
-## 7. Perguntas que mudam a arquitetura
+## 7. Decisões confirmadas
 
-1. **Onde o servidor vai rodar?** A secretaria ou a ATI-TO tem servidor/VM?
-   Ou aprovamos a VM gratuita da Oracle Cloud? Isso também decide entre
-   PocketBase e Supabase.
-2. **Gravar a trilha GPS com a tela desligada** é obrigatório? Se for, o app
-   precisa ser empacotado como APK (Capacitor) desde o início.
-3. **Coordenadas das matrizes** podem aparecer no portal público ou só o
-   município? Árvores em propriedade privada costumam ficar ocultas.
-4. **iPhone:** alguém da equipe usa iOS? A proposta assume só Android e computador.
+1. **Servidor:** gratuito. PocketBase na Oracle Cloud Always Free, app estático no Cloudflare Pages.
+2. **GPS:** só o ponto da matriz (e das coletas e fotos), offline. Sem gravação de trilha.
+3. **Coordenadas no portal público:** em aberto (ver pergunta no README/conversa).
+   Enquanto não houver resposta, o portal mostra só o município.
+4. **Aparelhos:** iPhone, Android e computador. O app é testado no Chrome
+   Android, no Safari iOS e em navegadores de computador.
