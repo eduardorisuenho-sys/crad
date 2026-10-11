@@ -35,6 +35,8 @@ export function LerQr() {
       return setErro(`O código "${texto}" não é de uma plaqueta ou etiqueta do CRAD.`);
     }
     const reg = await db.colecao(destino.colecao).where('codigo').equals(codigo).first();
+    // Lote de mudas que não está no aparelho (ex.: muda doada): mostra o rastreio público.
+    if (c.tipo === 'LM' && !reg) return navegar(`/rastreio/${codigo}`, { replace: true });
     if (!reg) return setErro(`${texto} ainda não está neste aparelho. Sincronize quando houver sinal.`);
     if (para === 'coleta' && c.tipo === 'MT') return navegar(`/coleta/nova?matriz=${reg.id}`, { replace: true });
     navegar(`${destino.rota}/${reg.id}`, { replace: true });

@@ -66,3 +66,27 @@ onRecordDeleteRequest((e) => {
   }
   e.next();
 });
+
+// Catálogo público: sem login, só dados públicos (sem coordenadas nem dados pessoais).
+routerAdd("GET", "/api/crads/publico/catalogo", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  return e.json(200, crads.catalogoPublico($app));
+});
+
+routerAdd("GET", "/api/crads/publico/especie/{id}", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.especiePublica($app, e.request.pathValue("id")));
+  } catch (err) {
+    throw new NotFoundError(String(err).replace(/^Error: /, ""));
+  }
+});
+
+routerAdd("GET", "/api/crads/publico/rastreio/{codigo}", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.rastreioPublico($app, e.request.pathValue("codigo")));
+  } catch (err) {
+    throw new NotFoundError(String(err).replace(/^Error: /, ""));
+  }
+});

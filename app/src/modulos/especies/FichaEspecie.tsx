@@ -7,6 +7,7 @@ import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { CaracteresAssistente } from './CaracteresAssistente';
+import { FotosEspecie } from './FotosEspecie';
 import { adicionarNomePopular, nomesPopularesDe } from './dados';
 import { GRUPOS_FICHA, NOMES_MESES, rotulo } from './rotulos';
 
@@ -141,6 +142,7 @@ export function FichaEspecie() {
           )}
         </section>
       )}
+      {!nova && id && <FotosEspecie especieId={id} editavel={gestor} />}
       {!nova && id && <CaracteresAssistente especieId={id} editavel={gestor} />}
       <form onSubmit={salvar} className="formulario">
         {GRUPOS_FICHA.map((g) => (

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../contexto';
 import { entrar, SERVIDOR_PADRAO } from '../dados/sessao';
 
@@ -42,6 +43,9 @@ export function Entrar() {
         <button className="botao-principal" disabled={enviando}>
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
+        <Link to="/catalogo" className="botao-secundario">
+          Ver o catálogo de mudas (sem login)
+        </Link>
         <details className="avancado">
           <summary>Endereço do servidor</summary>
           <input value={servidor} onChange={(e) => setServidor(e.target.value)} aria-label="Endereço do servidor" />

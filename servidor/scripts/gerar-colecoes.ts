@@ -39,7 +39,7 @@ const json = (name: string): CampoPB => ({ name, type: 'json', maxSize: 2_000_00
 // A validação de obrigatórios fica no domínio: no PocketBase, "obrigatório"
 // recusaria 0 e false. Referências são texto (não "relation") porque, offline,
 // um filho pode chegar antes do pai.
-function campoPB(c: Campo): CampoPB {
+function campoPB(c: Campo, publico = false): CampoPB {
   switch (c.tipo) {
     case 'texto':
     case 'data':
@@ -52,7 +52,7 @@ function campoPB(c: Campo): CampoPB {
     case 'json':
       return json(c.nome);
     case 'arquivo':
-      return { name: c.nome, type: 'file', maxSelect: 1, maxSize: 15_000_000, protected: true };
+      return { name: c.nome, type: 'file', maxSelect: 1, maxSize: 15_000_000, protected: !publico };
     case 'opcao':
       return { name: c.nome, type: 'select', values: [...c.opcoes!], maxSelect: c.multiplo ? c.opcoes!.length : 1 };
   }
@@ -73,12 +73,13 @@ const CONTROLE: CampoPB[] = [
 const SEM_ACESSO_DIRETO = { listRule: null, viewRule: null, createRule: null, updateRule: null, deleteRule: null };
 
 function colecaoPB(c: Colecao) {
-  const fields = [campoId, ...c.campos.map(campoPB), ...(c.porViveiro ? [txt('viveiro_id')] : []), ...CONTROLE, ...datas];
+  const fields = [campoId, ...c.campos.map((f) => campoPB(f, c.publico)), ...(c.porViveiro ? [txt('viveiro_id')] : []), ...CONTROLE, ...datas];
   const indexes = [`CREATE INDEX idx_${c.nome}_seq ON ${c.nome} (seq)`];
   if (c.porViveiro) indexes.push(`CREATE INDEX idx_${c.nome}_viveiro ON ${c.nome} (viveiro_id, seq)`);
   if (c.prefixoCodigo) indexes.push(`CREATE UNIQUE INDEX idx_${c.nome}_codigo ON ${c.nome} (codigo) WHERE codigo != ''`);
   if (c.campoDono && c.campoDono !== 'criado_por') indexes.push(`CREATE INDEX idx_${c.nome}_dono ON ${c.nome} (${c.campoDono})`);
-  return { name: c.nome, type: 'base', fields, indexes, ...SEM_ACESSO_DIRETO };
+  // Coleção pública: qualquer um vê um registro pelo id (e baixa o arquivo); listar continua fechado.
+  return { name: c.nome, type: 'base', fields, indexes, ...SEM_ACESSO_DIRETO, ...(c.publico ? { viewRule: 'excluido = false' } : {}) };
 }
 
 /** Coleções só do servidor (não vão para o aparelho). */

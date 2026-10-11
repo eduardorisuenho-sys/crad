@@ -204,6 +204,22 @@ progress { width: 100%; height: 14px; accent-color: var(--verde); }
 .qr svg { width: 100%; height: 100%; }
 .video-qr { width: 100%; max-height: 50vh; background: var(--azul-escuro); border-radius: var(--raio); object-fit: cover; }
 label.opcao, label.botao-grande { cursor: pointer; }
+/* catálogo público */
+.topo-publico img { display: block; }
+.botao-entrar { margin-left: auto; min-height: 44px; padding: 0 14px; }
+.grade-catalogo { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.cartao-especie { display: flex; flex-direction: column; gap: 4px; background: var(--branco); border: 1px solid var(--azul-escuro-25); border-radius: var(--raio); padding: 10px; text-decoration: none; color: var(--azul-escuro); height: 100%; }
+.cartao-especie img, .cartao-especie .sem-foto { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; background: var(--verde-10); display: grid; place-items: center; color: var(--verde); }
+.cartao-especie small { color: var(--suave); }
+.cartao-especie .selo { align-self: flex-start; }
+.cadeia { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.cadeia li { display: flex; gap: 10px; align-items: flex-start; }
+.cadeia svg { color: var(--verde); flex: none; }
+.lote-publico { border-top: 1px solid var(--azul-escuro-10); padding: 10px 0; display: flex; flex-direction: column; gap: 6px; }
+.lote-publico:first-of-type { border-top: 0; }
+.lote-publico small { color: var(--suave); }
+.ficha div { display: contents; }
+@media (min-width: 700px) { .grade-catalogo { grid-template-columns: repeat(4, 1fr); } }
 .campo-contagem { width: 96px; min-height: var(--toque); border: 2px solid var(--azul-escuro-25); border-radius: 12px; padding: 0 10px; text-align: center; font-weight: 700; }
 .mapa-rota { width: 100%; height: auto; display: block; }
 .ponto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; }

@@ -16,3 +16,4 @@ export * from './exemplos';
 export * from './matrizes';
 export * from './sementes';
 export * from './viveiro';
+export * from './catalogo';

@@ -26,6 +26,16 @@ export default async function preparar() {
     lat: -10.19, lon: -48.34, viveiro_id: VIVEIRO_TESTE,
   });
   await criar('fenologia', { matriz_id: matriz.id, data: new Date().toISOString().slice(0, 10), fases: ['fruto_maduro'], viveiro_id: VIVEIRO_TESTE });
+  // Módulo 4: espécie publicada (nome de teste) com um lote de mudas pronto.
+  const publica = await criar('especie', { nome_cientifico: 'Catalogia demonstrativa', familia: 'Testaceae', publicada: true, folha: 'composta' });
+  await criar('nome_popular', { especie_id: publica.id, nome: 'Árvore-do-catálogo', nome_busca: 'arvore do catalogo' });
+  const mPub = await criar('matriz', { codigo: 'MT-9002', especie_id: publica.id, grau_certeza: 'certo', situacao_validacao: 'aprovada', lat: -10.3, lon: -48.3, viveiro_id: VIVEIRO_TESTE });
+  const cPub = await criar('coleta', { matriz_id: mPub.id, data: '2026-01-05', viveiro_id: VIVEIRO_TESTE });
+  const lsPub = await criar('lote_sementes', { codigo: 'LS-2026-901', especie_id: publica.id, data_formacao: '2026-01-10', viveiro_id: VIVEIRO_TESTE });
+  await criar('lote_sementes_coleta', { lote_sementes_id: lsPub.id, coleta_id: cPub.id, viveiro_id: VIVEIRO_TESTE });
+  const lmPub = await criar('lote_mudas', { codigo: 'LM-2026-901-A', lote_sementes_id: lsPub.id, especie_id: publica.id, data_semeadura: '2026-02-01', fase_atual: 'pronta', viveiro_id: VIVEIRO_TESTE });
+  await criar('movimento_estoque_mudas', { lote_mudas_id: lmPub.id, tipo: 'entrada', quantidade: 60, data: '2026-03-01', viveiro_id: VIVEIRO_TESTE });
+  process.env.CRADS_ESPECIE_PUBLICA = publica.id;
   process.env.CRADS_PB_URL = s.url;
   process.env.CRADS_PB_ADMIN = s.admin;
   return () => s.parar();

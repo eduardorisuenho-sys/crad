@@ -54,6 +54,8 @@ export interface Colecao {
    * em que ele é o dono.
    */
   campoDono?: string;
+  /** registros e arquivos visíveis sem login (ex.: fotos do catálogo) */
+  publico?: boolean;
   /** prefixo de código legível gerado por faixa (MT, LS, LM, DO) */
   prefixoCodigo?: PrefixoCodigo;
 }
@@ -257,6 +259,7 @@ export const COLECOES: Colecao[] = [
     nome: 'especie_foto',
     natureza: 'cadastro',
     porViveiro: false,
+    publico: true,
     campos: [r('especie_id', 'especie', true), o('parte', PARTES_PLANTA, true), arq('arquivo'), arq('miniatura'), t('credito'), t('licenca')],
     indices: ['especie_id'],
     leitura: 'todos',

@@ -20,8 +20,30 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 2. Módulo 1, Matrizes, com o assistente de identificação | **pronta** |
 | 3. Módulo 2, Coleta e lotes de sementes | **pronta** |
 | 4. Módulo 3, Viveiro | **pronta** |
-| 5. Módulo 4, Catálogo público | próxima |
-| 6 a 8. Doação (com Plantando Água), Pós-plantio, Relatórios | a fazer |
+| 5. Módulo 4, Catálogo público | **pronta** |
+| 6. Módulo 5, Doação de mudas (com Plantando Água) | próxima |
+| 7 e 8. Pós-plantio, Relatórios | a fazer |
+
+O que o Módulo 4 entrega:
+
+- **Catálogo público, sem login** (`/catalogo`, com link na tela de entrada):
+  - espécies com **mudas prontas** e a quantidade **já sem as reservas** de pedidos aprovados;
+  - total e quantidade por viveiro, foto, busca por nome e filtro por viveiro.
+- **Ficha pública da espécie:**
+  - fotos por parte da planta, nomes populares e como reconhecer;
+  - meses de flor e fruto e referência do Lorenzi;
+  - onde tem mudas.
+- **Rastreio do lote**, na ficha ou pelo código `LM-…`:
+  - de quantas matrizes vieram as sementes e em quais municípios;
+  - lote de sementes e datas;
+  - **nunca** a coordenada da árvore, o proprietário, o coletor ou o código da matriz.
+- **Regras de publicação:**
+  - só aparece espécie marcada pelo gestor como **"Aparece no catálogo"**;
+  - espécies fictícias de treino nunca aparecem.
+- **Sem internet:** o catálogo, as fichas já vistas e as fotos ficam guardados
+  no aparelho e abrem com o aviso "mostrando o catálogo de [data]".
+- **Fotos da espécie:** o gestor envia na ficha, comprimidas no aparelho, por
+  parte (muda, árvore, folha, casca, flor, fruto, semente).
 
 O que o Módulo 3 entrega (tudo funciona sem internet):
 
@@ -284,6 +306,8 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   sem faixa reservada), o lote de mudas também nasce provisório. Ao
   sincronizar, o servidor gera os dois definitivos (`LS-2026-012` →
   `LM-2026-012-A`).
+- Só as fotos das espécies são públicas (para o catálogo). Fotos de
+  matrizes, coletas e pessoas continuam protegidas.
 - Campos decimais aceitam vírgula ou ponto ("2,5" ou "2.5").
 - Gravação de trilha GPS não existe. Só o ponto da matriz, da coleta e da foto.
 - Fotos: lado maior de 1280 px (JPEG) e miniatura de 320 px. A miniatura fica

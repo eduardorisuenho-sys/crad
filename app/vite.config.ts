@@ -30,6 +30,14 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        // Fotos do catálogo ficam guardadas para abrir sem internet.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/files/especie_foto/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'fotos-catalogo', expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 120 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+        ],
       },
     }),
   ],

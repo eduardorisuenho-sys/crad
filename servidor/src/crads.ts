@@ -8,7 +8,11 @@ import {
   COLECOES,
   TIPOS_COM_ANO,
   colecao,
+  disponivelPorLote,
   existeColecao,
+  fichaPublica,
+  montarCatalogo,
+  montarRastreio,
   formatarCodigo,
   montarRecebimento,
   nomesCampos,
@@ -18,6 +22,7 @@ import {
   viveirosVisiveis,
   type Colecao,
   type ContextoUsuario,
+  type DadosCatalogo,
   type FaixaCodigo,
   type Operacao,
   type Perfil,
@@ -349,6 +354,75 @@ function registrarDispositivo(app: App, id: string, usuarioId: string, campo: st
   } catch {
     /* registrar o aparelho nunca deve derrubar a sincronização */
   }
+}
+
+// ---------------------------------------------------------------------------
+// catálogo público (sem login)
+
+function todos(app: App, nome: string): Registro[] {
+  const col = colecao(nome);
+  return app.findRecordsByFilter(nome, 'excluido = false', '', 0, 0).map((r: RecordPB) => paraObjeto(col, r));
+}
+
+function dadosCatalogo(app: App): DadosCatalogo {
+  return {
+    especies: todos(app, 'especie'),
+    nomesPopulares: todos(app, 'nome_popular'),
+    viveiros: todos(app, 'viveiro'),
+    lotesMudas: todos(app, 'lote_mudas'),
+    movimentos: todos(app, 'movimento_estoque_mudas'),
+    reservas: todos(app, 'reserva'),
+    fotos: todos(app, 'especie_foto'),
+  };
+}
+
+/** GET /api/crads/publico/catalogo */
+export function catalogoPublico(app: App) {
+  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: new Date().toISOString() };
+}
+
+type Livre = { id: string; [k: string]: unknown };
+
+function rastreioDe(app: App, lote: Livre, cache: Partial<Record<string, Livre[]>> = {}) {
+  const pegar = (n: string) => (cache[n] ??= todos(app, n));
+  return montarRastreio(lote, {
+    viveiros: pegar('viveiro'),
+    lotesSementes: pegar('lote_sementes'),
+    ligacoes: pegar('lote_sementes_coleta'),
+    coletas: pegar('coleta'),
+    matrizes: pegar('matriz'),
+    municipios: pegar('municipio'),
+  });
+}
+
+/** GET /api/crads/publico/especie/{id} — ficha, fotos e lotes prontos com rastreio. */
+export function especiePublica(app: App, id: string) {
+  const d = dadosCatalogo(app);
+  const e = d.especies.find((x) => x.id === id);
+  if (!e || !e.publicada || e.ficticia) throw new Error('Espécie não encontrada no catálogo.');
+  const disp = disponivelPorLote(d);
+  const viveiros = new Map(d.viveiros.map((v) => [v.id, String(v.nome)]));
+  const cache: Partial<Record<string, Livre[]>> = { viveiro: d.viveiros };
+  const lotes = d.lotesMudas
+    .filter((l) => l.especie_id === id && (disp.get(l.id) ?? 0) > 0)
+    .map((l) => ({ disponivel: disp.get(l.id), viveiro: viveiros.get(String(l.viveiro_id)) ?? '', rastreio: rastreioDe(app, l, cache) }));
+  return {
+    ficha: fichaPublica(e),
+    nomes_populares: d.nomesPopulares.filter((n) => n.especie_id === id).map((n) => String(n.nome)),
+    fotos: d.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => ({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: f.credito ?? '' })),
+    lotes,
+  };
+}
+
+/** GET /api/crads/publico/rastreio/{codigo} — de onde vieram as mudas de um lote. */
+export function rastreioPublico(app: App, codigo: string) {
+  let rec: RecordPB;
+  try {
+    rec = app.findFirstRecordByFilter('lote_mudas', 'codigo = {:c} && excluido = false', { c: codigo.trim().toUpperCase() });
+  } catch {
+    throw new Error('Lote não encontrado.');
+  }
+  return rastreioDe(app, paraObjeto(colecao('lote_mudas'), rec));
 }
 
 // ---------------------------------------------------------------------------

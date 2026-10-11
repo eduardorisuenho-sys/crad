@@ -41,10 +41,13 @@ __export(crads_exports, {
   COLECOES_SINCRONIZADAS: () => COLECOES_SINCRONIZADAS,
   antesDeGravarPeloPainel: () => antesDeGravarPeloPainel,
   auditarPainel: () => auditarPainel,
+  catalogoPublico: () => catalogoPublico,
   contextoDe: () => contextoDe,
   enviar: () => enviar,
+  especiePublica: () => especiePublica,
   eu: () => eu,
   paraObjeto: () => paraObjeto,
+  rastreioPublico: () => rastreioPublico,
   receber: () => receber,
   receberArquivo: () => receberArquivo,
   reservarFaixas: () => reservarFaixas
@@ -224,6 +227,7 @@ var COLECOES = [
     nome: "especie_foto",
     natureza: "cadastro",
     porViveiro: false,
+    publico: true,
     campos: [r("especie_id", "especie", true), o("parte", PARTES_PLANTA, true), arq("arquivo"), arq("miniatura"), t("credito"), t("licenca")],
     indices: ["especie_id"],
     leitura: "todos",
@@ -740,22 +744,22 @@ function excluir(op, col, atual, ctx) {
 // ../dominio/src/sync/recebimento.ts
 function montarRecebimento(porColecao, ctx, desde, limite) {
   var _a, _b;
-  const todos = [];
+  const todos2 = [];
   for (const { colecao: colecao2, registros } of porColecao) {
-    for (const reg of registros) if (((_a = reg.seq) != null ? _a : 0) > desde) todos.push({ col: colecao2, reg });
+    for (const reg of registros) if (((_a = reg.seq) != null ? _a : 0) > desde) todos2.push({ col: colecao2, reg });
   }
-  todos.sort((a, b2) => {
+  todos2.sort((a, b2) => {
     var _a2, _b2;
     return ((_a2 = a.reg.seq) != null ? _a2 : 0) - ((_b2 = b2.reg.seq) != null ? _b2 : 0);
   });
-  const lote = todos.slice(0, limite);
+  const lote = todos2.slice(0, limite);
   return {
     registros: lote.map(({ col, reg }) => ({
       colecao: col.nome,
       registro: podeLer(ctx, col, reg) ? reg : { id: reg.id, versao: reg.versao, seq: reg.seq, excluido: true }
     })),
     cursor: lote.length ? (_b = lote[lote.length - 1].reg.seq) != null ? _b : desde : desde,
-    mais: todos.length > limite
+    mais: todos2.length > limite
   };
 }
 
@@ -786,6 +790,138 @@ var COLUNAS_ESPECIE = {
   origem: { rotulo: "Origem (nativa/ex\xF3tica)", aceitos: ["origem", "origem nativa exotica", "nativa ou exotica"], tipo: "texto" }
 };
 var CAMPOS_FICHA = Object.keys(COLUNAS_ESPECIE).filter((c) => !["nome_popular", "nome_cientifico", "familia"].includes(c));
+
+// ../dominio/src/viveiro.ts
+function saldoMudas(movs) {
+  var _a;
+  let s = 0;
+  for (const m of movs) {
+    if (m.excluido) continue;
+    const q = Number((_a = m.quantidade) != null ? _a : 0);
+    if (m.tipo === "entrada") s += Math.abs(q);
+    else if (m.tipo === "ajuste_inventario") s += q;
+    else s -= Math.abs(q);
+  }
+  return s;
+}
+function disponivel(saldo, reservasAtivas) {
+  return Math.max(0, saldo - reservasAtivas.reduce((s, r2) => {
+    var _a;
+    return s + Number((_a = r2.quantidade) != null ? _a : 0);
+  }, 0));
+}
+
+// ../dominio/src/catalogo.ts
+var ativos = (rs) => rs.filter((r2) => !r2.excluido);
+function agrupar(rs, campo) {
+  var _a;
+  const m = /* @__PURE__ */ new Map();
+  for (const r2 of rs) {
+    const k = String(r2[campo]);
+    ((_a = m.get(k)) != null ? _a : m.set(k, []).get(k)).push(r2);
+  }
+  return m;
+}
+function disponivelPorLote(d2) {
+  var _a, _b;
+  const movs = agrupar(ativos(d2.movimentos), "lote_mudas_id");
+  const res = agrupar(
+    ativos(d2.reservas).filter((r2) => r2.situacao === "ativa"),
+    "lote_mudas_id"
+  );
+  const m = /* @__PURE__ */ new Map();
+  for (const l of ativos(d2.lotesMudas)) {
+    if (l.fase_atual !== "pronta" || l.situacao === "encerrado") continue;
+    m.set(l.id, disponivel(saldoMudas((_a = movs.get(l.id)) != null ? _a : []), (_b = res.get(l.id)) != null ? _b : []));
+  }
+  return m;
+}
+function montarCatalogo(d2) {
+  var _a, _b, _c, _d, _e, _f, _g;
+  const disp = disponivelPorLote(d2);
+  const especies = new Map(ativos(d2.especies).map((e) => [e.id, e]));
+  const viveiros = new Map(ativos(d2.viveiros).map((v) => [v.id, v]));
+  const populares = agrupar(ativos(d2.nomesPopulares), "especie_id");
+  const fotos = agrupar(
+    ativos(d2.fotos).filter((f) => f.arquivo),
+    "especie_id"
+  );
+  const itens = /* @__PURE__ */ new Map();
+  for (const l of ativos(d2.lotesMudas)) {
+    const q = (_a = disp.get(l.id)) != null ? _a : 0;
+    if (q <= 0) continue;
+    const e = especies.get(String(l.especie_id));
+    if (!e || !e.publicada || e.ficticia) continue;
+    let item = itens.get(e.id);
+    if (!item) {
+      const ordemFoto = ["muda", "arvore", "flor", "fruto", "folha"];
+      const fs = [...(_b = fotos.get(e.id)) != null ? _b : []].sort((a, b2) => ordemFoto.indexOf(String(a.parte)) - ordemFoto.indexOf(String(b2.parte)));
+      item = {
+        especie_id: e.id,
+        nome_cientifico: String(e.nome_cientifico),
+        familia: String((_c = e.familia) != null ? _c : ""),
+        nomes_populares: ((_d = populares.get(e.id)) != null ? _d : []).map((n2) => String(n2.nome)),
+        por_viveiro: [],
+        total: 0,
+        foto: fs[0] ? { id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String((_e = fs[0].miniatura) != null ? _e : ""), parte: String(fs[0].parte) } : void 0
+      };
+      itens.set(e.id, item);
+    }
+    const vid = String(l.viveiro_id);
+    let pv = item.por_viveiro.find((p) => p.viveiro_id === vid);
+    if (!pv) {
+      pv = { viveiro_id: vid, viveiro: String((_g = (_f = viveiros.get(vid)) == null ? void 0 : _f.nome) != null ? _g : ""), disponivel: 0 };
+      item.por_viveiro.push(pv);
+    }
+    pv.disponivel += q;
+    item.total += q;
+  }
+  return [...itens.values()].sort((a, b2) => {
+    var _a2, _b2;
+    return ((_a2 = a.nomes_populares[0]) != null ? _a2 : a.nome_cientifico).localeCompare((_b2 = b2.nomes_populares[0]) != null ? _b2 : b2.nome_cientifico, "pt-BR");
+  });
+}
+function montarRastreio(lote, d2) {
+  var _a, _b, _c, _d, _e;
+  const viveiro = d2.viveiros.find((v) => v.id === lote.viveiro_id);
+  const r2 = {
+    lote_mudas: { codigo: String(lote.codigo), viveiro: String((_a = viveiro == null ? void 0 : viveiro.nome) != null ? _a : ""), data_semeadura: String((_b = lote.data_semeadura) != null ? _b : ""), fase: String((_c = lote.fase_atual) != null ? _c : "") }
+  };
+  const ls = d2.lotesSementes.find((l) => l.id === lote.lote_sementes_id && !l.excluido);
+  if (!ls) return r2;
+  const coletaIds = new Set(ativos(d2.ligacoes).filter((l) => l.lote_sementes_id === ls.id).map((l) => String(l.coleta_id)));
+  const matrizIds = new Set(ativos(d2.coletas).filter((c) => coletaIds.has(c.id)).map((c) => String(c.matriz_id)));
+  const nomesMun = new Map(d2.municipios.map((m) => [m.id, String(m.nome)]));
+  const municipios = /* @__PURE__ */ new Set();
+  for (const m of d2.matrizes) if (matrizIds.has(m.id) && m.municipio_id) municipios.add((_d = nomesMun.get(String(m.municipio_id))) != null ? _d : "");
+  municipios.delete("");
+  r2.lote_sementes = { codigo: String(ls.codigo), data_formacao: String((_e = ls.data_formacao) != null ? _e : ""), matrizes: matrizIds.size, municipios: [...municipios].sort() };
+  return r2;
+}
+var CAMPOS_FICHA_PUBLICA = [
+  "nome_cientifico",
+  "autor",
+  "familia",
+  "origem",
+  "forma_vida",
+  "folha",
+  "disposicao",
+  "latex",
+  "espinhos",
+  "casca",
+  "flor",
+  "fruto",
+  "meses_flor",
+  "meses_fruto",
+  "grupo_sucessional",
+  "lorenzi_volume",
+  "lorenzi_pagina"
+];
+function fichaPublica(e) {
+  const f = { id: e.id };
+  for (const c of CAMPOS_FICHA_PUBLICA) if (e[c] !== void 0 && e[c] !== null && e[c] !== "" && e[c] !== 0) f[c] = e[c];
+  return f;
+}
 
 // src/crads.ts
 var ALFABETO_ID = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -1066,6 +1202,71 @@ function registrarDispositivo(app, id, usuarioId, campo) {
     app.save(rec);
   } catch (e) {
   }
+}
+function todos(app, nome) {
+  const col = colecao(nome);
+  return app.findRecordsByFilter(nome, "excluido = false", "", 0, 0).map((r2) => paraObjeto(col, r2));
+}
+function dadosCatalogo(app) {
+  return {
+    especies: todos(app, "especie"),
+    nomesPopulares: todos(app, "nome_popular"),
+    viveiros: todos(app, "viveiro"),
+    lotesMudas: todos(app, "lote_mudas"),
+    movimentos: todos(app, "movimento_estoque_mudas"),
+    reservas: todos(app, "reserva"),
+    fotos: todos(app, "especie_foto")
+  };
+}
+function catalogoPublico(app) {
+  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: (/* @__PURE__ */ new Date()).toISOString() };
+}
+function rastreioDe(app, lote, cache = {}) {
+  const pegar = (n2) => {
+    var _a;
+    return (_a = cache[n2]) != null ? _a : cache[n2] = todos(app, n2);
+  };
+  return montarRastreio(lote, {
+    viveiros: pegar("viveiro"),
+    lotesSementes: pegar("lote_sementes"),
+    ligacoes: pegar("lote_sementes_coleta"),
+    coletas: pegar("coleta"),
+    matrizes: pegar("matriz"),
+    municipios: pegar("municipio")
+  });
+}
+function especiePublica(app, id) {
+  const d2 = dadosCatalogo(app);
+  const e = d2.especies.find((x) => x.id === id);
+  if (!e || !e.publicada || e.ficticia) throw new Error("Esp\xE9cie n\xE3o encontrada no cat\xE1logo.");
+  const disp = disponivelPorLote(d2);
+  const viveiros = new Map(d2.viveiros.map((v) => [v.id, String(v.nome)]));
+  const cache = { viveiro: d2.viveiros };
+  const lotes = d2.lotesMudas.filter((l) => {
+    var _a;
+    return l.especie_id === id && ((_a = disp.get(l.id)) != null ? _a : 0) > 0;
+  }).map((l) => {
+    var _a;
+    return { disponivel: disp.get(l.id), viveiro: (_a = viveiros.get(String(l.viveiro_id))) != null ? _a : "", rastreio: rastreioDe(app, l, cache) };
+  });
+  return {
+    ficha: fichaPublica(e),
+    nomes_populares: d2.nomesPopulares.filter((n2) => n2.especie_id === id).map((n2) => String(n2.nome)),
+    fotos: d2.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => {
+      var _a;
+      return { id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: (_a = f.credito) != null ? _a : "" };
+    }),
+    lotes
+  };
+}
+function rastreioPublico(app, codigo) {
+  let rec;
+  try {
+    rec = app.findFirstRecordByFilter("lote_mudas", "codigo = {:c} && excluido = false", { c: codigo.trim().toUpperCase() });
+  } catch (e) {
+    throw new Error("Lote n\xE3o encontrado.");
+  }
+  return rastreioDe(app, paraObjeto(colecao("lote_mudas"), rec));
 }
 var NOMES = new Set(COLECOES.map((c) => c.nome));
 function antesDeGravarPeloPainel(app, rec, criando) {
