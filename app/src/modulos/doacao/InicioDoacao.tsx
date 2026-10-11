@@ -18,7 +18,7 @@ export function InicioDoacao() {
   const [filtro, setFiltro] = useState<Filtro>(equipe ? 'analisar' : 'todos');
   const pedidos = useLiveQuery(async () => {
     const todos = (await db.colecao('doacao').toArray()).filter((d) => !d.excluido);
-    return (equipe ? todos.filter((d) => d.viveiro_id === viveiroId) : todos.filter((d) => d.solicitante_usuario_id === sessao?.id || d.versao === 0)).sort((a, b) =>
+    return (equipe ? todos.filter((d) => !viveiroId || d.viveiro_id === viveiroId) : todos.filter((d) => d.solicitante_usuario_id === sessao?.id || d.versao === 0)).sort((a, b) =>
       String(b.criado_no_aparelho_em).localeCompare(String(a.criado_no_aparelho_em)),
     );
   }, [db, viveiroId, equipe]);

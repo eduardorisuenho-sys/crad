@@ -12,7 +12,7 @@ export function InicioPosPlantio() {
   const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
   const linhas = useLiveQuery(async () => {
     const doacoes = (await db.colecao('doacao').toArray()).filter(
-      (d) => !d.excluido && d.situacao === 'retirada' && (equipe ? d.viveiro_id === viveiroId : d.solicitante_usuario_id === sessao?.id),
+      (d) => !d.excluido && d.situacao === 'retirada' && (equipe ? !viveiroId || d.viveiro_id === viveiroId : d.solicitante_usuario_id === sessao?.id),
     );
     const plantios = (await db.colecao('plantio').toArray()).filter((p) => !p.excluido);
     const pessoas = new Map((await db.colecao('pessoa').toArray()).map((p) => [p.id, String(p.nome)]));
