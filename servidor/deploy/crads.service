@@ -1,0 +1,30 @@
+# Serviço do servidor CRADS (PocketBase) para o systemd.
+# Instalar (na VM, com o repositório em /opt/crads):
+#   sudo useradd --system --home /opt/crads crads
+#   sudo chown -R crads: /opt/crads
+#   sudo cp /opt/crads/servidor/deploy/crads.service /etc/systemd/system/
+#   sudo nano /etc/systemd/system/crads.service   # troque o domínio
+#   sudo systemctl enable --now crads
+#   journalctl -u crads -f                         # ver o que está acontecendo
+[Unit]
+Description=Servidor CRADS (PocketBase)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=crads
+Group=crads
+WorkingDirectory=/opt/crads/servidor
+# HTTPS automático (Let's Encrypt) para o domínio informado.
+ExecStart=/opt/crads/servidor/pocketbase serve crads.seudominio.gov.br
+Restart=always
+RestartSec=5
+LimitNOFILE=4096
+# Deixa usar as portas 80 e 443 sem ser root.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

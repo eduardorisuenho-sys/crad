@@ -1,0 +1,15 @@
+# Cabeçalhos para o Cloudflare Pages.
+# O service worker e o index precisam ser conferidos sempre, para a versão nova chegar aos aparelhos.
+/sw.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+# Arquivos com hash no nome nunca mudam.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self), camera=(self), microphone=()

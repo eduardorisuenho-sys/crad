@@ -22,6 +22,7 @@ test('viveirista semeia, conta germinação, registra perda, muda de fase e faz 
   await page.getByRole('button', { name: 'Sementes' }).click();
   await page.getByRole('button', { name: 'Pular a foto' }).click();
   await page.getByRole('button', { name: 'Salvar coleta' }).click();
+  await expect(page.getByText('Coleta salva')).toBeVisible();
   await page.goto('/coleta/lotes/novo');
   await page.getByRole('button', { name: /Árvore-de-campo-fictícia/ }).click();
   // marca só a coleta deste teste (a mais recente, de 1 kg)

@@ -299,22 +299,28 @@ PocketBase.
 4. Na VM:
    ```bash
    sudo apt install -y unzip nodejs npm git
-   git clone <este repositório> crads && cd crads/servidor
-   npm run baixar-pocketbase
-   sudo ./pocketbase serve crads.seudominio.gov.br   # HTTPS automático (Let's Encrypt)
+   sudo git clone <este repositório> /opt/crads && cd /opt/crads/servidor
+   sudo npm run baixar-pocketbase
    ```
-   Para iniciar sozinho ao ligar a VM, crie um serviço do `systemd` com o
-   mesmo comando.
-5. **Backup:** no painel (`/_/`), vá em *Settings → Backups*, ative o backup
+5. Para o servidor ligar sozinho, use o serviço pronto em
+   `servidor/deploy/crads.service`. As instruções estão no começo do arquivo.
+   Troque `crads.seudominio.gov.br` pelo seu domínio. O PocketBase pega o
+   certificado HTTPS sozinho (Let's Encrypt).
+6. Abra `https://seu-dominio/_/` e crie o superusuário. Depois crie o
+   primeiro gestor em *users* (marque `gestor_geral`).
+7. **Backup:** no painel (`/_/`), vá em *Settings → Backups*, ative o backup
    automático diário e envie para um armazenamento S3 gratuito (Cloudflare R2
    ou Backblaze B2, 10 GB grátis). A Oracle pode recuperar VMs gratuitas
    paradas, então o backup é obrigatório.
 
-### App: Cloudflare Pages (ou GitHub Pages)
+### App: Cloudflare Pages
 
 - Comando de build: `npm install && npm run build -w app`
 - Pasta publicada: `app/dist`
 - Variável de ambiente: `VITE_SERVIDOR_URL=https://crads.seudominio.gov.br`
+- O arquivo `app/public/_headers` já faz o Cloudflare conferir sempre se há
+  versão nova do app. As telas como `/catalogo` abrem direto pelo endereço,
+  porque o Cloudflare Pages manda o `index.html` quando não acha o arquivo.
 
 O app precisa de **HTTPS** para funcionar offline, usar o GPS e a câmera. Os
 dois serviços já dão HTTPS.
