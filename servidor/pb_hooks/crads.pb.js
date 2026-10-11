@@ -90,3 +90,25 @@ routerAdd("GET", "/api/crads/publico/rastreio/{codigo}", (e) => {
     throw new NotFoundError(String(err).replace(/^Error: /, ""));
   }
 });
+
+// Doação: análise com reservas (precisa de internet) e expiração dos prazos.
+routerAdd("POST", "/api/crads/doacao/{id}/analisar", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.analisarDoacao($app, e.auth, e.request.pathValue("id"), e.requestInfo().body));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+cronAdd("crads_expirar_prazos", "17 3 * * *", () => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  crads.expirarPrazos($app);
+});
+
+// Para testes e manutenção: só o superusuário.
+routerAdd("POST", "/api/crads/manutencao/expirar", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  const hoje = e.requestInfo().body.hoje;
+  return e.json(200, crads.expirarPrazos($app, hoje || undefined));
+}, $apis.requireSuperuserAuth());

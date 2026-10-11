@@ -6,6 +6,7 @@
  */
 import { escreveComoSolicitante, podeEscrever, type ContextoUsuario } from '../acesso';
 import { ehProvisorio, type FaixaCodigo } from '../codigos';
+import { violacaoRegra } from '../regras-escrita';
 import { existeColecao, colecao as buscarColecao, type Campo, type Colecao } from '../esquema';
 import type { ConflitoCampo, Operacao, Registro, ResultadoOperacao } from './tipos';
 import { iguais } from './valores';
@@ -139,6 +140,8 @@ function criar(op: Operacao, col: Colecao, limpos: Record<string, unknown>, ctx:
   const falta = faltando(col, reg);
   if (falta.length) return rejeitar(op, `faltam campos obrigatórios: ${falta.join(', ')}`);
   if (!podeEscrever(ctx, col, reg)) return rejeitar(op, 'sem permissão para criar este registro');
+  const regraCriar = violacaoRegra(col, null, reg, ctx);
+  if (regraCriar) return rejeitar(op, regraCriar);
   const codigo_alterado = ajustarCodigo(col, reg, porta);
   return {
     gravar: reg,
@@ -187,6 +190,8 @@ function alterar(
     return rejeitar(op, 'o solicitante não pode trocar o dono do registro', atual);
   }
   if (!podeEscrever(ctx, col, novo)) return rejeitar(op, 'sem permissão para gravar nesse viveiro', atual);
+  const regra = violacaoRegra(col, atual, novo, ctx);
+  if (regra) return rejeitar(op, regra, atual);
   const falta = faltando(col, novo);
   if (falta.length) return rejeitar(op, `faltam campos obrigatórios: ${falta.join(', ')}`, atual);
 

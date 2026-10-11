@@ -9,6 +9,14 @@ import {
   TIPOS_COM_ANO,
   colecao,
   disponivelPorLote,
+  parametro,
+  perfisPara,
+  planejarReservas,
+  podeAprovar,
+  prazoRetirada,
+  situacaoAposAnalise,
+  SITUACOES_APROVADAS,
+  SITUACOES_EM_ANALISE,
   existeColecao,
   fichaPublica,
   montarCatalogo,
@@ -354,6 +362,89 @@ function registrarDispositivo(app: App, id: string, usuarioId: string, campo: st
   } catch {
     /* registrar o aparelho nunca deve derrubar a sincronização */
   }
+}
+
+// ---------------------------------------------------------------------------
+// doação: análise com reservas (só com internet) e expiração dos prazos
+
+const hojeISO = () => new Date().toISOString();
+
+function lerParametro<T>(app: App, chave: string, viveiroId?: string): T {
+  return parametro<T>(todos(app, 'parametro'), chave, viveiroId);
+}
+
+/**
+ * POST /api/crads/doacao/{id}/analisar — aprova (toda ou em parte) ou nega.
+ * Ao aprovar, reserva as mudas dos lotes prontos mais antigos, numa transação:
+ * dois aprovadores ao mesmo tempo nunca reservam a mesma muda.
+ */
+export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { itens?: { item_id: string; qtd_aprovada: number }[]; justificativa?: string }) {
+  const ctx = contextoDe(app, auth);
+  let resultado: unknown = null;
+  app.runInTransaction((tx: App) => {
+    const docRec = buscar(tx, 'doacao', id);
+    if (!docRec) throw new Error('Pedido não encontrado.');
+    const doacao = paraObjeto(colecao('doacao'), docRec);
+    if (!SITUACOES_EM_ANALISE.includes(String(doacao.situacao))) throw new Error('Este pedido não está aguardando análise.');
+    const viveiroId = String(doacao.viveiro_id);
+    const aprovadores = lerParametro<string[]>(tx, 'perfis_aprovadores', viveiroId);
+    if (!podeAprovar([...perfisPara(ctx, viveiroId)], aprovadores)) throw new Error(`Só ${aprovadores.join(' ou ')} pode analisar pedidos.`);
+
+    const itens = tx.findRecordsByFilter('doacao_item', 'doacao_id = {:d} && excluido = false', '', 0, 0, { d: id }).map((r: RecordPB) => paraObjeto(colecao('doacao_item'), r));
+    const pedidoAprovado = new Map((corpo.itens ?? []).map((i) => [i.item_id, Number(i.qtd_aprovada)]));
+    for (const [itemId, q] of pedidoAprovado) {
+      const item = itens.find((i: Registro) => i.id === itemId);
+      if (!item) throw new Error('Item do pedido não encontrado.');
+      if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error('Quantidade aprovada inválida.');
+    }
+    const aprovados = itens.map((i: Registro) => ({ item: i, qtd: pedidoAprovado.get(i.id) ?? 0 }));
+    const situacao = situacaoAposAnalise(aprovados.map((a: { item: Registro; qtd: number }) => ({ qtd_pedida: Number(a.item.qtd_pedida), qtd_aprovada: a.qtd })));
+    if (situacao === 'negada' && !String(corpo.justificativa ?? '').trim()) throw new Error('Diga o motivo da recusa.');
+
+    // Disponível de cada lote pronto do viveiro (saldo − reservas ativas).
+    const doViveiro = (n: string) => todos(tx, n).filter((r) => r.viveiro_id === viveiroId);
+    const lotes = doViveiro('lote_mudas');
+    const disp = disponivelPorLote({ lotesMudas: lotes, movimentos: doViveiro('movimento_estoque_mudas'), reservas: doViveiro('reserva') });
+    const plano = planejarReservas(
+      aprovados.filter((a: { qtd: number }) => a.qtd > 0).map((a: { item: Registro; qtd: number }) => ({ doacao_item_id: a.item.id, especie_id: String(a.item.especie_id), quantidade: a.qtd })),
+      lotes.filter((l) => disp.has(l.id)).map((l) => ({ id: l.id, especie_id: String(l.especie_id), data_semeadura: String(l.data_semeadura ?? ''), disponivel: disp.get(l.id) ?? 0 })),
+    );
+    if ('erro' in plano) throw new Error(plano.erro);
+
+    const agora = hojeISO();
+    const retirarAte = situacao === 'negada' ? null : prazoRetirada(agora, lerParametro<number>(tx, 'prazo_retirada_dias', viveiroId));
+    const controle = { versao: 1, excluido: false, criado_por: ctx.id, atualizado_por: ctx.id, criado_no_aparelho_em: agora, viveiro_id: viveiroId };
+    for (const r of plano.reservas) gravar(tx, colecao('reserva'), { id: novoId(), ...controle, ...r, valida_ate: retirarAte, situacao: 'ativa' });
+    for (const a of aprovados) gravar(tx, colecao('doacao_item'), { ...a.item, qtd_aprovada: a.qtd, versao: Number(a.item.versao) + 1, atualizado_por: ctx.id });
+    const novo = { ...doacao, situacao, analisado_por: ctx.id, analisado_em: agora, justificativa: corpo.justificativa ?? '', retirar_ate: retirarAte, versao: Number(doacao.versao) + 1, atualizado_por: ctx.id };
+    const salvo = gravar(tx, colecao('doacao'), novo);
+    auditar(tx, { colecao: 'doacao', registro_id: id, acao: 'analisar', antes: { situacao: doacao.situacao }, depois: { situacao, itens: aprovados.map((a: { item: Registro; qtd: number }) => ({ item: a.item.id, aprovada: a.qtd })), reservas: plano.reservas }, usuario_id: ctx.id });
+    resultado = { doacao: paraObjeto(colecao('doacao'), salvo), reservas: plano.reservas };
+  });
+  return resultado;
+}
+
+/** Reservas e pedidos com prazo vencido (roda todo dia e pode ser chamada à mão). */
+export function expirarPrazos(app: App, hoje = hojeISO()) {
+  let reservas = 0;
+  let pedidos = 0;
+  app.runInTransaction((tx: App) => {
+    const dia = hoje.slice(0, 10);
+    for (const r of todos(tx, 'reserva')) {
+      if (r.situacao === 'ativa' && r.valida_ate && String(r.valida_ate).slice(0, 10) < dia) {
+        gravar(tx, colecao('reserva'), { ...r, situacao: 'expirada', versao: Number(r.versao) + 1 });
+        reservas++;
+      }
+    }
+    for (const d of todos(tx, 'doacao')) {
+      if (SITUACOES_APROVADAS.includes(String(d.situacao)) && d.retirar_ate && String(d.retirar_ate).slice(0, 10) < dia) {
+        gravar(tx, colecao('doacao'), { ...d, situacao: 'expirada', versao: Number(d.versao) + 1 });
+        auditar(tx, { colecao: 'doacao', registro_id: d.id, acao: 'expirar', antes: { situacao: d.situacao }, depois: { situacao: 'expirada' }, usuario_id: 'sistema' });
+        pedidos++;
+      }
+    }
+  });
+  return { reservas, pedidos };
 }
 
 // ---------------------------------------------------------------------------

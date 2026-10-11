@@ -2,6 +2,7 @@
  * Catálogo público (Módulo 4): o que qualquer pessoa vê, sem login.
  * Só dados públicos: nada de coordenadas, proprietários, coletores ou contatos.
  */
+import { reservaAtiva } from './doacao';
 import { disponivel, saldoMudas } from './viveiro';
 
 type Reg = Record<string, unknown> & { id: string; excluido?: boolean };
@@ -39,10 +40,11 @@ function agrupar(rs: Reg[], campo: string): Map<string, Reg[]> {
 }
 
 /** Disponível de cada lote pronto = saldo − reservas ativas. */
-export function disponivelPorLote(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas'>): Map<string, number> {
+export function disponivelPorLote(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas'>, hoje = new Date().toISOString()): Map<string, number> {
   const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
+  // Reserva vencida (prazo de retirada passou) não segura mais as mudas.
   const res = agrupar(
-    ativos(d.reservas).filter((r) => r.situacao === 'ativa'),
+    d.reservas.filter((r) => reservaAtiva(r, hoje)),
     'lote_mudas_id',
   );
   const m = new Map<string, number>();

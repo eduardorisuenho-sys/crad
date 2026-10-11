@@ -39,6 +39,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var crads_exports = {};
 __export(crads_exports, {
   COLECOES_SINCRONIZADAS: () => COLECOES_SINCRONIZADAS,
+  analisarDoacao: () => analisarDoacao,
   antesDeGravarPeloPainel: () => antesDeGravarPeloPainel,
   auditarPainel: () => auditarPainel,
   catalogoPublico: () => catalogoPublico,
@@ -46,6 +47,7 @@ __export(crads_exports, {
   enviar: () => enviar,
   especiePublica: () => especiePublica,
   eu: () => eu,
+  expirarPrazos: () => expirarPrazos,
   paraObjeto: () => paraObjeto,
   rastreioPublico: () => rastreioPublico,
   receber: () => receber,
@@ -456,6 +458,19 @@ function nomesCampos(c) {
   if (c.porViveiro) nomes.push("viveiro_id");
   return nomes;
 }
+var PARAMETROS_PADRAO = {
+  meta_matrizes_por_especie: { valor: 12, descricao: "Meta de matrizes por esp\xE9cie" },
+  min_matrizes_por_lote: { valor: 12, descricao: "M\xEDnimo de matrizes num lote de sementes antes do alerta de diversidade" },
+  distancia_min_matrizes_m: { valor: 100, descricao: "Dist\xE2ncia m\xEDnima entre matrizes da mesma esp\xE9cie (metros)" },
+  prazo_retirada_dias: { valor: 30, descricao: "Dias para retirar as mudas depois da aprova\xE7\xE3o" },
+  limite_mudas_por_pedido: { valor: 1e3, descricao: "M\xE1ximo de mudas num pedido" },
+  perfis_aprovadores: { valor: ["gestor"], descricao: "Perfis que podem aprovar doa\xE7\xF5es" },
+  dias_sessao_offline: { valor: 30, descricao: "Dias que o aparelho pode ficar sem entrar na internet antes de pedir login de novo" },
+  fotos_obrigatorias_matriz: { valor: ["arvore", "folha"], descricao: "Fotos que o coletor precisa tirar para salvar a matriz" },
+  precisao_gps_maxima_m: { valor: 30, descricao: "Precis\xE3o do GPS (metros) a partir da qual o app aceita o ponto sem perguntar" },
+  aviso_validade_sementes_dias: { valor: 60, descricao: "Avisar quando faltar este n\xFAmero de dias para a validade de um lote de sementes" },
+  tamanho_faixa_codigos: { valor: 20, descricao: "Quantos c\xF3digos cada aparelho reserva por tipo no pacote de campo" }
+};
 
 // ../dominio/src/codigos.ts
 var TIPOS_COM_ANO = /* @__PURE__ */ new Set(["LS", "DO"]);
@@ -583,6 +598,42 @@ function ordenar(v) {
   return v;
 }
 
+// ../dominio/src/regras-escrita.ts
+var SITUACOES_SO_SERVIDOR = ["aprovada", "aprovada_parcial", "negada", "expirada"];
+var CAMPOS_ANALISE = ["analisado_por", "analisado_em", "justificativa", "retirar_ate"];
+var mudou = (antes, depois, campo) => (antes ? antes[campo] : void 0) !== depois[campo] && !(antes === null && (depois[campo] === void 0 || depois[campo] === null || depois[campo] === ""));
+function soSolicitante(ctx, reg) {
+  const p = perfisPara(ctx, reg.viveiro_id);
+  return p.has("solicitante") && !p.has("viveirista") && !p.has("gestor") && !p.has("coletor");
+}
+function violacaoRegra(col, antes, depois, ctx) {
+  if (col.nome === "doacao") {
+    if (mudou(antes, depois, "situacao") && SITUACOES_SO_SERVIDOR.includes(String(depois.situacao))) {
+      return "A aprova\xE7\xE3o do pedido \xE9 feita com internet, para reservar as mudas no servidor.";
+    }
+    if (soSolicitante(ctx, depois)) {
+      if (CAMPOS_ANALISE.some((c) => mudou(antes, depois, c))) return "O solicitante n\xE3o altera a an\xE1lise do pedido.";
+      if (mudou(antes, depois, "situacao") && !["rascunho", "enviada", "cancelada"].includes(String(depois.situacao))) return "O solicitante s\xF3 envia ou cancela o pedido.";
+      if (antes && !["rascunho", "enviada"].includes(String(antes.situacao)) && depois.situacao !== "cancelada") return "O pedido j\xE1 foi analisado e n\xE3o pode ser mudado pelo solicitante.";
+    }
+    if (antes && mudou(antes, depois, "situacao") && depois.situacao === "retirada" && !["aprovada", "aprovada_parcial"].includes(String(antes.situacao))) {
+      return "S\xF3 pedidos aprovados podem ser retirados.";
+    }
+  }
+  if (col.nome === "doacao_item") {
+    if (mudou(antes, depois, "qtd_aprovada")) return "A quantidade aprovada \xE9 definida na an\xE1lise do pedido (com internet).";
+    if (soSolicitante(ctx, depois) && mudou(antes, depois, "qtd_entregue")) return "A entrega \xE9 registrada pelo viveiro.";
+  }
+  if (col.nome === "reserva") {
+    if (!antes) return "Reservas s\xE3o criadas pelo servidor ao aprovar o pedido.";
+    if (mudou(antes, depois, "quantidade") || mudou(antes, depois, "lote_mudas_id")) return "A reserva n\xE3o pode ser alterada.";
+    if (mudou(antes, depois, "situacao") && !(antes.situacao === "ativa" && ["consumida", "cancelada"].includes(String(depois.situacao)))) {
+      return "A reserva s\xF3 pode ser consumida (retirada) ou cancelada.";
+    }
+  }
+  return null;
+}
+
 // ../dominio/src/sync/resolver.ts
 function resultado(op, status, extra = {}) {
   return __spreadValues({ op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status }, extra);
@@ -673,6 +724,8 @@ function criar(op, col, limpos, ctx, porta2) {
   const falta = faltando(col, reg);
   if (falta.length) return rejeitar(op, `faltam campos obrigat\xF3rios: ${falta.join(", ")}`);
   if (!podeEscrever(ctx, col, reg)) return rejeitar(op, "sem permiss\xE3o para criar este registro");
+  const regraCriar = violacaoRegra(col, null, reg, ctx);
+  if (regraCriar) return rejeitar(op, regraCriar);
   const codigo_alterado = ajustarCodigo(col, reg, porta2);
   return {
     gravar: reg,
@@ -708,6 +761,8 @@ function alterar(op, col, atual, limpos, base, baseVersao, ctx) {
     return rejeitar(op, "o solicitante n\xE3o pode trocar o dono do registro", atual);
   }
   if (!podeEscrever(ctx, col, novo)) return rejeitar(op, "sem permiss\xE3o para gravar nesse viveiro", atual);
+  const regra = violacaoRegra(col, atual, novo, ctx);
+  if (regra) return rejeitar(op, regra, atual);
   const falta = faltando(col, novo);
   if (falta.length) return rejeitar(op, `faltam campos obrigat\xF3rios: ${falta.join(", ")}`, atual);
   const antes = {};
@@ -791,6 +846,16 @@ var COLUNAS_ESPECIE = {
 };
 var CAMPOS_FICHA = Object.keys(COLUNAS_ESPECIE).filter((c) => !["nome_popular", "nome_cientifico", "familia"].includes(c));
 
+// ../dominio/src/matrizes.ts
+function parametro(parametros, chave, viveiroId) {
+  var _a;
+  const ativos2 = parametros.filter((p2) => p2.chave === chave && !p2.excluido);
+  const doViveiro = viveiroId ? ativos2.find((p2) => p2.viveiro_id === viveiroId) : void 0;
+  const geral = ativos2.find((p2) => !p2.viveiro_id);
+  const p = doViveiro != null ? doViveiro : geral;
+  return p && p.valor !== void 0 && p.valor !== null ? p.valor : (_a = PARAMETROS_PADRAO[chave]) == null ? void 0 : _a.valor;
+}
+
 // ../dominio/src/viveiro.ts
 function saldoMudas(movs) {
   var _a;
@@ -811,6 +876,47 @@ function disponivel(saldo, reservasAtivas) {
   }, 0));
 }
 
+// ../dominio/src/doacao.ts
+var dia = (s) => String(s != null ? s : "").slice(0, 10);
+var SITUACOES_EM_ANALISE = ["enviada", "em_analise"];
+var SITUACOES_APROVADAS = ["aprovada", "aprovada_parcial"];
+function reservaAtiva(r2, hoje) {
+  return !r2.excluido && r2.situacao === "ativa" && (!r2.valida_ate || dia(r2.valida_ate) >= dia(hoje));
+}
+function planejarReservas(itens, lotes) {
+  var _a, _b;
+  const restante = new Map(lotes.map((l) => [l.id, l.disponivel]));
+  const ordenados = [...lotes].sort((a, b2) => a.data_semeadura.localeCompare(b2.data_semeadura) || a.id.localeCompare(b2.id));
+  const reservas = [];
+  for (const item of itens) {
+    let falta = item.quantidade;
+    for (const l of ordenados) {
+      if (falta <= 0) break;
+      if (l.especie_id !== item.especie_id) continue;
+      const q = Math.min(falta, (_a = restante.get(l.id)) != null ? _a : 0);
+      if (q <= 0) continue;
+      reservas.push({ doacao_item_id: item.doacao_item_id, lote_mudas_id: l.id, quantidade: q });
+      restante.set(l.id, ((_b = restante.get(l.id)) != null ? _b : 0) - q);
+      falta -= q;
+    }
+    if (falta > 0) return { erro: `Faltam ${falta} mudas prontas para atender o item ${item.doacao_item_id}.` };
+  }
+  return { reservas };
+}
+function situacaoAposAnalise(itens) {
+  const aprovado = itens.reduce((s, i) => s + i.qtd_aprovada, 0);
+  if (!aprovado) return "negada";
+  return itens.every((i) => i.qtd_aprovada >= i.qtd_pedida) ? "aprovada" : "aprovada_parcial";
+}
+function podeAprovar(perfis, aprovadores) {
+  return perfis.some((p) => aprovadores.includes(p));
+}
+function prazoRetirada(aprovadoEm, dias) {
+  const d2 = /* @__PURE__ */ new Date(`${dia(aprovadoEm)}T12:00:00Z`);
+  d2.setUTCDate(d2.getUTCDate() + dias);
+  return d2.toISOString().slice(0, 10);
+}
+
 // ../dominio/src/catalogo.ts
 var ativos = (rs) => rs.filter((r2) => !r2.excluido);
 function agrupar(rs, campo) {
@@ -822,11 +928,11 @@ function agrupar(rs, campo) {
   }
   return m;
 }
-function disponivelPorLote(d2) {
+function disponivelPorLote(d2, hoje = (/* @__PURE__ */ new Date()).toISOString()) {
   var _a, _b;
   const movs = agrupar(ativos(d2.movimentos), "lote_mudas_id");
   const res = agrupar(
-    ativos(d2.reservas).filter((r2) => r2.situacao === "ativa"),
+    d2.reservas.filter((r2) => reservaAtiva(r2, hoje)),
     "lote_mudas_id"
   );
   const m = /* @__PURE__ */ new Map();
@@ -1202,6 +1308,79 @@ function registrarDispositivo(app, id, usuarioId, campo) {
     app.save(rec);
   } catch (e) {
   }
+}
+var hojeISO = () => (/* @__PURE__ */ new Date()).toISOString();
+function lerParametro(app, chave, viveiroId) {
+  return parametro(todos(app, "parametro"), chave, viveiroId);
+}
+function analisarDoacao(app, auth, id, corpo) {
+  const ctx = contextoDe(app, auth);
+  let resultado2 = null;
+  app.runInTransaction((tx) => {
+    var _a, _b, _c;
+    const docRec = buscar(tx, "doacao", id);
+    if (!docRec) throw new Error("Pedido n\xE3o encontrado.");
+    const doacao = paraObjeto(colecao("doacao"), docRec);
+    if (!SITUACOES_EM_ANALISE.includes(String(doacao.situacao))) throw new Error("Este pedido n\xE3o est\xE1 aguardando an\xE1lise.");
+    const viveiroId = String(doacao.viveiro_id);
+    const aprovadores = lerParametro(tx, "perfis_aprovadores", viveiroId);
+    if (!podeAprovar([...perfisPara(ctx, viveiroId)], aprovadores)) throw new Error(`S\xF3 ${aprovadores.join(" ou ")} pode analisar pedidos.`);
+    const itens = tx.findRecordsByFilter("doacao_item", "doacao_id = {:d} && excluido = false", "", 0, 0, { d: id }).map((r2) => paraObjeto(colecao("doacao_item"), r2));
+    const pedidoAprovado = new Map(((_a = corpo.itens) != null ? _a : []).map((i) => [i.item_id, Number(i.qtd_aprovada)]));
+    for (const [itemId, q] of pedidoAprovado) {
+      const item = itens.find((i) => i.id === itemId);
+      if (!item) throw new Error("Item do pedido n\xE3o encontrado.");
+      if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error("Quantidade aprovada inv\xE1lida.");
+    }
+    const aprovados = itens.map((i) => {
+      var _a2;
+      return { item: i, qtd: (_a2 = pedidoAprovado.get(i.id)) != null ? _a2 : 0 };
+    });
+    const situacao = situacaoAposAnalise(aprovados.map((a) => ({ qtd_pedida: Number(a.item.qtd_pedida), qtd_aprovada: a.qtd })));
+    if (situacao === "negada" && !String((_b = corpo.justificativa) != null ? _b : "").trim()) throw new Error("Diga o motivo da recusa.");
+    const doViveiro = (n2) => todos(tx, n2).filter((r2) => r2.viveiro_id === viveiroId);
+    const lotes = doViveiro("lote_mudas");
+    const disp = disponivelPorLote({ lotesMudas: lotes, movimentos: doViveiro("movimento_estoque_mudas"), reservas: doViveiro("reserva") });
+    const plano = planejarReservas(
+      aprovados.filter((a) => a.qtd > 0).map((a) => ({ doacao_item_id: a.item.id, especie_id: String(a.item.especie_id), quantidade: a.qtd })),
+      lotes.filter((l) => disp.has(l.id)).map((l) => {
+        var _a2, _b2;
+        return { id: l.id, especie_id: String(l.especie_id), data_semeadura: String((_a2 = l.data_semeadura) != null ? _a2 : ""), disponivel: (_b2 = disp.get(l.id)) != null ? _b2 : 0 };
+      })
+    );
+    if ("erro" in plano) throw new Error(plano.erro);
+    const agora = hojeISO();
+    const retirarAte = situacao === "negada" ? null : prazoRetirada(agora, lerParametro(tx, "prazo_retirada_dias", viveiroId));
+    const controle = { versao: 1, excluido: false, criado_por: ctx.id, atualizado_por: ctx.id, criado_no_aparelho_em: agora, viveiro_id: viveiroId };
+    for (const r2 of plano.reservas) gravar(tx, colecao("reserva"), __spreadProps(__spreadValues(__spreadValues({ id: novoId() }, controle), r2), { valida_ate: retirarAte, situacao: "ativa" }));
+    for (const a of aprovados) gravar(tx, colecao("doacao_item"), __spreadProps(__spreadValues({}, a.item), { qtd_aprovada: a.qtd, versao: Number(a.item.versao) + 1, atualizado_por: ctx.id }));
+    const novo = __spreadProps(__spreadValues({}, doacao), { situacao, analisado_por: ctx.id, analisado_em: agora, justificativa: (_c = corpo.justificativa) != null ? _c : "", retirar_ate: retirarAte, versao: Number(doacao.versao) + 1, atualizado_por: ctx.id });
+    const salvo = gravar(tx, colecao("doacao"), novo);
+    auditar(tx, { colecao: "doacao", registro_id: id, acao: "analisar", antes: { situacao: doacao.situacao }, depois: { situacao, itens: aprovados.map((a) => ({ item: a.item.id, aprovada: a.qtd })), reservas: plano.reservas }, usuario_id: ctx.id });
+    resultado2 = { doacao: paraObjeto(colecao("doacao"), salvo), reservas: plano.reservas };
+  });
+  return resultado2;
+}
+function expirarPrazos(app, hoje = hojeISO()) {
+  let reservas = 0;
+  let pedidos = 0;
+  app.runInTransaction((tx) => {
+    const dia2 = hoje.slice(0, 10);
+    for (const r2 of todos(tx, "reserva")) {
+      if (r2.situacao === "ativa" && r2.valida_ate && String(r2.valida_ate).slice(0, 10) < dia2) {
+        gravar(tx, colecao("reserva"), __spreadProps(__spreadValues({}, r2), { situacao: "expirada", versao: Number(r2.versao) + 1 }));
+        reservas++;
+      }
+    }
+    for (const d2 of todos(tx, "doacao")) {
+      if (SITUACOES_APROVADAS.includes(String(d2.situacao)) && d2.retirar_ate && String(d2.retirar_ate).slice(0, 10) < dia2) {
+        gravar(tx, colecao("doacao"), __spreadProps(__spreadValues({}, d2), { situacao: "expirada", versao: Number(d2.versao) + 1 }));
+        auditar(tx, { colecao: "doacao", registro_id: d2.id, acao: "expirar", antes: { situacao: d2.situacao }, depois: { situacao: "expirada" }, usuario_id: "sistema" });
+        pedidos++;
+      }
+    }
+  });
+  return { reservas, pedidos };
 }
 function todos(app, nome) {
   const col = colecao(nome);

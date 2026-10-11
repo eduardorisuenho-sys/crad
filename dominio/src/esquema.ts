@@ -505,7 +505,7 @@ export const PARAMETROS_PADRAO: Record<string, { valor: unknown; descricao: stri
   meta_matrizes_por_especie: { valor: 12, descricao: 'Meta de matrizes por espécie' },
   min_matrizes_por_lote: { valor: 12, descricao: 'Mínimo de matrizes num lote de sementes antes do alerta de diversidade' },
   distancia_min_matrizes_m: { valor: 100, descricao: 'Distância mínima entre matrizes da mesma espécie (metros)' },
-  prazo_retirada_dias: { valor: 15, descricao: 'Dias para retirar as mudas depois da aprovação' },
+  prazo_retirada_dias: { valor: 30, descricao: 'Dias para retirar as mudas depois da aprovação' },
   limite_mudas_por_pedido: { valor: 1000, descricao: 'Máximo de mudas num pedido' },
   perfis_aprovadores: { valor: ['gestor'], descricao: 'Perfis que podem aprovar doações' },
   dias_sessao_offline: { valor: 30, descricao: 'Dias que o aparelho pode ficar sem entrar na internet antes de pedir login de novo' },
