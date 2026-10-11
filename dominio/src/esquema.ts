@@ -462,7 +462,7 @@ export const COLECOES: Colecao[] = [
   { nome: 'doacao_programa_historico', natureza: 'evento', porViveiro: true, campos: [r('doacao_id', 'doacao', true), r('programa_id', 'programa', true), o('acao', ['marcou', 'desmarcou'], true), t('motivo'), t('usuario_nome')], indices: ['doacao_id'], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
 
   // ---- módulo 6: pós-plantio ---------------------------------------------
-  { nome: 'plantio', natureza: 'cadastro', porViveiro: true, campoDono: 'solicitante_usuario_id', campos: [r('doacao_id', 'doacao', true), d('data'), j('geometria'), r('municipio_id', 'municipio'), t('responsavel'), r('solicitante_usuario_id', 'users')], indices: ['doacao_id'], leitura: 'todos', escrita: ['viveirista', 'gestor', 'solicitante'] },
+  { nome: 'plantio', natureza: 'cadastro', porViveiro: true, campoDono: 'solicitante_usuario_id', campos: [r('doacao_id', 'doacao', true), d('data'), j('geometria'), r('municipio_id', 'municipio'), t('local'), t('responsavel'), r('solicitante_usuario_id', 'users')], indices: ['doacao_id'], leitura: 'todos', escrita: ['viveirista', 'gestor', 'solicitante'] },
   { nome: 'plantio_item', natureza: 'cadastro', porViveiro: true, campoDono: 'solicitante_usuario_id', campos: [r('plantio_id', 'plantio', true), r('especie_id', 'especie', true), n('quantidade'), r('solicitante_usuario_id', 'users')], indices: ['plantio_id'], leitura: 'todos', escrita: ['viveirista', 'gestor', 'solicitante'] },
   { nome: 'monitoramento', natureza: 'cadastro', porViveiro: true, campoDono: 'solicitante_usuario_id', campos: [r('plantio_id', 'plantio', true), d('data', true), o('tipo', ['relato', 'vistoria'], true), r('validado_por', 'users'), t('observacao'), r('solicitante_usuario_id', 'users')], indices: ['plantio_id'], leitura: 'todos', escrita: ['viveirista', 'gestor', 'solicitante'] },
   { nome: 'monitoramento_item', natureza: 'cadastro', porViveiro: true, campoDono: 'solicitante_usuario_id', campos: [r('monitoramento_id', 'monitoramento', true), r('especie_id', 'especie', true), n('plantadas'), n('vivas'), r('solicitante_usuario_id', 'users')], indices: ['monitoramento_id'], leitura: 'todos', escrita: ['viveirista', 'gestor', 'solicitante'] },
@@ -512,5 +512,6 @@ export const PARAMETROS_PADRAO: Record<string, { valor: unknown; descricao: stri
   fotos_obrigatorias_matriz: { valor: ['arvore', 'folha'], descricao: 'Fotos que o coletor precisa tirar para salvar a matriz' },
   precisao_gps_maxima_m: { valor: 30, descricao: 'Precisão do GPS (metros) a partir da qual o app aceita o ponto sem perguntar' },
   aviso_validade_sementes_dias: { valor: 60, descricao: 'Avisar quando faltar este número de dias para a validade de um lote de sementes' },
+  distancia_max_foto_plantio_m: { valor: 500, descricao: 'Fotos do plantio mais longe que isto (metros) ficam marcadas para conferência' },
   tamanho_faixa_codigos: { valor: 20, descricao: 'Quantos códigos cada aparelho reserva por tipo no pacote de campo' },
 };

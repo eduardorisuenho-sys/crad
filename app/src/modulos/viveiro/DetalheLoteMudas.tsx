@@ -6,7 +6,7 @@ import { atrasado, bloqueioMudancaFase, bloqueioSaidaMudas, dataPrevistaPronta, 
 import { CodigoQr } from '../../componentes/CodigoQr';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
-import { CAMPO_DECIMAL, lerNumero } from '../../plataforma/numero';
+import { CAMPO_DECIMAL, lerNumero, mostrarNumero } from '../../plataforma/numero';
 import { nomesEspecies } from '../coleta/dados';
 import { RECIPIENTES, ROTULO_FASE } from './dados';
 
@@ -115,7 +115,7 @@ export function DetalheLoteMudas() {
         <dt>Germinação</dt>
         <dd data-testid="germinacao">
           {germinadas} de {String(lote.sementes_semeadas ?? '?')}
-          {taxa !== null ? ` (${taxa}%)` : ''}
+          {taxa !== null ? ` (${mostrarNumero(taxa)}%)` : ''}
         </dd>
         {previsao && (
           <>

@@ -19,3 +19,4 @@ export * from './viveiro';
 export * from './catalogo';
 export * from './doacao';
 export * from './regras-escrita';
+export * from './posplantio';

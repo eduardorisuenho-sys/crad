@@ -22,8 +22,27 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 4. Módulo 3, Viveiro | **pronta** |
 | 5. Módulo 4, Catálogo público | **pronta** |
 | 6. Módulo 5, Doação de mudas (com Plantando Água) | **pronta** |
-| 7. Módulo 6, Pós-plantio | próxima |
-| 8. Módulo 7, Relatórios e transparência | a fazer |
+| 7. Módulo 6, Pós-plantio | **pronta** |
+| 8. Módulo 7, Relatórios e transparência | próxima |
+
+O que o Módulo 6 entrega (tudo funciona sem internet):
+
+- **Registro do plantio** de cada doação retirada, feito pelo solicitante ou
+  pela equipe:
+  - mudas plantadas por espécie; **plantar mais do que recebeu é bloqueado**;
+  - ponto do GPS no local, município, data e pelo menos uma foto;
+  - **cada foto guarda o GPS do momento**.
+- **Acompanhamentos:** o solicitante informa quantas mudas estão vivas, com
+  fotos. **Vivas não podem passar das plantadas.**
+- **Vistoria (opcional)** da equipe, no mesmo formato. No mesmo dia, a
+  vistoria vale mais que o relato.
+- **Taxa de sobrevivência** (vivas ÷ plantadas), no total e por espécie, pelo
+  acompanhamento mais recente.
+- **Conferência das fotos:** foto sem GPS, ou tirada mais longe do local que
+  o parâmetro `distancia_max_foto_plantio_m` (padrão: 500 m), fica marcada
+  "conferir".
+- **Lista do pós-plantio:** doações retiradas, com quem ainda não registrou o
+  plantio e a sobrevivência de cada plantio.
 
 O que o Módulo 5 entrega:
 

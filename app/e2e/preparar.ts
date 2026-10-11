@@ -37,11 +37,15 @@ export default async function preparar() {
   await criar('movimento_estoque_mudas', { lote_mudas_id: lmPub.id, tipo: 'entrada', quantidade: 60, data: '2026-03-01', viveiro_id: VIVEIRO_TESTE });
   process.env.CRADS_ESPECIE_PUBLICA = publica.id;
   // Módulo 5: solicitante e uma espécie com 100 mudas prontas só para o teste de doação.
-  await criarUsuario(s, 'solicitante@teste.local', { name: 'Solicitante Teste', solicitante: true });
+  const solicitante = await criarUsuario(s, 'solicitante@teste.local', { name: 'Solicitante Teste', solicitante: true });
   const doa = await criar('especie', { nome_cientifico: 'Doacia demonstrativa', familia: 'Testaceae', publicada: true });
   await criar('nome_popular', { especie_id: doa.id, nome: 'Árvore-da-doação', nome_busca: 'arvore da doacao' });
   const lmDoa = await criar('lote_mudas', { codigo: 'LM-2026-902-A', lote_sementes_id: lsPub.id, especie_id: doa.id, data_semeadura: '2026-02-01', fase_atual: 'pronta', viveiro_id: VIVEIRO_TESTE });
   await criar('movimento_estoque_mudas', { lote_mudas_id: lmDoa.id, tipo: 'entrada', quantidade: 100, data: '2026-03-01', viveiro_id: VIVEIRO_TESTE });
+  // Módulo 6: uma doação já retirada pelo solicitante, para registrar o plantio.
+  const pessoaSol = await criar('pessoa', { nome: 'Solicitante Teste', usuario_id: solicitante.id });
+  const doacaoRet = await criar('doacao', { codigo: 'DO-2026-901', solicitante_pessoa_id: pessoaSol.id, solicitante_usuario_id: solicitante.id, situacao: 'retirada', viveiro_id: VIVEIRO_TESTE });
+  await criar('doacao_item', { doacao_id: doacaoRet.id, especie_id: doa.id, qtd_pedida: 20, qtd_aprovada: 20, qtd_entregue: 20, solicitante_usuario_id: solicitante.id, viveiro_id: VIVEIRO_TESTE });
   process.env.CRADS_PB_URL = s.url;
   process.env.CRADS_PB_ADMIN = s.admin;
   return () => s.parar();

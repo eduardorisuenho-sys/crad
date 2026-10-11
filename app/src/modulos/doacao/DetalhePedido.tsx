@@ -215,6 +215,12 @@ export function DetalhePedido() {
         )}
       </div>
 
+      {situacao === 'retirada' && (
+        <Link to="/pos-plantio" className="botao-secundario">
+          <Icone nome="plantio" /> Pós-plantio
+        </Link>
+      )}
+
       {!equipe && SITUACOES_EM_ANALISE.includes(situacao) && (
         <button
           className="botao-secundario"

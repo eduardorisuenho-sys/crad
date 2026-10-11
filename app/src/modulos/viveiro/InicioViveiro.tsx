@@ -8,6 +8,7 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
 import { lotesDeMudas, ROTULO_FASE } from './dados';
+import { mostrarNumero } from '../../plataforma/numero';
 
 export function InicioViveiro() {
   const { repo, db, viveiroId } = useApp();
@@ -63,7 +64,7 @@ export function InicioViveiro() {
                     {String(lote.codigo)} · {nomes?.get(String(lote.especie_id)) ?? ''}
                   </strong>
                   <small>
-                    {ROTULO_FASE[String(lote.fase_atual ?? 'semeadura')]} · {saldo} mudas{taxa !== null ? ` · germinação ${taxa}%` : ''}
+                    {ROTULO_FASE[String(lote.fase_atual ?? 'semeadura')]} · {saldo} mudas{taxa !== null ? ` · germinação ${mostrarNumero(taxa)}%` : ''}
                   </small>
                 </div>
                 {atrasado(previsao, lote.fase_atual as string, hoje) && <span className="selo">atrasado</span>}

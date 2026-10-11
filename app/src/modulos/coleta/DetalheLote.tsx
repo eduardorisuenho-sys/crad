@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { bloqueioSaida, parametro, saldoSementes, situacaoValidade } from '@crads/dominio';
 import { CodigoQr } from '../../componentes/CodigoQr';
-import { CAMPO_DECIMAL, lerNumero } from '../../plataforma/numero';
+import { CAMPO_DECIMAL, lerNumero, mostrarNumero } from '../../plataforma/numero';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -129,7 +129,7 @@ export function DetalheLote() {
         {lote.germinacao_teste_pct ? (
           <>
             <dt>Teste de germinação</dt>
-            <dd>{String(lote.germinacao_teste_pct)}%</dd>
+            <dd>{mostrarNumero(lote.germinacao_teste_pct)}%</dd>
           </>
         ) : null}
       </dl>
