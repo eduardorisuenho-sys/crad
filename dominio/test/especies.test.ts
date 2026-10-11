@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { COLUNAS_ESPECIE } from '../src/especies/importar';
+import { lerXlsx } from '../src/planilha/xlsx';
 import { buscarNomes, nomeBase, normalizarBusca, problemasNome } from '../src/especies/nomes';
 import { lerLinhas, planejarImportacao } from '../src/especies/importar';
 
@@ -103,5 +106,17 @@ describe('importação de espécies', () => {
     expect(alvo[0].nomesPopulares).toEqual([]);
     expect(alvo[1].nomesPopulares).toEqual(['Nova-alcunha']);
     expect(p.avisos.some((a) => a.mensagem.includes('é sinônimo de Ficticia alba Fulano'))).toBe(true);
+  });
+});
+
+describe('modelo de planilha (dados/modelo-especies.xlsx)', () => {
+  it('tem todas as colunas que o importador conhece, e o exemplo entra como fictício', () => {
+    const abas = lerXlsx(new Uint8Array(readFileSync(new URL('../../dados/modelo-especies.xlsx', import.meta.url))));
+    const { registros } = lerLinhas(abas[0].linhas);
+    expect(registros).toHaveLength(1);
+    const cabecalho = abas[0].linhas[2].map((c) => String(c).replace(' *', ''));
+    expect(cabecalho).toEqual(Object.values(COLUNAS_ESPECIE).map((c) => c.rotulo));
+    const p = planejarImportacao(registros, { especies: [], nomesPopulares: [], sinonimos: [] });
+    expect(p.novas[0].dados).toMatchObject({ ficticia: true, publicada: false, meses_flor: [9, 10, 11] });
   });
 });

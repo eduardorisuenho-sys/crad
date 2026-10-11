@@ -22,6 +22,7 @@ export const BLOCOS: Bloco[] = [
   { rota: '/doacao', rotulo: 'Doação de mudas', icone: 'doacao', perfis: ['viveirista', 'gestor', 'solicitante'] },
   { rota: '/pos-plantio', rotulo: 'Pós-plantio', icone: 'plantio', perfis: 'todos' },
   { rota: '/relatorios', rotulo: 'Relatórios', icone: 'relatorio', perfis: ['gestor'] },
+  { rota: '/especies', rotulo: 'Espécies', icone: 'catalogo', perfis: ['coletor', 'viveirista', 'gestor'] },
   { rota: '/viveiros', rotulo: 'Viveiros', icone: 'viveiro', perfis: ['gestor'] },
 ];
 

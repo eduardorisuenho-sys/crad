@@ -1,17 +1,9 @@
 import { expect, test } from '@playwright/test';
-
-const PB = () => process.env.CRADS_PB_URL!;
+import { entrarComoGestora, lerDoServidor } from './apoio';
 
 test('o app abre e grava sem internet, e envia quando o sinal volta', async ({ page, context }) => {
   // 1. Primeiro acesso, com internet: entra e o app fica guardado no aparelho.
-  await page.goto('/');
-  await page.getByRole('group').getByText('Endereço do servidor').click();
-  await page.getByLabel('Endereço do servidor').fill(PB());
-  await page.getByLabel('E-mail').fill('gestora@teste.local');
-  await page.getByLabel('Senha').fill('senha-teste-123');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page.getByRole('heading', { name: 'Olá, Gestora' })).toBeVisible();
-  await page.evaluate(() => navigator.serviceWorker.ready);
+  await entrarComoGestora(page);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado');
 
   // 2. Sem sinal: o app abre do zero e continua funcionando.
@@ -38,7 +30,5 @@ test('o app abre e grava sem internet, e envia quando o sinal volta', async ({ p
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await expect(page.getByText('não enviado')).toHaveCount(0);
 
-  const r = await fetch(`${PB()}/api/collections/viveiro/records`, { headers: { authorization: process.env.CRADS_PB_ADMIN! } });
-  const { items } = await r.json();
-  expect(items).toEqual([expect.objectContaining({ nome: 'Viveiro de Palmas', sigla: 'PAL', versao: 1 })]);
+  expect(await lerDoServidor('viveiro')).toEqual([expect.objectContaining({ nome: 'Viveiro de Palmas', sigla: 'PAL', versao: 1 })]);
 });

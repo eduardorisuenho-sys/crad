@@ -758,6 +758,34 @@ function montarRecebimento(porColecao, ctx, desde, limite) {
   };
 }
 
+// ../dominio/src/especies/importar.ts
+var COLUNAS_ESPECIE = {
+  nome_popular: { rotulo: "Nome popular", aceitos: ["nome popular", "nome polular", "nomes populares", "popular"], tipo: "texto" },
+  familia: { rotulo: "Fam\xEDlia", aceitos: ["familia", "familia botanica"], tipo: "texto" },
+  nome_cientifico: { rotulo: "Nome cient\xEDfico", aceitos: ["nome cientifico", "cientifico", "especie"], tipo: "texto" },
+  autor: { rotulo: "Autor", aceitos: ["autor", "autoria"], tipo: "texto" },
+  forma_vida: { rotulo: "Forma de vida", aceitos: ["forma de vida", "habito"], tipo: "texto" },
+  folha: { rotulo: "Folha", aceitos: ["folha"], tipo: "texto" },
+  disposicao: { rotulo: "Disposi\xE7\xE3o das folhas", aceitos: ["disposicao", "disposicao das folhas"], tipo: "texto" },
+  latex: { rotulo: "L\xE1tex ou resina", aceitos: ["latex", "latex ou resina"], tipo: "texto" },
+  espinhos: { rotulo: "Espinhos", aceitos: ["espinhos", "espinho"], tipo: "texto" },
+  casca: { rotulo: "Casca", aceitos: ["casca"], tipo: "texto" },
+  flor: { rotulo: "Flor", aceitos: ["flor", "flores"], tipo: "texto" },
+  fruto: { rotulo: "Fruto", aceitos: ["fruto", "frutos"], tipo: "texto" },
+  meses_flor: { rotulo: "Meses de flor", aceitos: ["meses de flor", "floracao", "meses flor"], tipo: "meses" },
+  meses_fruto: { rotulo: "Meses de fruto", aceitos: ["meses de fruto", "frutificacao", "meses fruto"], tipo: "meses" },
+  lorenzi_volume: { rotulo: "Lorenzi volume", aceitos: ["lorenzi volume", "lorenzi vol", "volume lorenzi"], tipo: "numero" },
+  lorenzi_pagina: { rotulo: "Lorenzi p\xE1gina", aceitos: ["lorenzi pagina", "lorenzi pag", "pagina lorenzi"], tipo: "numero" },
+  sementes_por_kg: { rotulo: "Sementes por kg", aceitos: ["sementes por kg", "sementes kg"], tipo: "numero" },
+  dormencia: { rotulo: "Dorm\xEAncia", aceitos: ["dormencia"], tipo: "texto" },
+  tratamento_pre_germinativo: { rotulo: "Tratamento pr\xE9-germinativo", aceitos: ["tratamento pre germinativo", "quebra de dormencia", "tratamento"], tipo: "texto" },
+  dias_germinacao: { rotulo: "Dias para germinar", aceitos: ["dias para germinar", "dias germinacao", "tempo de germinacao"], tipo: "numero" },
+  meses_ate_pronta: { rotulo: "Meses at\xE9 a muda ficar pronta", aceitos: ["meses ate a muda ficar pronta", "meses ate pronta", "tempo no viveiro"], tipo: "numero" },
+  grupo_sucessional: { rotulo: "Grupo sucessional", aceitos: ["grupo sucessional", "grupo ecologico"], tipo: "texto" },
+  origem: { rotulo: "Origem (nativa/ex\xF3tica)", aceitos: ["origem", "origem nativa exotica", "nativa ou exotica"], tipo: "texto" }
+};
+var CAMPOS_FICHA = Object.keys(COLUNAS_ESPECIE).filter((c) => !["nome_popular", "nome_cientifico", "familia"].includes(c));
+
 // src/crads.ts
 var ALFABETO_ID = "abcdefghijklmnopqrstuvwxyz0123456789";
 var CONTROLE = ["versao", "seq", "excluido", "criado_por", "atualizado_por", "dispositivo_id", "criado_no_aparelho_em"];

@@ -163,6 +163,9 @@ export interface PlanoImportacao {
   resumo: { linhas: number; especies: number; novas: number; atualizadas: number; nomesPopulares: number; paraRevisar: number };
 }
 
+/** Família usada nos exemplos e testes; nunca é uma família real. */
+export const FAMILIA_FICTICIA = 'ficticiaceae';
+
 const CAMPOS_FICHA = Object.keys(COLUNAS_ESPECIE).filter((c) => !['nome_popular', 'nome_cientifico', 'familia'].includes(c));
 const ORIGENS: Record<string, string> = { nativa: 'nativa', exotica: 'exotica', naturalizada: 'naturalizada', cultivada: 'cultivada' };
 
@@ -255,6 +258,8 @@ export function planejarImportacao(registros: LinhaEspecie[], existentes: Existe
     } else {
       const dados: Record<string, unknown> = { ...ficha, nome_cientifico: nome, fonte_cadastro: 'planilha', publicada: false };
       if (familias.length) dados.familia = familias[0];
+      // Linha de exemplo do modelo (família fictícia): entra marcada como fictícia.
+      if (familias.some((f) => normalizarBusca(f) === FAMILIA_FICTICIA)) dados.ficticia = true;
       if (g.notas.length) {
         dados.revisar = true;
         dados.nota_revisao = juntarNotas('', g.notas);
