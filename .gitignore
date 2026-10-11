@@ -6,3 +6,7 @@ servidor/pb_data/
 app/test-results/
 app/playwright-report/
 .env
+servidor/pocketbase.zip
+servidor/pocketbase.exe
+servidor/CHANGELOG.md
+servidor/LICENSE.md

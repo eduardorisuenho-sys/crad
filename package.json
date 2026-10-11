@@ -2,8 +2,11 @@
   "name": "crads",
   "private": true,
   "description": "CRADS — gestão pública de mudas nativas (Semarh-TO)",
-  "license": "AGPL-3.0-or-later",
-  "workspaces": ["dominio", "app", "servidor"],
+  "workspaces": [
+    "dominio",
+    "app",
+    "servidor"
+  ],
   "scripts": {
     "dev": "npm run dev -w app",
     "build": "npm run build -w servidor && npm run build -w app",
