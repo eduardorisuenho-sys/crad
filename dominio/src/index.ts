@@ -6,3 +6,7 @@ export * from './sync/tipos';
 export * from './sync/valores';
 export * from './sync/resolver';
 export * from './sync/recebimento';
+export * from './especies/nomes';
+export * from './especies/importar';
+export * from './especies/flora';
+export * from './planilha/xlsx';
