@@ -41,6 +41,7 @@ import { RegistrarPlantio } from './modulos/posplantio/RegistrarPlantio';
 import { PainelRelatorios } from './modulos/relatorios/Painel';
 import { RastreioInterno } from './modulos/relatorios/RastreioInterno';
 import { Transparencia } from './modulos/relatorios/Transparencia';
+import { ImportarMunicipios } from './modulos/municipios/ImportarMunicipios';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -102,6 +103,7 @@ function Rotas() {
       <Route path="/pos-plantio/novo/:doacaoId" element={<RegistrarPlantio />} />
       <Route path="/pos-plantio/:id" element={<DetalhePlantio />} />
       <Route path="/pos-plantio/:id/acompanhamento" element={<NovoAcompanhamento />} />
+      <Route path="/municipios" element={<ImportarMunicipios />} />
       <Route path="/relatorios" element={<PainelRelatorios />} />
       <Route path="/relatorios/rastreio" element={<RastreioInterno />} />
       <Route path="/especies/importar" element={<ImportarEspecies />} />

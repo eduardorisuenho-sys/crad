@@ -1,5 +1,6 @@
 /** Registro do plantio de uma doação retirada (funciona sem internet). */
 import { useEffect, useState } from 'react';
+import { listaMunicipios, municipioDoNome, municipioDoPonto } from '../municipios/dados';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate, useParams } from 'react-router-dom';
 import { bloqueiosPlantio } from '@crads/dominio';
@@ -30,6 +31,12 @@ export function RegistrarPlantio() {
   const [erros, setErros] = useState<string[]>([]);
   const [salvando, setSalvando] = useState(false);
   useEffect(() => acompanharPosicao(setGps, () => {}), []);
+  const municipios = useLiveQuery(() => listaMunicipios(db), [db]) ?? [];
+  // Ao marcar o ponto, o município vem dos contornos do IBGE (se importados).
+  useEffect(() => {
+    if (!ponto) return;
+    void municipioDoPonto(db, ponto).then((m) => m && setLocal((l) => (l.municipio ? l : { ...l, municipio: String(m.nome) })));
+  }, [db, ponto]);
 
   if (!doacao || !entregues) return <Tela titulo="Registrar plantio">{null}</Tela>;
   const qtd = (e: string) => Number(plantadas[e] ?? entregues.get(e) ?? 0);
@@ -38,7 +45,9 @@ export function RegistrarPlantio() {
   async function salvar() {
     setSalvando(true);
     const base = { viveiro_id: doacao!.viveiro_id, solicitante_usuario_id: doacao!.solicitante_usuario_id ?? null };
+    const municipio = (await municipioDoNome(db, local.municipio)) ?? (await municipioDoPonto(db, ponto));
     const p = await repo.salvar('plantio', {
+      municipio_id: municipio?.id ?? null,
       ...base,
       doacao_id: doacaoId,
       data: local.data,
@@ -102,8 +111,13 @@ export function RegistrarPlantio() {
           </button>
           <label>
             Município
-            <input value={local.municipio} onChange={(e) => setLocal({ ...local, municipio: e.target.value })} />
+            <input value={local.municipio} onChange={(e) => setLocal({ ...local, municipio: e.target.value })} list="lista-municipios" />
           </label>
+          <datalist id="lista-municipios">
+            {municipios.map((m) => (
+              <option key={m.id} value={String(m.nome)} />
+            ))}
+          </datalist>
           <label>
             Como chegar (opcional)
             <input value={local.descricao} onChange={(e) => setLocal({ ...local, descricao: e.target.value })} />

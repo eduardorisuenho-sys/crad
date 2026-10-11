@@ -22,3 +22,4 @@ export * from './regras-escrita';
 export * from './posplantio';
 export * from './relatorios';
 export * from './planilha/exportar';
+export * from './municipios';

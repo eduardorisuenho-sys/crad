@@ -338,6 +338,25 @@ No iPhone, o CRADS precisa ser **adicionado à tela de início** pelo Safari
 o iPhone pode apagar os dados guardados sem internet depois de 7 dias sem
 uso. O app mostra esse aviso e um guia com figuras.
 
+## Importar os municípios (IBGE)
+
+O gestor faz isso uma vez, em **Ajustes → Municípios (IBGE)**:
+
+1. Confira a UF (TO) e toque em **Baixar do IBGE**. O app busca no IBGE os
+   contornos e os nomes dos municípios.
+2. Se o IBGE não responder, abra os dois links da tela, salve os arquivos e
+   use **Escolher arquivos**, escolhendo os dois de uma vez. Também serve um
+   GeoJSON do IBGE com as colunas `CD_MUN`, `NM_MUN` e `SIGLA_UF`.
+3. Confira a prévia (novos, atualizados, sem mudança) e toque em **Gravar**.
+
+Depois disso, sem internet:
+
+- a matriz recebe o município pelo GPS e o assistente dá preferência às
+  espécies já registradas ali;
+- o plantio e o pedido de doação sugerem o município pelo ponto marcado e
+  completam o nome enquanto se digita;
+- o rastreio público do lote mostra os municípios das matrizes.
+
 ## Importar a planilha de espécies
 
 No app, entre como gestor e vá em **Espécies → Importar**.
@@ -416,9 +435,10 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   mostra o código, e o CRADS abre a ficha.
 - O gestor aprova uma matriz só com a espécie confirmada como "certo" e com
   GPS válido. Só matriz aprovada poderá fornecer sementes (Módulo 2).
-- Ainda não há lista de municípios com contorno (IBGE). Por isso o filtro do
-  assistente por município fica para quando essa base for importada. O filtro
-  por bioma e época já funciona.
+- Municípios: os contornos do IBGE são simplificados (cerca de 50 m) para
+  ficarem leves no celular. A espécie "registrada no município" vem das
+  matrizes já identificadas com certeza ali. Não é usada nenhuma lista
+  inventada.
 - Visual:
   - O app usa só as cores da logo do CRAD: verde `#48672f`, azul `#259ad4`,
     azul-escuro `#33618d`, branco e tons claros dessas cores. A única exceção
@@ -437,7 +457,8 @@ No app, entre como gestor e vá em **Espécies → Importar**.
 - `especificacao.md`: o projeto segue o prompt inicial. As regras marcadas
   como **[hipótese]** no modelo de dados continuam valendo até haver uma
   especificação.
-- Base de municípios do Tocantins com contorno (IBGE), para o filtro por
-  município e o pacote de campo.
+- Importar os municípios do Tocantins no servidor de produção (Ajustes →
+  Municípios). Este ambiente de desenvolvimento não acessa o IBGE.
+- Pacote de campo com mapa de fundo sem internet (PMTiles).
 - Modelo do termo de doação de mudas: a estrutura está pronta (texto configurável).
 - Modelo da ficha de solicitação de mudas.

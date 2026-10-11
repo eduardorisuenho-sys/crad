@@ -13,6 +13,7 @@ import { lerPosicao } from '../../plataforma/gps';
 import { CAMPO_DECIMAL, lerNumero } from '../../plataforma/numero';
 import { servidorPublico } from '../catalogo/api';
 import { nomesEspecies } from '../coleta/dados';
+import { listaMunicipios, municipioDoNome, municipioDoPonto } from '../municipios/dados';
 import { IconeAgua } from './BotaoPlantandoAgua';
 import { disponivelLocal, disponivelPublico, FINALIDADES, marcarPrograma } from './dados';
 
@@ -49,6 +50,7 @@ export function NovoPedido() {
 
   const local = useLiveQuery(() => (equipe && viveiro ? disponivelLocal(db, viveiro) : undefined), [equipe, viveiro]);
   const nomesLocais = useLiveQuery(() => nomesEspecies(db), [db]);
+  const municipios = useLiveQuery(() => listaMunicipios(db), [db]) ?? [];
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [db]) ?? [];
   const limite = parametro<number>(parametros, 'limite_mudas_por_pedido', viveiro);
   const disponivel = equipe ? local ?? new Map<string, number>() : publico?.porViveiro.get(viveiro ?? '') ?? new Map<string, number>();
@@ -68,6 +70,8 @@ export function NovoPedido() {
     // LGPD: CPF/CNPJ e telefone ficam na tabela que só o gestor lê.
     if (pessoa.documento.trim() || pessoa.telefone.trim()) await repo.salvar('dados_pessoais', { pessoa_id: p.id, documento: pessoa.documento.trim() || null, telefone: pessoa.telefone.trim() || null });
     const codigo = await repo.proximoCodigo('DO');
+    const ponto = plantio.lat !== null ? { lat: plantio.lat, lon: plantio.lon! } : null;
+    const municipio = (await municipioDoNome(db, plantio.municipio)) ?? (await municipioDoPonto(db, ponto));
     const doacao = await repo.salvar('doacao', {
       codigo,
       viveiro_id: viveiro,
@@ -75,6 +79,7 @@ export function NovoPedido() {
       solicitante_usuario_id: equipe ? null : sessao?.id,
       instituicao: pessoa.instituicao || null,
       finalidade: plantio.finalidade || null,
+      municipio_plantio_id: municipio?.id ?? null,
       local_plantio: [plantio.municipio, plantio.local].filter(Boolean).join(' · ') || null,
       geometria_plantio: plantio.lat !== null ? { type: 'Point', coordinates: [plantio.lon, plantio.lat] } : null,
       area_ha: lerNumero(plantio.area),
@@ -178,8 +183,13 @@ export function NovoPedido() {
           </fieldset>
           <label>
             Município
-            <input required value={plantio.municipio} onChange={(e) => setPlantio({ ...plantio, municipio: e.target.value })} />
+            <input required value={plantio.municipio} onChange={(e) => setPlantio({ ...plantio, municipio: e.target.value })} list="lista-municipios" />
           </label>
+          <datalist id="lista-municipios">
+            {municipios.map((m) => (
+              <option key={m.id} value={String(m.nome)} />
+            ))}
+          </datalist>
           <label>
             Endereço ou como chegar
             <input value={plantio.local} onChange={(e) => setPlantio({ ...plantio, local: e.target.value })} />
@@ -189,7 +199,9 @@ export function NovoPedido() {
             className="botao-secundario"
             onClick={async () => {
               const p = await lerPosicao(6000);
-              if (p) setPlantio({ ...plantio, lat: p.lat, lon: p.lon });
+              if (!p) return;
+              const m = plantio.municipio ? null : await municipioDoPonto(db, p);
+              setPlantio({ ...plantio, lat: p.lat, lon: p.lon, municipio: plantio.municipio || String(m?.nome ?? '') });
             }}
           >
             <Icone nome="plantio" /> {plantio.lat !== null ? `Ponto marcado (${plantio.lat.toFixed(4)}, ${plantio.lon!.toFixed(4)})` : 'Estou no local: marcar o ponto'}

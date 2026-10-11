@@ -42,6 +42,13 @@ export async function carregarAssistente(db: BancoCrads): Promise<DadosAssistent
     const id = String(em.especie_id);
     (municipios.get(id) ?? municipios.set(id, []).get(id)!).push(String(em.municipio_id));
   }
+  // Também conta onde a espécie já tem matriz identificada com certeza (registro real de campo).
+  for (const m of ativos(await db.colecao('matriz').toArray())) {
+    if (!m.especie_id || !m.municipio_id || m.grau_certeza !== 'certo') continue;
+    const id = String(m.especie_id);
+    const lista = municipios.get(id) ?? municipios.set(id, []).get(id)!;
+    if (!lista.includes(String(m.municipio_id))) lista.push(String(m.municipio_id));
+  }
   const especies: EspecieAssistente[] = ativos(await db.colecao('especie').toArray()).map((e) => ({
     id: e.id,
     opcoes: marcas.get(e.id) ?? new Set(),

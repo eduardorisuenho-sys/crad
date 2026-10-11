@@ -12,6 +12,7 @@ import { MiniaturaBlob } from '../../componentes/Miniatura';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { acompanharPosicao, type PosicaoGps } from '../../plataforma/gps';
+import { municipioDoPonto } from '../municipios/dados';
 import { CAMPO_DECIMAL, lerNumero } from '../../plataforma/numero';
 import { Assistente, type GrauCerteza } from '../assistente/Assistente';
 import { FiguraOpcao } from '../assistente/FiguraOpcao';
@@ -86,6 +87,8 @@ export function NovaMatriz() {
   const obrigatorias = parametro<string[]>(parametros, 'fotos_obrigatorias_matriz', viveiroId);
   const matrizes = useLiveQuery(() => repo.listar('matriz'), [repo]) ?? [];
   const especie = useLiveQuery(() => (r.especie_id ? db.colecao('especie').get(r.especie_id) : undefined), [r.especie_id]);
+  // Município pelo ponto do GPS (contornos do IBGE guardados no aparelho).
+  const municipio = useLiveQuery(() => municipioDoPonto(db, r.gps), [db, r.gps?.lat, r.gps?.lon]);
   const nomePopular = useLiveQuery(async () => (r.especie_id ? (await db.colecao('nome_popular').where('especie_id').equals(r.especie_id).first())?.nome : undefined), [r.especie_id]);
 
   const atualizar = (mudancas: Partial<Rascunho>) =>
@@ -137,6 +140,7 @@ export function NovaMatriz() {
         grau_certeza: r.especie_id ? r.grau_certeza ?? 'provavel' : 'a_identificar',
         metodo_identificacao: r.metodo_identificacao ?? null,
         respostas_assistente: r.respostas_assistente ?? null,
+        municipio_id: municipio?.id ?? null,
         lat: r.gps?.lat ?? null,
         lon: r.gps?.lon ?? null,
         precisao_m: r.gps?.precisao_m ?? null,
@@ -234,7 +238,7 @@ export function NovaMatriz() {
 
       {etapa === 'assistente' && (
         <Assistente
-          contexto={{ mes: new Date().getMonth() + 1 }}
+          contexto={{ mes: new Date().getMonth() + 1, municipioId: municipio?.id, biomas: Array.isArray(municipio?.biomas) && municipio.biomas.length ? (municipio.biomas as string[]) : undefined }}
           onEscolher={(res) => {
             atualizar({ especie_id: res.especie_id, grau_certeza: res.grau_certeza, metodo_identificacao: 'assistente', respostas_assistente: res.respostas });
             if (res.especie_id) depoisDaEspecie();
@@ -420,6 +424,12 @@ export function NovaMatriz() {
             <dd>{{ certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' }[r.grau_certeza ?? 'a_identificar']}</dd>
             <dt>Local</dt>
             <dd>{r.gps ? `${r.gps.lat.toFixed(5)}, ${r.gps.lon.toFixed(5)} (±${r.gps.precisao_m} m)` : 'sem GPS'}</dd>
+            {municipio && (
+              <>
+                <dt>Município</dt>
+                <dd data-testid="municipio">{`${String(municipio.nome)} – ${String(municipio.uf)}`}</dd>
+              </>
+            )}
             <dt>Fotos</dt>
             <dd>{fotos.length}</dd>
           </dl>
