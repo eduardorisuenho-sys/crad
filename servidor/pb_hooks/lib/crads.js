@@ -1,0 +1,1027 @@
+// Gerado por servidor/scripts/empacotar.ts. Não edite à mão.
+"use strict";
+var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b2) => {
+  for (var prop in b2 || (b2 = {}))
+    if (__hasOwnProp.call(b2, prop))
+      __defNormalProp(a, prop, b2[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b2)) {
+      if (__propIsEnum.call(b2, prop))
+        __defNormalProp(a, prop, b2[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b2) => __defProps(a, __getOwnPropDescs(b2));
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/crads.ts
+var crads_exports = {};
+__export(crads_exports, {
+  COLECOES_SINCRONIZADAS: () => COLECOES_SINCRONIZADAS,
+  antesDeGravarPeloPainel: () => antesDeGravarPeloPainel,
+  auditarPainel: () => auditarPainel,
+  contextoDe: () => contextoDe,
+  enviar: () => enviar,
+  eu: () => eu,
+  paraObjeto: () => paraObjeto,
+  receber: () => receber,
+  receberArquivo: () => receberArquivo,
+  reservarFaixas: () => reservarFaixas
+});
+module.exports = __toCommonJS(crads_exports);
+
+// ../dominio/src/esquema.ts
+var t = (nome, obrigatorio = false) => ({ nome, tipo: "texto", obrigatorio });
+var n = (nome, obrigatorio = false) => ({ nome, tipo: "numero", obrigatorio });
+var b = (nome) => ({ nome, tipo: "bool" });
+var d = (nome, obrigatorio = false) => ({ nome, tipo: "data", obrigatorio });
+var j = (nome) => ({ nome, tipo: "json" });
+var arq = (nome) => ({ nome, tipo: "arquivo" });
+var r = (nome, ref, obrigatorio = false) => ({ nome, tipo: "ref", ref, obrigatorio });
+var o = (nome, opcoes, obrigatorio = false, multiplo = false) => ({
+  nome,
+  tipo: "opcao",
+  opcoes,
+  obrigatorio,
+  multiplo
+});
+var BIOMAS = ["amazonia", "caatinga", "cerrado", "mata_atlantica", "pampa", "pantanal"];
+var GRAUS_CERTEZA = ["certo", "provavel", "a_identificar"];
+var PARTES_PLANTA = ["folha", "casca", "flor", "fruto", "semente", "arvore", "muda", "outro"];
+var FASES_MUDA = ["semeadura", "germinacao", "repicagem", "crescimento", "rustificacao", "pronta"];
+var SITUACOES_DOACAO = [
+  "rascunho",
+  "enviada",
+  "em_analise",
+  "aprovada",
+  "aprovada_parcial",
+  "negada",
+  "aguardando_retirada",
+  "retirada",
+  "expirada",
+  "cancelada"
+];
+var TODOS_EXCETO_SOLICITANTE = ["coletor", "viveirista", "gestor"];
+var EQUIPE_VIVEIRO = ["viveirista", "gestor"];
+var SO_GESTOR = ["gestor"];
+var COLECOES = [
+  // ---- organização --------------------------------------------------------
+  {
+    nome: "instalacao",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("nome_orgao", true), t("uf_padrao", true), arq("logotipo"), t("cabecalho_documentos"), t("texto_termo_doacao")],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  {
+    nome: "viveiro",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("sigla", true), t("nome", true), r("municipio_id", "municipio"), t("endereco"), b("ativo")],
+    indices: ["sigla"],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  {
+    nome: "municipio",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("codigo_ibge", true), t("nome", true), t("uf", true), o("biomas", BIOMAS, false, true), j("contorno")],
+    indices: ["codigo_ibge", "uf"],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  {
+    nome: "usuario_viveiro",
+    natureza: "cadastro",
+    porViveiro: true,
+    campos: [r("usuario_id", "users", true), o("perfil", ["coletor", "viveirista", "gestor"], true)],
+    indices: ["usuario_id"],
+    leitura: SO_GESTOR,
+    escrita: SO_GESTOR
+  },
+  {
+    nome: "pessoa",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("nome", true), o("tipo", ["fisica", "juridica"]), t("instituicao"), r("municipio_id", "municipio"), r("usuario_id", "users")],
+    indices: ["nome", "usuario_id"],
+    leitura: "todos",
+    escrita: ["coletor", "viveirista", "gestor", "solicitante"],
+    campoDono: "usuario_id"
+  },
+  {
+    // LGPD: CPF/CNPJ e telefone ficam aqui e só o gestor lê.
+    nome: "dados_pessoais",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [r("pessoa_id", "pessoa", true), t("documento"), t("telefone"), t("email")],
+    indices: ["pessoa_id"],
+    leitura: SO_GESTOR,
+    escrita: ["coletor", "viveirista", "gestor", "solicitante"]
+  },
+  {
+    nome: "parametro",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("chave", true), j("valor"), r("viveiro_id", "viveiro"), t("descricao")],
+    indices: ["chave"],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  {
+    nome: "meta",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("indicador", true), n("alvo", true), n("ano"), r("viveiro_id", "viveiro"), r("especie_id", "especie"), r("programa_id", "programa")],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  // ---- espécies e assistente ---------------------------------------------
+  {
+    nome: "especie",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [
+      t("nome_cientifico", true),
+      t("autor"),
+      t("familia"),
+      t("flora_id"),
+      t("forma_vida"),
+      b("endemica"),
+      t("folha"),
+      t("disposicao"),
+      t("latex"),
+      t("espinhos"),
+      t("casca"),
+      t("flor"),
+      t("fruto"),
+      j("meses_flor"),
+      // lista de meses 1..12
+      j("meses_fruto"),
+      n("lorenzi_volume"),
+      n("lorenzi_pagina"),
+      // [hipótese] dados de sementes e mudas — ajustar pela tabela de sementes e mudas
+      n("sementes_por_kg"),
+      t("dormencia"),
+      t("tratamento_pre_germinativo"),
+      n("dias_germinacao"),
+      n("meses_ate_pronta"),
+      t("grupo_sucessional"),
+      b("ficticia"),
+      b("publicada")
+    ],
+    indices: ["nome_cientifico", "familia"],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  { nome: "sinonimo", natureza: "cadastro", porViveiro: false, campos: [r("especie_id", "especie", true), t("nome", true)], indices: ["especie_id", "nome"], leitura: "todos", escrita: SO_GESTOR },
+  { nome: "nome_popular", natureza: "cadastro", porViveiro: false, campos: [r("especie_id", "especie", true), t("nome", true), t("regiao")], indices: ["especie_id", "nome"], leitura: "todos", escrita: SO_GESTOR },
+  {
+    nome: "especie_ocorrencia",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [r("especie_id", "especie", true), t("uf", true), o("bioma", BIOMAS), o("origem", ["flora_funga", "manual"])],
+    indices: ["especie_id", "uf"],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  { nome: "especie_municipio", natureza: "cadastro", porViveiro: false, campos: [r("especie_id", "especie", true), r("municipio_id", "municipio", true)], indices: ["especie_id", "municipio_id"], leitura: "todos", escrita: SO_GESTOR },
+  { nome: "especie_confusao", natureza: "cadastro", porViveiro: false, campos: [r("especie_a_id", "especie", true), r("especie_b_id", "especie", true), t("como_diferenciar")], indices: ["especie_a_id", "especie_b_id"], leitura: "todos", escrita: SO_GESTOR },
+  {
+    nome: "especie_foto",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [r("especie_id", "especie", true), o("parte", PARTES_PLANTA, true), arq("arquivo"), arq("miniatura"), t("credito"), t("licenca")],
+    indices: ["especie_id"],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  { nome: "pergunta", natureza: "cadastro", porViveiro: false, campos: [t("texto", true), o("parte", PARTES_PLANTA), n("ordem"), b("ativa")], indices: ["ordem"], leitura: "todos", escrita: SO_GESTOR },
+  { nome: "opcao", natureza: "cadastro", porViveiro: false, campos: [r("pergunta_id", "pergunta", true), t("rotulo", true), arq("figura"), n("ordem")], indices: ["pergunta_id"], leitura: "todos", escrita: SO_GESTOR },
+  { nome: "especie_opcao", natureza: "cadastro", porViveiro: false, campos: [r("especie_id", "especie", true), r("opcao_id", "opcao", true)], indices: ["especie_id", "opcao_id"], leitura: "todos", escrita: SO_GESTOR },
+  // ---- módulo 1: matrizes -------------------------------------------------
+  {
+    nome: "matriz",
+    natureza: "cadastro",
+    porViveiro: true,
+    prefixoCodigo: "MT",
+    campos: [
+      t("codigo", true),
+      r("especie_id", "especie"),
+      o("grau_certeza", GRAUS_CERTEZA, true),
+      o("metodo_identificacao", ["assistente", "manual"]),
+      j("respostas_assistente"),
+      r("municipio_id", "municipio"),
+      n("lat"),
+      n("lon"),
+      n("precisao_m"),
+      n("altitude"),
+      t("descricao_local"),
+      r("proprietario_pessoa_id", "pessoa"),
+      b("autorizacao_proprietario"),
+      n("dap_cm"),
+      n("altura_m"),
+      t("estado_arvore"),
+      o("situacao", ["ativa", "inativa", "morta"]),
+      r("coletor_id", "users"),
+      t("observacao")
+    ],
+    indices: ["codigo", "especie_id", "municipio_id"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: ["coletor", "gestor"]
+  },
+  {
+    // Foto genérica (matriz, coleta, lote, retirada, monitoramento…).
+    nome: "foto",
+    natureza: "evento",
+    porViveiro: true,
+    campos: [t("entidade", true), t("registro_id", true), o("parte", PARTES_PLANTA), arq("arquivo"), arq("miniatura"), n("lat"), n("lon"), d("tirada_em")],
+    indices: ["registro_id"],
+    leitura: "todos",
+    escrita: ["coletor", "viveirista", "gestor", "solicitante"],
+    campoDono: "criado_por"
+  },
+  {
+    nome: "sugestao_identificacao",
+    natureza: "cadastro",
+    porViveiro: true,
+    campos: [r("matriz_id", "matriz", true), o("fonte", ["plantnet", "inaturalist"]), r("especie_id", "especie"), t("nome_sugerido"), n("pontuacao"), o("situacao", ["pendente", "aceita", "rejeitada"]), r("revisado_por", "users")],
+    indices: ["matriz_id"],
+    leitura: SO_GESTOR,
+    escrita: SO_GESTOR
+  },
+  { nome: "rota_campo", natureza: "cadastro", porViveiro: true, campos: [r("coletor_id", "users"), d("data"), j("matrizes_planejadas"), t("observacao")], leitura: TODOS_EXCETO_SOLICITANTE, escrita: ["coletor", "gestor"] },
+  // ---- módulo 2: coleta e sementes ---------------------------------------
+  {
+    nome: "coleta",
+    natureza: "cadastro",
+    porViveiro: true,
+    campos: [r("matriz_id", "matriz", true), d("data", true), r("coletor_id", "users"), o("material", ["fruto", "semente"]), n("quantidade"), o("unidade", ["g", "kg", "unidades", "litros"]), n("lat"), n("lon"), t("observacao")],
+    indices: ["matriz_id", "data"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: ["coletor", "viveirista", "gestor"]
+  },
+  {
+    nome: "endereco_armazenamento",
+    natureza: "cadastro",
+    porViveiro: true,
+    campos: [t("codigo", true), t("local"), t("estante"), t("prateleira"), t("caixa"), b("ativo")],
+    indices: ["codigo"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: EQUIPE_VIVEIRO
+  },
+  {
+    nome: "lote_sementes",
+    natureza: "cadastro",
+    porViveiro: true,
+    prefixoCodigo: "LS",
+    campos: [
+      t("codigo", true),
+      r("especie_id", "especie", true),
+      d("data_formacao"),
+      n("peso_g"),
+      n("sementes_estimadas"),
+      n("umidade_pct"),
+      n("germinacao_teste_pct"),
+      r("endereco_id", "endereco_armazenamento"),
+      d("validade"),
+      o("situacao", ["armazenado", "em_uso", "esgotado", "descartado"]),
+      t("observacao")
+    ],
+    indices: ["codigo", "especie_id"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: EQUIPE_VIVEIRO
+  },
+  { nome: "lote_sementes_coleta", natureza: "cadastro", porViveiro: true, campos: [r("lote_sementes_id", "lote_sementes", true), r("coleta_id", "coleta", true), n("quantidade")], indices: ["lote_sementes_id", "coleta_id"], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  {
+    nome: "movimento_sementes",
+    natureza: "evento",
+    porViveiro: true,
+    campos: [r("lote_sementes_id", "lote_sementes", true), o("tipo", ["entrada", "semeadura", "teste", "descarte", "mudanca_endereco", "ajuste"], true), n("quantidade_g"), n("quantidade_unid"), d("data", true), r("lote_mudas_id", "lote_mudas"), r("endereco_id", "endereco_armazenamento"), t("observacao")],
+    indices: ["lote_sementes_id"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: EQUIPE_VIVEIRO
+  },
+  // ---- módulo 3: viveiro --------------------------------------------------
+  {
+    nome: "lote_mudas",
+    natureza: "cadastro",
+    porViveiro: true,
+    prefixoCodigo: "LM",
+    campos: [t("codigo", true), r("lote_sementes_id", "lote_sementes", true), r("especie_id", "especie", true), d("data_semeadura"), n("sementes_semeadas"), n("sementes_semeadas_g"), t("recipiente"), t("canteiro"), o("fase_atual", FASES_MUDA), o("situacao", ["ativo", "encerrado"])],
+    indices: ["codigo", "lote_sementes_id", "especie_id", "fase_atual"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: EQUIPE_VIVEIRO
+  },
+  {
+    nome: "evento_lote_mudas",
+    natureza: "evento",
+    porViveiro: true,
+    campos: [r("lote_mudas_id", "lote_mudas", true), o("tipo", ["semeadura", "contagem_germinacao", "repicagem", "mudanca_fase", "medicao", "perda", "transferencia"], true), d("data", true), n("quantidade"), t("causa"), n("altura_media_cm"), o("fase_nova", FASES_MUDA), t("observacao")],
+    indices: ["lote_mudas_id", "tipo"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: EQUIPE_VIVEIRO
+  },
+  {
+    // Livro-razão do estoque de mudas: o saldo é sempre a soma dos movimentos.
+    nome: "movimento_estoque_mudas",
+    natureza: "evento",
+    porViveiro: true,
+    campos: [r("lote_mudas_id", "lote_mudas", true), o("tipo", ["entrada", "perda", "ajuste_inventario", "saida_doacao", "transferencia"], true), n("quantidade", true), d("data", true), t("referencia")],
+    indices: ["lote_mudas_id"],
+    leitura: TODOS_EXCETO_SOLICITANTE,
+    escrita: EQUIPE_VIVEIRO
+  },
+  { nome: "inventario", natureza: "cadastro", porViveiro: true, campos: [d("data", true), r("responsavel_id", "users"), o("situacao", ["aberto", "fechado"])], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  { nome: "inventario_item", natureza: "cadastro", porViveiro: true, campos: [r("inventario_id", "inventario", true), r("lote_mudas_id", "lote_mudas", true), n("contado"), n("saldo_sistema")], indices: ["inventario_id"], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  // ---- módulo 5: doação ---------------------------------------------------
+  {
+    nome: "doacao",
+    natureza: "cadastro",
+    porViveiro: true,
+    prefixoCodigo: "DO",
+    campoDono: "solicitante_usuario_id",
+    campos: [
+      t("codigo", true),
+      r("solicitante_pessoa_id", "pessoa", true),
+      r("solicitante_usuario_id", "users"),
+      t("instituicao"),
+      t("finalidade"),
+      r("municipio_plantio_id", "municipio"),
+      t("local_plantio"),
+      j("geometria_plantio"),
+      n("area_ha"),
+      o("canal", ["online", "balcao"]),
+      arq("oficio"),
+      o("situacao", SITUACOES_DOACAO, true),
+      r("analisado_por", "users"),
+      d("analisado_em"),
+      t("justificativa"),
+      d("retirar_ate")
+    ],
+    indices: ["codigo", "situacao", "solicitante_usuario_id"],
+    leitura: "todos",
+    escrita: ["viveirista", "gestor", "solicitante"]
+  },
+  { nome: "doacao_item", natureza: "cadastro", porViveiro: true, campoDono: "solicitante_usuario_id", campos: [r("doacao_id", "doacao", true), r("especie_id", "especie", true), n("qtd_pedida"), n("qtd_aprovada"), n("qtd_entregue"), r("solicitante_usuario_id", "users")], indices: ["doacao_id"], leitura: "todos", escrita: ["viveirista", "gestor", "solicitante"] },
+  { nome: "reserva", natureza: "cadastro", porViveiro: true, campos: [r("doacao_item_id", "doacao_item", true), r("lote_mudas_id", "lote_mudas", true), n("quantidade", true), d("valida_ate"), o("situacao", ["ativa", "consumida", "expirada", "cancelada"], true)], indices: ["doacao_item_id", "lote_mudas_id", "situacao"], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  { nome: "doacao_item_lote", natureza: "evento", porViveiro: true, campos: [r("doacao_item_id", "doacao_item", true), r("lote_mudas_id", "lote_mudas", true), n("quantidade", true)], indices: ["doacao_item_id", "lote_mudas_id"], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  { nome: "retirada", natureza: "cadastro", porViveiro: true, campos: [r("doacao_id", "doacao", true), d("data", true), t("recebedor_nome"), r("recebedor_pessoa_id", "pessoa"), arq("assinatura"), arq("termo_pdf"), r("entregue_por", "users")], indices: ["doacao_id"], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  { nome: "programa", natureza: "cadastro", porViveiro: false, campos: [t("nome", true), t("icone"), t("cor"), b("ativo")], leitura: "todos", escrita: SO_GESTOR },
+  { nome: "doacao_programa", natureza: "cadastro", porViveiro: true, campos: [r("doacao_id", "doacao", true), r("programa_id", "programa", true), b("ativo")], indices: ["doacao_id", "programa_id"], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  { nome: "doacao_programa_historico", natureza: "evento", porViveiro: true, campos: [r("doacao_id", "doacao", true), r("programa_id", "programa", true), o("acao", ["marcou", "desmarcou"], true), t("motivo")], indices: ["doacao_id"], leitura: TODOS_EXCETO_SOLICITANTE, escrita: EQUIPE_VIVEIRO },
+  // ---- módulo 6: pós-plantio ---------------------------------------------
+  { nome: "plantio", natureza: "cadastro", porViveiro: true, campoDono: "solicitante_usuario_id", campos: [r("doacao_id", "doacao", true), d("data"), j("geometria"), r("municipio_id", "municipio"), t("responsavel"), r("solicitante_usuario_id", "users")], indices: ["doacao_id"], leitura: "todos", escrita: ["viveirista", "gestor", "solicitante"] },
+  { nome: "plantio_item", natureza: "cadastro", porViveiro: true, campoDono: "solicitante_usuario_id", campos: [r("plantio_id", "plantio", true), r("especie_id", "especie", true), n("quantidade"), r("solicitante_usuario_id", "users")], indices: ["plantio_id"], leitura: "todos", escrita: ["viveirista", "gestor", "solicitante"] },
+  { nome: "monitoramento", natureza: "cadastro", porViveiro: true, campoDono: "solicitante_usuario_id", campos: [r("plantio_id", "plantio", true), d("data", true), o("tipo", ["relato", "vistoria"], true), r("validado_por", "users"), t("observacao"), r("solicitante_usuario_id", "users")], indices: ["plantio_id"], leitura: "todos", escrita: ["viveirista", "gestor", "solicitante"] },
+  { nome: "monitoramento_item", natureza: "cadastro", porViveiro: true, campoDono: "solicitante_usuario_id", campos: [r("monitoramento_id", "monitoramento", true), r("especie_id", "especie", true), n("plantadas"), n("vivas"), r("solicitante_usuario_id", "users")], indices: ["monitoramento_id"], leitura: "todos", escrita: ["viveirista", "gestor", "solicitante"] },
+  // ---- módulo 7 e controle -----------------------------------------------
+  { nome: "publicacao", natureza: "cadastro", porViveiro: false, campos: [t("titulo", true), d("data"), j("conteudo"), b("publicada")], leitura: SO_GESTOR, escrita: SO_GESTOR },
+  {
+    // Criado pelo servidor quando o mesmo campo mudou no aparelho e no servidor.
+    nome: "conflito",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("colecao", true), t("registro_id", true), j("campos"), r("usuario_id", "users"), o("situacao", ["aberto", "resolvido"], true), r("resolvido_por", "users")],
+    indices: ["registro_id", "situacao"],
+    leitura: SO_GESTOR,
+    escrita: SO_GESTOR
+  }
+];
+var POR_NOME = new Map(COLECOES.map((c) => [c.nome, c]));
+function colecao(nome) {
+  const c = POR_NOME.get(nome);
+  if (!c) throw new Error(`Cole\xE7\xE3o desconhecida: ${nome}`);
+  return c;
+}
+function existeColecao(nome) {
+  return POR_NOME.has(nome);
+}
+function nomesCampos(c) {
+  const nomes = c.campos.map((f) => f.nome);
+  if (c.porViveiro) nomes.push("viveiro_id");
+  return nomes;
+}
+
+// ../dominio/src/codigos.ts
+var TIPOS_COM_ANO = /* @__PURE__ */ new Set(["LS", "DO"]);
+var pad = (n2, tam) => String(n2).padStart(tam, "0");
+function codigoMatriz(numero) {
+  return `MT-${pad(numero, 4)}`;
+}
+function codigoLoteSementes(ano, numero) {
+  return `LS-${ano}-${pad(numero, 3)}`;
+}
+function codigoDoacao(ano, numero) {
+  return `DO-${ano}-${pad(numero, 3)}`;
+}
+function formatarCodigo(tipo, ano, numero) {
+  if (tipo === "MT") return codigoMatriz(numero);
+  if (tipo === "LS") return codigoLoteSementes(ano, numero);
+  return codigoDoacao(ano, numero);
+}
+function letraDoIndice(indice) {
+  let s = "";
+  let i = indice;
+  do {
+    s = String.fromCharCode(65 + i % 26) + s;
+    i = Math.floor(i / 26) - 1;
+  } while (i >= 0);
+  return s;
+}
+function indiceDaLetra(letra) {
+  let i = 0;
+  for (const ch of letra) i = i * 26 + (ch.charCodeAt(0) - 64);
+  return i - 1;
+}
+function codigoLoteMudas(codigoLS, indice) {
+  const ls = lerCodigo(codigoLS);
+  if (!ls || ls.tipo !== "LS") throw new Error(`C\xF3digo de lote de sementes inv\xE1lido: ${codigoLS}`);
+  return `LM-${ls.ano}-${pad(ls.numero, 3)}-${letraDoIndice(indice)}`;
+}
+function proximoCodigoLoteMudas(codigoLS, existentes) {
+  const ls = lerCodigo(codigoLS);
+  if (!ls || ls.tipo !== "LS") throw new Error(`C\xF3digo de lote de sementes inv\xE1lido: ${codigoLS}`);
+  let maior = -1;
+  for (const c of existentes) {
+    const lm = lerCodigo(c);
+    if (lm && lm.tipo === "LM" && lm.ano === ls.ano && lm.numero === ls.numero) maior = Math.max(maior, indiceDaLetra(lm.letra));
+  }
+  return codigoLoteMudas(codigoLS, maior + 1);
+}
+function lerCodigo(codigo) {
+  const s = codigo.trim().toUpperCase();
+  let m = /^MT-(\d{4,})$/.exec(s);
+  if (m) return { tipo: "MT", ano: 0, numero: Number(m[1]), provisorio: false };
+  m = /^(LS|DO)-(\d{4})-(\d{3,})$/.exec(s);
+  if (m) return { tipo: m[1], ano: Number(m[2]), numero: Number(m[3]), provisorio: false };
+  m = /^LM-(\d{4})-(\d{3,})-([A-Z]+)$/.exec(s);
+  if (m) return { tipo: "LM", ano: Number(m[1]), numero: Number(m[2]), letra: m[3], provisorio: false };
+  m = /^(MT|LS|DO)-P-([A-Z0-9]+)-(\d+)$/.exec(s);
+  if (m) return { tipo: m[1], ano: 0, numero: Number(m[3]), provisorio: true };
+  return null;
+}
+function ehProvisorio(codigo) {
+  var _a;
+  return ((_a = lerCodigo(codigo)) == null ? void 0 : _a.provisorio) === true;
+}
+
+// ../dominio/src/acesso.ts
+function perfisPara(ctx, viveiroId) {
+  var _a;
+  const s = /* @__PURE__ */ new Set();
+  if (ctx.gestorGeral) s.add("gestor");
+  if (ctx.solicitante) s.add("solicitante");
+  if (typeof viveiroId === "string" && viveiroId) {
+    for (const p of (_a = ctx.perfisPorViveiro[viveiroId]) != null ? _a : []) s.add(p);
+  } else {
+    for (const ps of Object.values(ctx.perfisPorViveiro)) for (const p of ps) s.add(p);
+  }
+  return s;
+}
+function viveirosVisiveis(ctx) {
+  return ctx.gestorGeral ? null : Object.keys(ctx.perfisPorViveiro);
+}
+function viaDono(col, perfis, permitidos) {
+  for (const p of perfis) if (p !== "solicitante" && permitidos.includes(p)) return false;
+  return perfis.has("solicitante") && permitidos.includes("solicitante") && !!col.campoDono;
+}
+function podeLer(ctx, col, reg) {
+  const perfis = perfisPara(ctx, col.porViveiro ? reg.viveiro_id : void 0);
+  if (col.leitura === "todos") {
+    if (col.campoDono && perfis.size === 1 && perfis.has("solicitante")) return reg[col.campoDono] === ctx.id;
+    if (col.porViveiro && !perfis.size) return false;
+    return perfis.size > 0 || !col.porViveiro;
+  }
+  if (viaDono(col, perfis, col.leitura)) return reg[col.campoDono] === ctx.id;
+  for (const p of perfis) if (col.leitura.includes(p)) return true;
+  return false;
+}
+function podeEscrever(ctx, col, reg) {
+  const perfis = perfisPara(ctx, col.porViveiro ? reg.viveiro_id : void 0);
+  if (viaDono(col, perfis, col.escrita)) return reg[col.campoDono] === ctx.id;
+  for (const p of perfis) if (col.escrita.includes(p)) return true;
+  return false;
+}
+function escreveComoSolicitante(ctx, col, reg) {
+  const perfis = perfisPara(ctx, col.porViveiro ? reg.viveiro_id : void 0);
+  return viaDono(col, perfis, col.escrita);
+}
+
+// ../dominio/src/sync/valores.ts
+function vazio(v) {
+  return v === null || v === void 0 || v === "" || v === 0 || v === false || Array.isArray(v) && v.length === 0;
+}
+function iguais(a, b2) {
+  if (vazio(a) && vazio(b2)) return true;
+  if (a === b2) return true;
+  if (typeof a === "object" && typeof b2 === "object" && a && b2) return JSON.stringify(ordenar(a)) === JSON.stringify(ordenar(b2));
+  return false;
+}
+function ordenar(v) {
+  if (Array.isArray(v)) return v.map(ordenar);
+  if (v && typeof v === "object") {
+    const o2 = {};
+    for (const k of Object.keys(v).sort()) o2[k] = ordenar(v[k]);
+    return o2;
+  }
+  return v;
+}
+
+// ../dominio/src/sync/resolver.ts
+function resultado(op, status, extra = {}) {
+  return __spreadValues({ op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status }, extra);
+}
+function rejeitar(op, motivo, atual) {
+  return { gravar: null, resultado: resultado(op, "rejeitada", { motivo, registro: atual != null ? atual : void 0 }), auditoria: null, conflitos: [] };
+}
+function valorValido(c, v) {
+  if (v === null || v === void 0) return true;
+  switch (c.tipo) {
+    case "texto":
+    case "data":
+    case "ref":
+      return typeof v === "string";
+    case "numero":
+      return typeof v === "number" && Number.isFinite(v);
+    case "bool":
+      return typeof v === "boolean";
+    case "opcao":
+      if (c.multiplo) return Array.isArray(v) && v.every((x) => c.opcoes.includes(x));
+      return v === "" || c.opcoes.includes(v);
+    case "json":
+      return true;
+    case "arquivo":
+      return false;
+  }
+}
+function limparDados(col, dados) {
+  const permitidos = new Map(col.campos.map((c) => [c.nome, c]));
+  if (col.porViveiro) permitidos.set("viveiro_id", { nome: "viveiro_id", tipo: "ref", ref: "viveiro", obrigatorio: true });
+  const limpos = {};
+  const erros = [];
+  for (const [k, v] of Object.entries(dados)) {
+    const c = permitidos.get(k);
+    if (!c) continue;
+    if (c.tipo === "arquivo") continue;
+    if (!valorValido(c, v)) erros.push(`valor inv\xE1lido em ${k}`);
+    else limpos[k] = v;
+  }
+  return { limpos, erros };
+}
+function faltando(col, reg) {
+  const obrig = col.campos.filter((c) => c.obrigatorio && c.tipo !== "arquivo").map((c) => c.nome);
+  if (col.porViveiro) obrig.push("viveiro_id");
+  return obrig.filter((k) => reg[k] === void 0 || reg[k] === null || reg[k] === "");
+}
+function ajustarCodigo(col, reg, porta2) {
+  if (!col.prefixoCodigo || typeof reg.codigo !== "string") return void 0;
+  const codigo = reg.codigo;
+  if (!ehProvisorio(codigo) && !porta2.codigoEmUso(col.nome, codigo, reg.id)) return void 0;
+  const novo = porta2.novoCodigo(col, reg);
+  reg.codigo = novo;
+  return { de: codigo, para: novo };
+}
+function resolverOperacao(op, atual, ctx, porta2) {
+  var _a, _b;
+  if (!existeColecao(op.colecao)) return rejeitar(op, `cole\xE7\xE3o desconhecida: ${op.colecao}`);
+  const col = colecao(op.colecao);
+  if (op.tipo === "excluir") return excluir(op, col, atual, ctx);
+  const { limpos, erros } = limparDados(col, (_a = op.dados) != null ? _a : {});
+  if (erros.length) return rejeitar(op, erros.join("; "), atual);
+  if (op.tipo === "criar" && !atual) return criar(op, col, limpos, ctx, porta2);
+  if (!atual) return rejeitar(op, "registro n\xE3o existe no servidor");
+  if (atual.excluido) return rejeitar(op, "registro foi exclu\xEDdo", atual);
+  if (col.natureza === "evento") {
+    if (op.tipo === "criar" && Object.entries(limpos).every(([k, v]) => iguais(atual[k], v))) {
+      return { gravar: null, resultado: resultado(op, "aplicada", { registro: atual }), auditoria: null, conflitos: [] };
+    }
+    return rejeitar(op, "eventos n\xE3o podem ser alterados; registre um novo evento de corre\xE7\xE3o", atual);
+  }
+  const base = op.tipo === "criar" ? {} : (_b = op.base) != null ? _b : {};
+  const baseVersao = op.tipo === "criar" ? -1 : op.base_versao;
+  return alterar(op, col, atual, limpos, base, baseVersao, ctx);
+}
+function criar(op, col, limpos, ctx, porta2) {
+  const reg = __spreadProps(__spreadValues({}, limpos), {
+    id: op.registro_id,
+    versao: 1,
+    excluido: false,
+    criado_por: ctx.id,
+    atualizado_por: ctx.id,
+    dispositivo_id: op.dispositivo_id,
+    criado_no_aparelho_em: op.criado_no_aparelho_em
+  });
+  if (col.campoDono && col.campoDono !== "criado_por" && escreveComoSolicitante(ctx, col, __spreadProps(__spreadValues({}, reg), { [col.campoDono]: ctx.id }))) {
+    reg[col.campoDono] = ctx.id;
+  }
+  const falta = faltando(col, reg);
+  if (falta.length) return rejeitar(op, `faltam campos obrigat\xF3rios: ${falta.join(", ")}`);
+  if (!podeEscrever(ctx, col, reg)) return rejeitar(op, "sem permiss\xE3o para criar este registro");
+  const codigo_alterado = ajustarCodigo(col, reg, porta2);
+  return {
+    gravar: reg,
+    resultado: resultado(op, "aplicada", { registro: reg, codigo_alterado }),
+    auditoria: { acao: "criar", antes: null, depois: __spreadValues(__spreadValues({}, limpos), codigo_alterado ? { codigo: reg.codigo } : {}) },
+    conflitos: []
+  };
+}
+function alterar(op, col, atual, limpos, base, baseVersao, ctx) {
+  if (!podeEscrever(ctx, col, atual)) return rejeitar(op, "sem permiss\xE3o para alterar este registro", atual);
+  const aplicar = {};
+  const conflitos = [];
+  const semMudancaNoServidor = atual.versao === baseVersao;
+  for (const [campo, novo2] of Object.entries(limpos)) {
+    const servidor = atual[campo];
+    if (iguais(servidor, novo2)) continue;
+    if (semMudancaNoServidor || campo in base && iguais(servidor, base[campo])) {
+      aplicar[campo] = novo2;
+    } else {
+      conflitos.push({ campo, valor_base: base[campo], valor_aparelho: novo2, valor_servidor: servidor });
+    }
+  }
+  if (!Object.keys(aplicar).length) {
+    return {
+      gravar: null,
+      resultado: resultado(op, conflitos.length ? "conflito" : "aplicada", { registro: atual, conflitos: conflitos.length ? conflitos : void 0 }),
+      auditoria: null,
+      conflitos
+    };
+  }
+  const novo = __spreadProps(__spreadValues(__spreadValues({}, atual), aplicar), { versao: atual.versao + 1, atualizado_por: ctx.id });
+  if (col.campoDono && col.campoDono !== "criado_por" && !iguais(atual[col.campoDono], novo[col.campoDono]) && escreveComoSolicitante(ctx, col, atual)) {
+    return rejeitar(op, "o solicitante n\xE3o pode trocar o dono do registro", atual);
+  }
+  if (!podeEscrever(ctx, col, novo)) return rejeitar(op, "sem permiss\xE3o para gravar nesse viveiro", atual);
+  const falta = faltando(col, novo);
+  if (falta.length) return rejeitar(op, `faltam campos obrigat\xF3rios: ${falta.join(", ")}`, atual);
+  const antes = {};
+  for (const k of Object.keys(aplicar)) antes[k] = atual[k];
+  return {
+    gravar: novo,
+    resultado: resultado(op, conflitos.length ? "conflito" : "aplicada", { registro: novo, conflitos: conflitos.length ? conflitos : void 0 }),
+    auditoria: { acao: "alterar", antes, depois: aplicar },
+    conflitos
+  };
+}
+function excluir(op, col, atual, ctx) {
+  if (!atual || atual.excluido) return { gravar: null, resultado: resultado(op, "aplicada", { registro: atual != null ? atual : void 0 }), auditoria: null, conflitos: [] };
+  if (col.natureza === "evento") return rejeitar(op, "eventos n\xE3o podem ser exclu\xEDdos; registre um evento de corre\xE7\xE3o", atual);
+  if (!podeEscrever(ctx, col, atual)) return rejeitar(op, "sem permiss\xE3o para excluir este registro", atual);
+  if (atual.versao !== op.base_versao) {
+    const conflitos = [{ campo: "(exclus\xE3o)", valor_base: op.base_versao, valor_aparelho: "excluir", valor_servidor: atual.versao }];
+    return {
+      gravar: null,
+      resultado: resultado(op, "conflito", { registro: atual, conflitos, motivo: "o registro foi alterado por outra pessoa; a exclus\xE3o n\xE3o foi feita" }),
+      auditoria: null,
+      conflitos
+    };
+  }
+  const novo = __spreadProps(__spreadValues({}, atual), { excluido: true, versao: atual.versao + 1, atualizado_por: ctx.id });
+  return {
+    gravar: novo,
+    resultado: resultado(op, "aplicada", { registro: novo }),
+    auditoria: { acao: "excluir", antes: { excluido: false }, depois: { excluido: true } },
+    conflitos: []
+  };
+}
+
+// ../dominio/src/sync/recebimento.ts
+function montarRecebimento(porColecao, ctx, desde, limite) {
+  var _a, _b;
+  const todos = [];
+  for (const { colecao: colecao2, registros } of porColecao) {
+    for (const reg of registros) if (((_a = reg.seq) != null ? _a : 0) > desde) todos.push({ col: colecao2, reg });
+  }
+  todos.sort((a, b2) => {
+    var _a2, _b2;
+    return ((_a2 = a.reg.seq) != null ? _a2 : 0) - ((_b2 = b2.reg.seq) != null ? _b2 : 0);
+  });
+  const lote = todos.slice(0, limite);
+  return {
+    registros: lote.map(({ col, reg }) => ({
+      colecao: col.nome,
+      registro: podeLer(ctx, col, reg) ? reg : { id: reg.id, versao: reg.versao, seq: reg.seq, excluido: true }
+    })),
+    cursor: lote.length ? (_b = lote[lote.length - 1].reg.seq) != null ? _b : desde : desde,
+    mais: todos.length > limite
+  };
+}
+
+// src/crads.ts
+var ALFABETO_ID = "abcdefghijklmnopqrstuvwxyz0123456789";
+var CONTROLE = ["versao", "seq", "excluido", "criado_por", "atualizado_por", "dispositivo_id", "criado_no_aparelho_em"];
+var ID_CONTADOR = "contadorglobal1";
+var LIMITE_RECEBIMENTO = 500;
+var novoId = () => $security.randomStringWithAlphabet(15, ALFABETO_ID);
+function buscar(app, col, id) {
+  try {
+    return app.findRecordById(col, id);
+  } catch (e) {
+    return null;
+  }
+}
+function paraObjeto(col, rec) {
+  var _a;
+  const bruto = JSON.parse(JSON.stringify(rec));
+  const o2 = { id: bruto.id, versao: (_a = bruto.versao) != null ? _a : 0 };
+  for (const k of [...nomesCampos(col), ...CONTROLE, "created", "updated"]) if (k in bruto) o2[k] = bruto[k];
+  return o2;
+}
+function proximoSeq(app) {
+  let rec = buscar(app, "sync_contador", ID_CONTADOR);
+  if (!rec) {
+    rec = new Record(app.findCollectionByNameOrId("sync_contador"));
+    rec.set("id", ID_CONTADOR);
+    rec.set("valor", 0);
+  }
+  const valor = rec.getInt("valor") + 1;
+  rec.set("valor", valor);
+  app.save(rec);
+  return valor;
+}
+function gravar(app, col, reg) {
+  let rec = buscar(app, col.nome, reg.id);
+  if (!rec) {
+    rec = new Record(app.findCollectionByNameOrId(col.nome));
+    rec.set("id", reg.id);
+  }
+  const arquivos = new Set(col.campos.filter((c) => c.tipo === "arquivo").map((c) => c.nome));
+  for (const k of [...nomesCampos(col), ...CONTROLE]) {
+    if (k === "seq" || arquivos.has(k) || !(k in reg)) continue;
+    const v = reg[k];
+    rec.set(k, v === void 0 ? null : v);
+  }
+  rec.set("seq", proximoSeq(app));
+  app.save(rec);
+  return rec;
+}
+function auditar(app, dados) {
+  const rec = new Record(app.findCollectionByNameOrId("auditoria"));
+  rec.set("id", novoId());
+  for (const [k, v] of Object.entries(dados)) rec.set(k, v != null ? v : null);
+  app.save(rec);
+}
+function contextoDe(app, auth) {
+  var _a;
+  const perfisPorViveiro = {};
+  const vinculos = app.findRecordsByFilter("usuario_viveiro", "usuario_id = {:u} && excluido = false", "", 0, 0, { u: auth.id });
+  for (const v of vinculos) {
+    const viv = v.getString("viveiro_id");
+    ((_a = perfisPorViveiro[viv]) != null ? _a : perfisPorViveiro[viv] = []).push(v.getString("perfil"));
+  }
+  return {
+    id: auth.id,
+    gestorGeral: !!auth.getBool("gestor_geral"),
+    solicitante: !!auth.getBool("solicitante"),
+    perfisPorViveiro
+  };
+}
+function reservarNumeros(app, tipo, ano, quantidade) {
+  let seq;
+  try {
+    seq = app.findFirstRecordByFilter("sequencia_codigo", "tipo = {:t} && ano = {:a}", { t: tipo, a: ano });
+  } catch (e) {
+    seq = new Record(app.findCollectionByNameOrId("sequencia_codigo"));
+    seq.set("id", novoId());
+    seq.set("tipo", tipo);
+    seq.set("ano", ano);
+    seq.set("proximo", 1);
+  }
+  const inicio = seq.getInt("proximo");
+  seq.set("proximo", inicio + quantidade);
+  app.save(seq);
+  return { inicio, fim: inicio + quantidade - 1 };
+}
+function anoDe(reg) {
+  var _a;
+  const s = String((_a = reg.criado_no_aparelho_em) != null ? _a : "");
+  const ano = Number(s.slice(0, 4));
+  return ano > 2e3 ? ano : (/* @__PURE__ */ new Date()).getFullYear();
+}
+function porta(app, dispositivoId) {
+  return {
+    codigoEmUso(col, codigo, excetoId) {
+      try {
+        app.findFirstRecordByFilter(col, "codigo = {:c} && id != {:i}", { c: codigo, i: excetoId });
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    novoCodigo(col, reg) {
+      if (col.prefixoCodigo === "LM") {
+        const ls = buscar(app, "lote_sementes", String(reg.lote_sementes_id));
+        if (!ls) throw new Error("lote de sementes do lote de mudas n\xE3o encontrado");
+        const codLS = ls.getString("codigo");
+        const irmaos = app.findRecordsByFilter("lote_mudas", "codigo ~ {:p}", "", 0, 0, { p: codLS.replace("LS-", "LM-") + "-" });
+        return proximoCodigoLoteMudas(codLS, irmaos.map((r2) => r2.getString("codigo")));
+      }
+      const tipo = col.prefixoCodigo;
+      const ano = TIPOS_COM_ANO.has(tipo) ? anoDe(reg) : 0;
+      return formatarCodigo(tipo, ano, reservarNumeros(app, tipo, ano, 1).inicio);
+    },
+    faixasDoDispositivo(id) {
+      return app.findRecordsByFilter("faixa_codigo", "dispositivo_id = {:d}", "", 0, 0, { d: id || dispositivoId }).map((r2) => ({
+        tipo: r2.getString("tipo"),
+        ano: r2.getInt("ano"),
+        inicio: r2.getInt("inicio"),
+        fim: r2.getInt("fim"),
+        ultimo: r2.getInt("inicio") - 1
+      }));
+    }
+  };
+}
+function enviar(app, auth, corpo) {
+  var _a, _b;
+  const ctx = contextoDe(app, auth);
+  const dispositivo = String((_a = corpo.dispositivo_id) != null ? _a : "");
+  const resultados = [];
+  for (const op of (_b = corpo.operacoes) != null ? _b : []) {
+    let res = null;
+    try {
+      app.runInTransaction((tx) => {
+        try {
+          const feita = tx.findFirstRecordByFilter("sync_op", "op_id = {:o}", { o: op.op_id });
+          const anterior = JSON.parse(JSON.stringify(feita)).resultado;
+          const atual2 = existeColecao(op.colecao) ? buscar(tx, op.colecao, op.registro_id) : null;
+          res = __spreadProps(__spreadValues({}, anterior), { registro: atual2 ? paraObjeto(colecao(op.colecao), atual2) : anterior.registro });
+          return;
+        } catch (e) {
+        }
+        const col = existeColecao(op.colecao) ? colecao(op.colecao) : null;
+        const atualRec = col ? buscar(tx, col.nome, op.registro_id) : null;
+        const atual = col && atualRec ? paraObjeto(col, atualRec) : null;
+        const opSegura = __spreadProps(__spreadValues({}, op), { dispositivo_id: dispositivo || op.dispositivo_id });
+        const d2 = resolverOperacao(opSegura, atual, ctx, porta(tx, dispositivo));
+        if (col && d2.gravar) {
+          const salvo = gravar(tx, col, d2.gravar);
+          d2.resultado.registro = paraObjeto(col, salvo);
+        }
+        if (d2.auditoria) {
+          auditar(tx, {
+            colecao: op.colecao,
+            registro_id: op.registro_id,
+            acao: d2.auditoria.acao,
+            antes: d2.auditoria.antes,
+            depois: d2.auditoria.depois,
+            usuario_id: ctx.id,
+            dispositivo_id: opSegura.dispositivo_id,
+            data_aparelho: op.criado_no_aparelho_em
+          });
+        }
+        if (d2.conflitos.length) {
+          gravar(tx, colecao("conflito"), {
+            id: novoId(),
+            versao: 1,
+            excluido: false,
+            colecao: op.colecao,
+            registro_id: op.registro_id,
+            campos: d2.conflitos,
+            usuario_id: ctx.id,
+            situacao: "aberto",
+            criado_por: ctx.id,
+            atualizado_por: ctx.id,
+            dispositivo_id: opSegura.dispositivo_id,
+            criado_no_aparelho_em: op.criado_no_aparelho_em
+          });
+        }
+        if (d2.resultado.status !== "rejeitada") {
+          const s = new Record(tx.findCollectionByNameOrId("sync_op"));
+          s.set("id", novoId());
+          s.set("op_id", op.op_id);
+          s.set("usuario_id", ctx.id);
+          s.set("resultado", __spreadProps(__spreadValues({}, d2.resultado), { registro: void 0 }));
+          tx.save(s);
+        }
+        res = d2.resultado;
+      });
+    } catch (err) {
+      res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: "rejeitada", motivo: `erro no servidor: ${String(err)}` };
+    }
+    resultados.push(res);
+  }
+  registrarDispositivo(app, dispositivo, ctx.id, "ultimo_envio");
+  return { resultados };
+}
+function receber(app, auth, desde, limite = LIMITE_RECEBIMENTO, dispositivo = "") {
+  const ctx = contextoDe(app, auth);
+  const lim = Math.max(1, Math.min(limite, 2e3));
+  const viveiros = viveirosVisiveis(ctx);
+  const filtroViveiro = viveiros === null ? "" : viveiros.length ? "(" + viveiros.map((_, i) => `viveiro_id = {:v${i}}`).join(" || ") + ")" : "";
+  const params = { desde, eu: ctx.id };
+  (viveiros != null ? viveiros : []).forEach((v, i) => params[`v${i}`] = v);
+  const porColecao = [];
+  for (const col of COLECOES) {
+    let filtro = "seq > {:desde}";
+    if (col.porViveiro && viveiros !== null) {
+      const partes = [];
+      if (filtroViveiro) partes.push(filtroViveiro);
+      if (ctx.solicitante && col.campoDono) partes.push(`${col.campoDono} = {:eu}`);
+      if (!partes.length) continue;
+      filtro += ` && (${partes.join(" || ")})`;
+    }
+    const recs = app.findRecordsByFilter(col.nome, filtro, "seq", lim + 1, 0, params);
+    porColecao.push({ colecao: col, registros: recs.map((r2) => paraObjeto(col, r2)) });
+  }
+  if (dispositivo) registrarDispositivo(app, dispositivo, ctx.id, "ultimo_recebimento");
+  return montarRecebimento(porColecao, ctx, desde, lim);
+}
+function reservarFaixas(app, auth, corpo) {
+  var _a;
+  const ctx = contextoDe(app, auth);
+  const dispositivo = String((_a = corpo.dispositivo_id) != null ? _a : "");
+  if (!/^[a-z0-9]{15}$/.test(dispositivo)) throw new Error("dispositivo_id inv\xE1lido");
+  const faixas = [];
+  app.runInTransaction((tx) => {
+    var _a2;
+    for (const p of (_a2 = corpo.pedidos) != null ? _a2 : []) {
+      if (!["MT", "LS", "DO"].includes(p.tipo)) throw new Error(`tipo de c\xF3digo inv\xE1lido: ${p.tipo}`);
+      const tipo = p.tipo;
+      const ano = TIPOS_COM_ANO.has(tipo) ? Number(p.ano) || (/* @__PURE__ */ new Date()).getFullYear() : 0;
+      const qtd = Math.max(1, Math.min(Number(p.quantidade) || 20, 200));
+      const { inicio, fim } = reservarNumeros(tx, tipo, ano, qtd);
+      const rec = new Record(tx.findCollectionByNameOrId("faixa_codigo"));
+      rec.set("id", novoId());
+      for (const [k, v] of Object.entries({ dispositivo_id: dispositivo, usuario_id: ctx.id, tipo, ano, inicio, fim })) rec.set(k, v);
+      tx.save(rec);
+      faixas.push({ tipo, ano, inicio, fim, ultimo: inicio - 1 });
+    }
+  });
+  registrarDispositivo(app, dispositivo, ctx.id, "");
+  return { faixas };
+}
+function eu(app, auth) {
+  const ctx = contextoDe(app, auth);
+  return __spreadProps(__spreadValues({}, ctx), { nome: auth.getString("name"), email: auth.getString("email") });
+}
+function receberArquivo(app, auth, nomeCol, id, campo, arquivos, dispositivo = "") {
+  if (!existeColecao(nomeCol)) throw new Error("cole\xE7\xE3o desconhecida");
+  const col = colecao(nomeCol);
+  if (!col.campos.some((c) => c.nome === campo && c.tipo === "arquivo")) throw new Error("campo de arquivo desconhecido");
+  if (!arquivos.length) throw new Error("nenhum arquivo enviado");
+  const ctx = contextoDe(app, auth);
+  let registro = null;
+  app.runInTransaction((tx) => {
+    const rec = buscar(tx, nomeCol, id);
+    if (!rec) throw new Error("registro ainda n\xE3o sincronizado");
+    if (!podeEscrever(ctx, col, paraObjeto(col, rec))) throw new Error("sem permiss\xE3o");
+    rec.set(campo, arquivos[0]);
+    rec.set("seq", proximoSeq(tx));
+    tx.save(rec);
+    auditar(tx, { colecao: nomeCol, registro_id: id, acao: "arquivo", antes: null, depois: { campo, arquivo: rec.getString(campo) }, usuario_id: ctx.id, dispositivo_id: dispositivo });
+    registro = paraObjeto(col, rec);
+  });
+  return { registro };
+}
+function registrarDispositivo(app, id, usuarioId, campo) {
+  if (!/^[a-z0-9]{15}$/.test(id)) return;
+  try {
+    let rec = buscar(app, "dispositivo", id);
+    if (!rec) {
+      rec = new Record(app.findCollectionByNameOrId("dispositivo"));
+      rec.set("id", id);
+    }
+    rec.set("usuario_id", usuarioId);
+    if (campo) rec.set(campo, (/* @__PURE__ */ new Date()).toISOString());
+    app.save(rec);
+  } catch (e) {
+  }
+}
+var NOMES = new Set(COLECOES.map((c) => c.nome));
+function antesDeGravarPeloPainel(app, rec, criando) {
+  const nome = rec.collection().name;
+  if (!NOMES.has(nome)) return;
+  if (criando && !rec.id) rec.set("id", novoId());
+  rec.set("versao", rec.getInt("versao") + 1);
+  rec.set("seq", proximoSeq(app));
+}
+function auditarPainel(app, rec, acao, quem) {
+  const nome = rec.collection().name;
+  if (!NOMES.has(nome)) return;
+  auditar(app, { colecao: nome, registro_id: rec.id, acao: `${acao}_painel`, antes: null, depois: paraObjeto(colecao(nome), rec), usuario_id: quem });
+}
+var COLECOES_SINCRONIZADAS = COLECOES.map((c) => c.nome);

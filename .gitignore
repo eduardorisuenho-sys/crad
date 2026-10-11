@@ -3,7 +3,6 @@ dist/
 *.log
 servidor/pocketbase
 servidor/pb_data/
-servidor/pb_hooks/lib/dominio.js
 app/test-results/
 app/playwright-report/
 .env
