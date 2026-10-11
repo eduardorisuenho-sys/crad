@@ -13,5 +13,6 @@
     "test": "npm test -w dominio && npm test -w servidor && npm test -w app",
     "test:e2e": "npm run e2e -w app",
     "typecheck": "npm run typecheck -w dominio && npm run typecheck -w servidor && npm run typecheck -w app"
-  }
+  },
+  "license": "AGPL-3.0-or-later"
 }

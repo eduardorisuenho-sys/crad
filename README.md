@@ -162,8 +162,8 @@ Chega com o Módulo 1, a próxima etapa. Os campos da ficha já estão no esquem
   tabelas fica só para o superusuário.
 - A sessão do aparelho vale 30 dias sem internet (parâmetro
   `dias_sessao_offline`).
-- Licença ainda não escolhida. Sugestão: GPL-3.0 ou AGPL-3.0, para que as
-  melhorias feitas por outros municípios voltem abertas.
+- Licença: **AGPL-3.0** (arquivo `LICENSE`). Quem adaptar e hospedar o app
+  (outros municípios, consórcios) precisa manter o código aberto.
 
 ## Pendências
 
