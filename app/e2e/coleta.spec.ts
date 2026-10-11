@@ -84,7 +84,7 @@ test('coletor registra coleta sem internet; viveirista forma o lote, guarda no e
 
   await ctx.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
-  const [lote] = await lerDoServidor('lote_sementes');
+  const [lote] = (await lerDoServidor('lote_sementes')).filter((l) => l.peso_g === 800);
   expect(lote).toMatchObject({ peso_g: 800, germinacao_teste_pct: 85 });
   expect(String(lote.codigo)).toMatch(/^LS-\d{4}-\d{3}$/);
   const movs = (await lerDoServidor('movimento_sementes')).filter((m) => m.lote_sementes_id === lote.id);

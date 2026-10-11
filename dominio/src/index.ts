@@ -15,3 +15,4 @@ export * from './assistente';
 export * from './exemplos';
 export * from './matrizes';
 export * from './sementes';
+export * from './viveiro';

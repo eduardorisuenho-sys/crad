@@ -53,6 +53,11 @@ describe('códigos do lote', () => {
     expect(proximoDaFaixa(faixas, 'LS', 2025)!.codigo).toBe('LS-2025-001');
   });
 
+  it('LS provisório não gera LM derivado (o LM também fica provisório)', () => {
+    expect(() => proximoCodigoLoteMudas('LS-P-AB12-1', [])).toThrow(/provisório/);
+    expect(ehProvisorio(codigoProvisorio('LM', 'ab12', 2))).toBe(true);
+  });
+
   it('código provisório é reconhecido', () => {
     const c = codigoProvisorio('MT', 'ab12xyz', 3);
     expect(c).toBe('MT-P-AB12-3');

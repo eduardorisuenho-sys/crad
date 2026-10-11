@@ -105,6 +105,12 @@ export function DetalheLote() {
         Imprimir etiqueta
       </button>
 
+      {saldo.g > 0 && (
+        <Link to={`/viveiro/semeadura?ls=${id}`} className="botao-principal nao-imprimir">
+          <Icone nome="muda" /> Semear deste lote
+        </Link>
+      )}
+
       <dl className="ficha nao-imprimir">
         <dt>Saldo</dt>
         <dd data-testid="saldo">

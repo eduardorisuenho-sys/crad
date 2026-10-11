@@ -66,6 +66,8 @@ export function codigoLoteMudas(codigoLS: string, indice: number): string {
 export function proximoCodigoLoteMudas(codigoLS: string, existentes: string[]): string {
   const ls = lerCodigo(codigoLS);
   if (!ls || ls.tipo !== 'LS') throw new Error(`Código de lote de sementes inválido: ${codigoLS}`);
+  // Com LS provisório o LM também é provisório: o servidor gera os dois definitivos.
+  if (ls.provisorio) throw new Error('Lote de sementes com código provisório: use um código provisório para o lote de mudas.');
   let maior = -1;
   for (const c of existentes) {
     const lm = lerCodigo(c);
@@ -90,7 +92,7 @@ export function lerCodigo(codigo: string): CodigoLido | null {
   if (m) return { tipo: m[1] as PrefixoCodigo, ano: Number(m[2]), numero: Number(m[3]), provisorio: false };
   m = /^LM-(\d{4})-(\d{3,})-([A-Z]+)$/.exec(s);
   if (m) return { tipo: 'LM', ano: Number(m[1]), numero: Number(m[2]), letra: m[3], provisorio: false };
-  m = /^(MT|LS|DO)-P-([A-Z0-9]+)-(\d+)$/.exec(s);
+  m = /^(MT|LS|DO|LM)-P-([A-Z0-9]+)-(\d+)$/.exec(s);
   if (m) return { tipo: m[1] as PrefixoCodigo, ano: 0, numero: Number(m[3]), provisorio: true };
   return null;
 }
@@ -99,7 +101,7 @@ export function ehProvisorio(codigo: string): boolean {
   return lerCodigo(codigo)?.provisorio === true;
 }
 
-export function codigoProvisorio(tipo: FaixaCodigo['tipo'], dispositivoId: string, contador: number): string {
+export function codigoProvisorio(tipo: PrefixoCodigo, dispositivoId: string, contador: number): string {
   return `${tipo}-P-${dispositivoId.slice(0, 4).toUpperCase()}-${contador}`;
 }
 

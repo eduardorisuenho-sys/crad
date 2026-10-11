@@ -492,6 +492,7 @@ function codigoLoteMudas(codigoLS, indice) {
 function proximoCodigoLoteMudas(codigoLS, existentes) {
   const ls = lerCodigo(codigoLS);
   if (!ls || ls.tipo !== "LS") throw new Error(`C\xF3digo de lote de sementes inv\xE1lido: ${codigoLS}`);
+  if (ls.provisorio) throw new Error("Lote de sementes com c\xF3digo provis\xF3rio: use um c\xF3digo provis\xF3rio para o lote de mudas.");
   let maior = -1;
   for (const c of existentes) {
     const lm = lerCodigo(c);
@@ -507,7 +508,7 @@ function lerCodigo(codigo) {
   if (m) return { tipo: m[1], ano: Number(m[2]), numero: Number(m[3]), provisorio: false };
   m = /^LM-(\d{4})-(\d{3,})-([A-Z]+)$/.exec(s);
   if (m) return { tipo: "LM", ano: Number(m[1]), numero: Number(m[2]), letra: m[3], provisorio: false };
-  m = /^(MT|LS|DO)-P-([A-Z0-9]+)-(\d+)$/.exec(s);
+  m = /^(MT|LS|DO|LM)-P-([A-Z0-9]+)-(\d+)$/.exec(s);
   if (m) return { tipo: m[1], ano: 0, numero: Number(m[3]), provisorio: true };
   return null;
 }

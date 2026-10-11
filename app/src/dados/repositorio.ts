@@ -10,6 +10,7 @@ import {
   nomesCampos,
   proximoDaFaixa,
   type FaixaCodigo,
+  type PrefixoCodigo,
   type Registro,
 } from '@crads/dominio';
 import type { BancoCrads, ItemFila } from './db';
@@ -156,6 +157,13 @@ export class Repositorio {
         await this.db._faixas.update(f.n!, { ultimo: r.faixa.ultimo });
         return r.codigo;
       }
+      return this.codigoProvisorio(tipo);
+    });
+  }
+
+  /** Código provisório (o servidor troca pelo definitivo ao sincronizar). */
+  async codigoProvisorio(tipo: PrefixoCodigo): Promise<string> {
+    return this.db.transaction('rw', this.db._meta, async () => {
       const contador = (await this.db.lerMeta<number>(`provisorio_${tipo}`, 0)) + 1;
       await this.db.gravarMeta(`provisorio_${tipo}`, contador);
       return codigoProvisorio(tipo, this.ctx().dispositivoId, contador);

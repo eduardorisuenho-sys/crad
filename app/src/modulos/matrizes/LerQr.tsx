@@ -12,6 +12,7 @@ import { lerQrDeImagem, lerQrDoVideo } from '../../plataforma/qr';
 const ROTAS: Record<string, { colecao: string; rota: string }> = {
   MT: { colecao: 'matriz', rota: '/matrizes' },
   LS: { colecao: 'lote_sementes', rota: '/coleta/lotes' },
+  LM: { colecao: 'lote_mudas', rota: '/viveiro/lotes' },
 };
 
 export function LerQr() {

@@ -22,3 +22,8 @@ export async function lerDoServidor(colecao: string) {
   const r = await fetch(`${PB()}/api/collections/${colecao}/records?perPage=500`, { headers: { authorization: process.env.CRADS_PB_ADMIN! } });
   return (await r.json()).items as Record<string, unknown>[];
 }
+
+/** Abre um módulo pelo ícone da tela inicial. */
+export async function abrirModulo(page: Page, nome: string) {
+  await page.locator('.grade-blocos').getByRole('link', { name: nome, exact: true }).click();
+}

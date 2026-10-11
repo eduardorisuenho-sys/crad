@@ -19,8 +19,28 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 1. Base de dados e sincronização offline | **pronta** |
 | 2. Módulo 1, Matrizes, com o assistente de identificação | **pronta** |
 | 3. Módulo 2, Coleta e lotes de sementes | **pronta** |
-| 4. Módulo 3, Viveiro | próxima |
-| 5 a 8. Catálogo, Doação (com Plantando Água), Pós-plantio, Relatórios | a fazer |
+| 4. Módulo 3, Viveiro | **pronta** |
+| 5. Módulo 4, Catálogo público | próxima |
+| 6 a 8. Doação (com Plantando Água), Pós-plantio, Relatórios | a fazer |
+
+O que o Módulo 3 entrega (tudo funciona sem internet):
+
+- **Semeadura** a partir de um lote de sementes com saldo:
+  - número de sementes e/ou peso; sem contagem, o app estima pelo peso;
+  - recipiente (tubete, saquinho, sementeira ou outros) e canteiro;
+  - cria o lote de mudas `LM-AAAA-NNN-A` e baixa as sementes do lote de origem.
+- **Contagem de germinação** acumulada:
+  - a **taxa real** é plântulas ÷ sementes semeadas;
+  - só a diferença para a contagem anterior entra no estoque;
+  - contagem menor que a anterior é recusada (para mudas mortas, use "Perda").
+- **Perdas**, com causa. **Perda maior que o saldo é bloqueada.**
+- **Fases** (semeadura → germinação → repicagem → crescimento → rustificação → pronta):
+  - só avançam e podem pular etapas;
+  - mostram a previsão de ficar pronta (pelo tempo médio da espécie) e o aviso de atraso.
+- **Medição** (altura média) e **repicagem** (novo recipiente e canteiro), no histórico do lote.
+- **Inventário:** contagem por lote; as diferenças viram ajustes no estoque.
+- **Lista do viveiro** por fase, com saldo, germinação, atraso e mudas prontas por espécie.
+- **Rastreio:** o lote de mudas leva ao lote de sementes, que leva às matrizes.
 
 O que o Módulo 2 entrega (tudo funciona sem internet):
 
@@ -260,6 +280,10 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   `dias_sessao_offline`).
 - A rota de coleta ainda não tem mapa de fundo (ruas, rios): mostra os pontos
   e as distâncias. O mapa de fundo offline entra com o pacote de campo.
+- Se o lote de sementes ainda tem código provisório (criado sem internet e
+  sem faixa reservada), o lote de mudas também nasce provisório. Ao
+  sincronizar, o servidor gera os dois definitivos (`LS-2026-012` →
+  `LM-2026-012-A`).
 - Campos decimais aceitam vírgula ou ponto ("2,5" ou "2.5").
 - Gravação de trilha GPS não existe. Só o ponto da matriz, da coleta e da foto.
 - Fotos: lado maior de 1280 px (JPEG) e miniatura de 320 px. A miniatura fica
