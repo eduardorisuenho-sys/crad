@@ -16,6 +16,7 @@ export async function entrar(page: Page, email: string, saudacao: string) {
 
 export const entrarComoGestora = (page: Page) => entrar(page, 'gestora@teste.local', 'Olá, Gestora');
 export const entrarComoColetor = (page: Page) => entrar(page, 'coletor@teste.local', 'Olá, Coletor');
+export const entrarComoSolicitante = (page: Page) => entrar(page, 'solicitante@teste.local', 'Olá, Solicitante');
 export const entrarComoViveirista = (page: Page) => entrar(page, 'viveirista@teste.local', 'Olá, Viveirista');
 
 export async function lerDoServidor(colecao: string) {
@@ -26,4 +27,11 @@ export async function lerDoServidor(colecao: string) {
 /** Abre um módulo pelo ícone da tela inicial. */
 export async function abrirModulo(page: Page, nome: string) {
   await page.locator('.grade-blocos').getByRole('link', { name: nome, exact: true }).click();
+}
+
+/** Quantas mudas o catálogo público mostra para uma espécie. */
+export async function noCatalogo(nomePopular: string): Promise<number> {
+  const r = await fetch(`${PB()}/api/crads/publico/catalogo`);
+  const { itens } = await r.json();
+  return itens.find((i: { nomes_populares: string[] }) => i.nomes_populares.includes(nomePopular))?.total ?? 0;
 }

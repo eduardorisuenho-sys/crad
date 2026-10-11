@@ -30,6 +30,10 @@ import { DetalheLoteMudas } from './modulos/viveiro/DetalheLoteMudas';
 import { InicioViveiro } from './modulos/viveiro/InicioViveiro';
 import { Inventario } from './modulos/viveiro/Inventario';
 import { NovaSemeadura } from './modulos/viveiro/NovaSemeadura';
+import { DetalhePedido } from './modulos/doacao/DetalhePedido';
+import { InicioDoacao } from './modulos/doacao/InicioDoacao';
+import { NovoPedido } from './modulos/doacao/NovoPedido';
+import { Retirada } from './modulos/doacao/Retirada';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -82,12 +86,16 @@ function Rotas() {
       <Route path="/viveiro/semeadura" element={<NovaSemeadura />} />
       <Route path="/viveiro/lotes/:id" element={<DetalheLoteMudas />} />
       <Route path="/viveiro/inventario" element={<Inventario />} />
+      <Route path="/doacao" element={<InicioDoacao />} />
+      <Route path="/doacao/novo" element={<NovoPedido />} />
+      <Route path="/doacao/:id" element={<DetalhePedido />} />
+      <Route path="/doacao/:id/retirada" element={<Retirada />} />
       <Route path="/especies/importar" element={<ImportarEspecies />} />
       <Route path="/especies/:id" element={<FichaEspecie />} />
       <Route path="/avisos" element={<Avisos />} />
       <Route path="/instalar" element={<Instalar />} />
       <Route path="/configuracoes" element={<Configuracoes />} />
-      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo'].includes(b.rota)).map((b) => (
+      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo', '/doacao'].includes(b.rota)).map((b) => (
         <Route key={b.rota} path={`${b.rota}/*`} element={<EmBreve titulo={b.rotulo} icone={b.icone} />} />
       ))}
       <Route path="*" element={<Navigate to="/" replace />} />

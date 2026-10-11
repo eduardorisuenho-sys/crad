@@ -21,8 +21,46 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 3. Módulo 2, Coleta e lotes de sementes | **pronta** |
 | 4. Módulo 3, Viveiro | **pronta** |
 | 5. Módulo 4, Catálogo público | **pronta** |
-| 6. Módulo 5, Doação de mudas (com Plantando Água) | próxima |
-| 7 e 8. Pós-plantio, Relatórios | a fazer |
+| 6. Módulo 5, Doação de mudas (com Plantando Água) | **pronta** |
+| 7. Módulo 6, Pós-plantio | próxima |
+| 8. Módulo 7, Relatórios e transparência | a fazer |
+
+O que o Módulo 5 entrega:
+
+- **Pedido de mudas**, uma coisa por tela, inclusive sem internet:
+  - o solicitante pede pelo app, a partir do catálogo; a equipe registra o
+    pedido do balcão;
+  - o pedido traz espécies e quantidades, finalidade, município, local (com
+    ponto do GPS), área, dados do solicitante e ofício anexado (PDF ou foto);
+  - **o que passa do disponível ou do limite por pedido é bloqueado**;
+  - CPF, CNPJ e telefone ficam na tabela que só o gestor lê.
+- **Relatório do pedido em PDF**, gerado no aparelho, para anexar ao ofício.
+- **Análise** (aprovar tudo, em parte ou recusar com motivo):
+  - **precisa de internet**: o servidor reserva as mudas dos **lotes prontos
+    mais antigos primeiro**, numa transação, e duas pessoas nunca reservam a
+    mesma muda;
+  - **quem aprova é configurável** pelo parâmetro `perfis_aprovadores` (padrão: gestor);
+  - o prazo de retirada vem do parâmetro `prazo_retirada_dias` (padrão: 30).
+- **Retirada no viveiro**, que funciona sem internet:
+  - confere as quantidades (pode levar menos que o aprovado, nunca mais) e
+    registra quem recebeu (documento só para o gestor);
+  - **assinatura com o dedo na tela** e **termo de doação em PDF** com a assinatura;
+  - baixa o estoque pelos lotes reservados (rastreio até a matriz), e a sobra
+    da reserva volta ao catálogo;
+  - **retirada depois do prazo é bloqueada.**
+- **Prazo vencido:** todo dia o servidor expira as reservas e os pedidos não
+  retirados, e as mudas voltam ao catálogo.
+- **Plantando Água:**
+  - um botão na doação, no registro e na análise, que marca e desmarca
+    deixando **histórico de quem e quando**;
+  - depois da retirada, desmarcar pede motivo;
+  - a doação segue o fluxo normal e conta **uma vez só** nos totais gerais,
+    porque o programa é um recorte;
+  - há filtro "Plantando Água" na lista de pedidos, e o programa já vem cadastrado.
+- **Proteções no servidor:**
+  - nenhum aparelho aprova pedido, cria reserva ou muda quantidade aprovada
+    pela sincronização;
+  - o solicitante só envia ou cancela o próprio pedido.
 
 O que o Módulo 4 entrega:
 
@@ -308,6 +346,11 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   `LM-2026-012-A`).
 - Só as fotos das espécies são públicas (para o catálogo). Fotos de
   matrizes, coletas e pessoas continuam protegidas.
+- O termo de doação usa um texto padrão (em `app/src/modulos/doacao/pdf.ts`)
+  até chegar o modelo da secretaria. O texto pode ser trocado pelo campo
+  `texto_termo_doacao` da instalação, sem mexer no código.
+- Avisos por WhatsApp ou SMS não foram feitos: custam dinheiro e não estão no
+  pedido inicial.
 - Campos decimais aceitam vírgula ou ponto ("2,5" ou "2.5").
 - Gravação de trilha GPS não existe. Só o ponto da matriz, da coleta e da foto.
 - Fotos: lado maior de 1280 px (JPEG) e miniatura de 320 px. A miniatura fica
@@ -329,6 +372,9 @@ No app, entre como gestor e vá em **Espécies → Importar**.
     (círculos azuis, ondas). A estrutura das telas é a do próprio CRAD.
   - A fonte (Inter, licença SIL OFL) fica dentro do app e funciona sem internet.
   - As cores ficam em `app/src/estilo.css`, nas variáveis do topo.
+- Dependências: restam 2 alertas moderados do `react-router` 6, ligados a
+  redirecionamento e a renderização no servidor, que o app não usa. Eles
+  somem na migração para o `react-router` 7, que fica para depois.
 - Licença: **AGPL-3.0** (arquivo `LICENSE`). Quem adaptar e hospedar o app
   (outros municípios, consórcios) precisa manter o código aberto.
 
@@ -339,5 +385,5 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   especificação.
 - Base de municípios do Tocantins com contorno (IBGE), para o filtro por
   município e o pacote de campo.
-- Modelo do termo de doação de mudas (PDF da retirada, Módulo 5).
+- Modelo do termo de doação de mudas: a estrutura está pronta (texto configurável).
 - Modelo da ficha de solicitação de mudas.

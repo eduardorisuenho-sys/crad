@@ -36,6 +36,12 @@ export default async function preparar() {
   const lmPub = await criar('lote_mudas', { codigo: 'LM-2026-901-A', lote_sementes_id: lsPub.id, especie_id: publica.id, data_semeadura: '2026-02-01', fase_atual: 'pronta', viveiro_id: VIVEIRO_TESTE });
   await criar('movimento_estoque_mudas', { lote_mudas_id: lmPub.id, tipo: 'entrada', quantidade: 60, data: '2026-03-01', viveiro_id: VIVEIRO_TESTE });
   process.env.CRADS_ESPECIE_PUBLICA = publica.id;
+  // Módulo 5: solicitante e uma espécie com 100 mudas prontas só para o teste de doação.
+  await criarUsuario(s, 'solicitante@teste.local', { name: 'Solicitante Teste', solicitante: true });
+  const doa = await criar('especie', { nome_cientifico: 'Doacia demonstrativa', familia: 'Testaceae', publicada: true });
+  await criar('nome_popular', { especie_id: doa.id, nome: 'Árvore-da-doação', nome_busca: 'arvore da doacao' });
+  const lmDoa = await criar('lote_mudas', { codigo: 'LM-2026-902-A', lote_sementes_id: lsPub.id, especie_id: doa.id, data_semeadura: '2026-02-01', fase_atual: 'pronta', viveiro_id: VIVEIRO_TESTE });
+  await criar('movimento_estoque_mudas', { lote_mudas_id: lmDoa.id, tipo: 'entrada', quantidade: 100, data: '2026-03-01', viveiro_id: VIVEIRO_TESTE });
   process.env.CRADS_PB_URL = s.url;
   process.env.CRADS_PB_ADMIN = s.admin;
   return () => s.parar();
