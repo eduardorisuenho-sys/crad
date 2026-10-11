@@ -1,6 +1,6 @@
 # CRADS — Plano de arquitetura e stack
 
-> Estado: **proposta, aguardando aprovação**. Nenhum código foi escrito ainda.
+> Estado: **aprovado** (2026-10-11).
 >
 > Atenção: o arquivo `especificacao.md` **não chegou ao repositório** (assim como
 > a tabela de sementes/mudas e o termo de doação). Este plano foi feito a partir
@@ -124,7 +124,7 @@ docs/         este plano, modelo de dados, decisões
   escopo “todos os viveiros”. O perfil que aprova doações é um **parâmetro**.
 - LGPD: CPF e telefone ficam em `dados_pessoais`, que só o gestor lê. O
   portal e o catálogo leem **visões públicas** sem dados pessoais, e a
-  posição das matrizes aparece só no nível de município **[hipótese]**.
+  posição exata das matrizes só aparece para usuários com login; o público vê apenas o município.
 - Auditoria: hook no servidor registra toda criação, alteração e exclusão
   (que é lógica, nunca física), com usuário, aparelho, data no aparelho e data
   no servidor, e o “antes/depois”.
@@ -147,7 +147,7 @@ internet em Playwright.
 
 1. **Servidor:** gratuito. PocketBase na Oracle Cloud Always Free, app estático no Cloudflare Pages.
 2. **GPS:** só o ponto da matriz (e das coletas e fotos), offline. Sem gravação de trilha.
-3. **Coordenadas no portal público:** em aberto (ver pergunta no README/conversa).
-   Enquanto não houver resposta, o portal mostra só o município.
+3. **Coordenadas das matrizes:** o ponto exato aparece **só para quem tem login**.
+   O portal e o catálogo públicos mostram apenas o município.
 4. **Aparelhos:** iPhone, Android e computador. O app é testado no Chrome
    Android, no Safari iOS e em navegadores de computador.

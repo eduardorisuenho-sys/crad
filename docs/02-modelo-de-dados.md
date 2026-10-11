@@ -1,6 +1,6 @@
 # CRADS — Modelo de dados
 
-> Estado: **proposta, aguardando aprovação**. Itens com **[hipótese]** dependem
+> Estado: **aprovado** (2026-10-11). Itens com **[hipótese]** dependem
 > da `especificacao.md` e da tabela de sementes e mudas, que ainda não chegaram.
 
 ## 0. Convenções
@@ -147,7 +147,7 @@ Não tem tabelas próprias. Usa **visões públicas** sem dados pessoais:
 
 - Espécie publicada: ficha, fotos e mudas prontas disponíveis por viveiro.
 - Rastreio do lote: LM → LS → nº de matrizes e municípios de origem.
-  Sem coordenada exata, sem proprietário e sem coletor **[hipótese]**.
+  Sem coordenada exata, sem proprietário e sem coletor (decidido: ponto exato só com login).
 
 ## 9. Módulo 5 — Doação e Plantando Água
 
