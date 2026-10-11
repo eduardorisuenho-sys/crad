@@ -421,9 +421,8 @@ No app, entre como gestor e vá em **Espécies → Importar**.
     (círculos azuis, ondas). A estrutura das telas é a do próprio CRAD.
   - A fonte (Inter, licença SIL OFL) fica dentro do app e funciona sem internet.
   - As cores ficam em `app/src/estilo.css`, nas variáveis do topo.
-- Dependências: restam 2 alertas moderados do `react-router` 6, ligados a
-  redirecionamento e a renderização no servidor, que o app não usa. Eles
-  somem na migração para o `react-router` 7, que fica para depois.
+- Dependências: `npm audit` sem alertas (React Router 7, Vite 6.4, Vitest 5,
+  Playwright 1.64).
 - Licença: **AGPL-3.0** (arquivo `LICENSE`). Quem adaptar e hospedar o app
   (outros municípios, consórcios) precisa manter o código aberto.
 
