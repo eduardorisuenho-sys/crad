@@ -255,3 +255,23 @@ label.opcao, label.botao-grande { cursor: pointer; }
   body, .tela { background: var(--branco); }
   .plaqueta { border-width: 2px; width: 9cm; break-inside: avoid; }
 }
+
+/* Módulo 7: relatórios e transparência */
+.indicadores { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.indicadores li { background: var(--branco); border: 1px solid var(--azul-escuro-25); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 2px; color: var(--azul-escuro); }
+.indicadores small, .indicadores span { color: var(--suave); font-size: 0.85rem; }
+.indicadores strong { font-size: 1.6rem; color: var(--verde); line-height: 1.2; }
+@media (min-width: 700px) { .indicadores { grid-template-columns: repeat(4, 1fr); } }
+.barras { margin: 0; }
+.barras figcaption { font-weight: 700; margin-bottom: 10px; color: var(--azul-escuro); }
+.barras ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.barras li { display: grid; grid-template-columns: minmax(80px, 34%) 1fr auto; align-items: center; gap: 8px; font-size: 0.92rem; }
+.barras-rotulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--azul-escuro); }
+.barras-trilho { height: 14px; display: block; }
+.barras-barra { display: block; height: 100%; min-width: 2px; background: var(--azul); border-radius: 0 4px 4px 0; }
+.barras strong { color: var(--azul-escuro); font-variant-numeric: tabular-nums; }
+.rolagem { overflow-x: auto; }
+.lista-simples { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-direction: column; gap: 4px; }
+.lista-simples small { color: var(--suave); }
+.cadeia > li > div { display: flex; flex-direction: column; }
+.link-centro { text-align: center; }

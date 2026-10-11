@@ -46,6 +46,9 @@ export function Entrar() {
         <Link to="/catalogo" className="botao-secundario">
           Ver o catálogo de mudas (sem login)
         </Link>
+        <Link to="/transparencia" className="link link-centro">
+          Resultados das doações (transparência)
+        </Link>
         <details className="avancado">
           <summary>Endereço do servidor</summary>
           <input value={servidor} onChange={(e) => setServidor(e.target.value)} aria-label="Endereço do servidor" />

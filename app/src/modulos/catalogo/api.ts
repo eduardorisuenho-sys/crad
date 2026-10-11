@@ -2,7 +2,7 @@
  * Catálogo público: lido do servidor sem login. A última versão fica guardada
  * no aparelho para abrir sem internet.
  */
-import type { ItemCatalogo, RastreioPublico } from '@crads/dominio';
+import type { ItemCatalogo, RastreioPublico, Transparencia } from '@crads/dominio';
 import { SERVIDOR_PADRAO } from '../../dados/sessao';
 
 export function servidorPublico(servidorDaSessao?: string): string {
@@ -62,3 +62,4 @@ export interface EspeciePublica {
 }
 export const lerEspecie = (s: string, id: string) => lerComCopia<EspeciePublica>(s, `/api/crads/publico/especie/${encodeURIComponent(id)}`);
 export const lerRastreio = (s: string, codigo: string) => lerComCopia<RastreioPublico>(s, `/api/crads/publico/rastreio/${encodeURIComponent(codigo.trim().toUpperCase())}`);
+export const lerTransparencia = (s: string) => lerComCopia<Transparencia & { gerado_em: string }>(s, '/api/crads/publico/transparencia');

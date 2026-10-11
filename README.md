@@ -23,7 +23,37 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 5. Módulo 4, Catálogo público | **pronta** |
 | 6. Módulo 5, Doação de mudas (com Plantando Água) | **pronta** |
 | 7. Módulo 6, Pós-plantio | **pronta** |
-| 8. Módulo 7, Relatórios e transparência | próxima |
+| 8. Módulo 7, Relatórios e transparência | **pronta** |
+
+O que o Módulo 7 entrega:
+
+- **Painel do gestor** (menu Relatórios), calculado no aparelho com os dados
+  já sincronizados, funciona sem internet:
+  - filtros: período (este ano, ano passado, tudo), viveiro (todos somados ou
+    um por um) e o recorte **Só Plantando Água**;
+  - números: matrizes (aprovadas, espécies), coletas (kg), sementes em
+    estoque, mudas prontas e germinação, mudas doadas e pedidos em análise,
+    doações do Plantando Água, mudas plantadas e sobrevivência;
+  - barras de mudas por fase e tabela por viveiro.
+- **Baixar arquivos**, feitos no próprio aparelho e sem CPF nem telefone:
+  - PDF de prestação de contas com a logo;
+  - planilha Excel com as abas Indicadores, Matrizes, Coletas, Lotes de mudas
+    e Doações;
+  - CSV (indicadores e doações, com `;`, abre no Excel em português);
+  - mapa KML com matrizes, coletas e plantios, em cores separadas. Abre no
+    Google Earth e no QGIS.
+- **Rastrear um código** (uso interno): de qualquer código (MT, LS, LM ou
+  DO), mostra a cadeia inteira. Para trás vai até as matrizes; para frente,
+  até as doações e os plantios. A doação só traz os lotes de onde saíram as
+  suas mudas.
+- **Portal da transparência** (`/transparencia`, sem login, com link no
+  catálogo e na tela de entrada). Mostra:
+  - mudas doadas e plantadas, sobrevivência e Plantando Água;
+  - doações por ano e espécies mais doadas;
+  - mapa dos plantios com o ponto arredondado (cerca de 1 km), sem nomes nem
+    documentos. Espécies fictícias de treino não aparecem.
+
+  Uma cópia fica guardada para abrir sem internet.
 
 O que o Módulo 6 entrega (tudo funciona sem internet):
 

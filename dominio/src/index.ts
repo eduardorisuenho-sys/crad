@@ -20,3 +20,5 @@ export * from './catalogo';
 export * from './doacao';
 export * from './regras-escrita';
 export * from './posplantio';
+export * from './relatorios';
+export * from './planilha/exportar';

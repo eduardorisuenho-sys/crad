@@ -59,6 +59,12 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
     expect((await chamar(s, '', 'GET', '/api/crads/publico/rastreio/LM-0000-000-A')).status).toBe(404);
   });
 
+  it('portal de transparência responde sem login e sem dados pessoais', async () => {
+    const r = await chamar(s, '', 'GET', '/api/crads/publico/transparencia');
+    expect(r.status).toBe(200);
+    expect(r.dados).toMatchObject({ mudas_doadas: 0, plantios: [], plantando_agua: { doacoes: 0 } });
+  });
+
   it('espécie não publicada não aparece', async () => {
     expect((await chamar(s, '', 'GET', `/api/crads/publico/especie/${gerarId()}`)).status).toBe(404);
   });

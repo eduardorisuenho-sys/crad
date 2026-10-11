@@ -52,7 +52,8 @@ __export(crads_exports, {
   rastreioPublico: () => rastreioPublico,
   receber: () => receber,
   receberArquivo: () => receberArquivo,
-  reservarFaixas: () => reservarFaixas
+  reservarFaixas: () => reservarFaixas,
+  transparencia: () => transparencia
 });
 module.exports = __toCommonJS(crads_exports);
 
@@ -847,12 +848,17 @@ var COLUNAS_ESPECIE = {
 };
 var CAMPOS_FICHA = Object.keys(COLUNAS_ESPECIE).filter((c) => !["nome_popular", "nome_cientifico", "familia"].includes(c));
 
+// ../dominio/src/geo.ts
+function coordenadaValida(lat, lon) {
+  return typeof lat === "number" && typeof lon === "number" && lat > -35 && lat < 6 && lon > -75 && lon < -28;
+}
+
 // ../dominio/src/matrizes.ts
 function parametro(parametros, chave, viveiroId) {
   var _a;
-  const ativos2 = parametros.filter((p2) => p2.chave === chave && !p2.excluido);
-  const doViveiro = viveiroId ? ativos2.find((p2) => p2.viveiro_id === viveiroId) : void 0;
-  const geral = ativos2.find((p2) => !p2.viveiro_id);
+  const ativos5 = parametros.filter((p2) => p2.chave === chave && !p2.excluido);
+  const doViveiro = viveiroId ? ativos5.find((p2) => p2.viveiro_id === viveiroId) : void 0;
+  const geral = ativos5.find((p2) => !p2.viveiro_id);
   const p = doViveiro != null ? doViveiro : geral;
   return p && p.valor !== void 0 && p.valor !== null ? p.valor : (_a = PARAMETROS_PADRAO[chave]) == null ? void 0 : _a.valor;
 }
@@ -878,6 +884,7 @@ function disponivel(saldo, reservasAtivas) {
 }
 
 // ../dominio/src/doacao.ts
+var ativos = (rs) => rs.filter((r2) => !r2.excluido);
 var dia = (s) => String(s != null ? s : "").slice(0, 10);
 var SITUACOES_EM_ANALISE = ["enviada", "em_analise"];
 var SITUACOES_APROVADAS = ["aprovada", "aprovada_parcial"];
@@ -917,9 +924,16 @@ function prazoRetirada(aprovadoEm, dias) {
   d2.setUTCDate(d2.getUTCDate() + dias);
   return d2.toISOString().slice(0, 10);
 }
+function marcadaNoPrograma(historico, doacaoId, programaId) {
+  const h = ativos(historico).filter((x) => x.doacao_id === doacaoId && x.programa_id === programaId).sort((a, b2) => {
+    var _a, _b, _c, _d;
+    return String((_b = (_a = a.criado_no_aparelho_em) != null ? _a : a.created) != null ? _b : "").localeCompare(String((_d = (_c = b2.criado_no_aparelho_em) != null ? _c : b2.created) != null ? _d : ""));
+  });
+  return h.length ? h[h.length - 1].acao === "marcou" : false;
+}
 
 // ../dominio/src/catalogo.ts
-var ativos = (rs) => rs.filter((r2) => !r2.excluido);
+var ativos2 = (rs) => rs.filter((r2) => !r2.excluido);
 function agrupar(rs, campo) {
   var _a;
   const m = /* @__PURE__ */ new Map();
@@ -931,13 +945,13 @@ function agrupar(rs, campo) {
 }
 function disponivelPorLote(d2, hoje = (/* @__PURE__ */ new Date()).toISOString()) {
   var _a, _b;
-  const movs = agrupar(ativos(d2.movimentos), "lote_mudas_id");
+  const movs = agrupar(ativos2(d2.movimentos), "lote_mudas_id");
   const res = agrupar(
     d2.reservas.filter((r2) => reservaAtiva(r2, hoje)),
     "lote_mudas_id"
   );
   const m = /* @__PURE__ */ new Map();
-  for (const l of ativos(d2.lotesMudas)) {
+  for (const l of ativos2(d2.lotesMudas)) {
     if (l.fase_atual !== "pronta" || l.situacao === "encerrado") continue;
     m.set(l.id, disponivel(saldoMudas((_a = movs.get(l.id)) != null ? _a : []), (_b = res.get(l.id)) != null ? _b : []));
   }
@@ -946,15 +960,15 @@ function disponivelPorLote(d2, hoje = (/* @__PURE__ */ new Date()).toISOString()
 function montarCatalogo(d2) {
   var _a, _b, _c, _d, _e, _f, _g;
   const disp = disponivelPorLote(d2);
-  const especies = new Map(ativos(d2.especies).map((e) => [e.id, e]));
-  const viveiros = new Map(ativos(d2.viveiros).map((v) => [v.id, v]));
-  const populares = agrupar(ativos(d2.nomesPopulares), "especie_id");
+  const especies = new Map(ativos2(d2.especies).map((e) => [e.id, e]));
+  const viveiros = new Map(ativos2(d2.viveiros).map((v) => [v.id, v]));
+  const populares = agrupar(ativos2(d2.nomesPopulares), "especie_id");
   const fotos = agrupar(
-    ativos(d2.fotos).filter((f) => f.arquivo),
+    ativos2(d2.fotos).filter((f) => f.arquivo),
     "especie_id"
   );
   const itens = /* @__PURE__ */ new Map();
-  for (const l of ativos(d2.lotesMudas)) {
+  for (const l of ativos2(d2.lotesMudas)) {
     const q = (_a = disp.get(l.id)) != null ? _a : 0;
     if (q <= 0) continue;
     const e = especies.get(String(l.especie_id));
@@ -996,8 +1010,8 @@ function montarRastreio(lote, d2) {
   };
   const ls = d2.lotesSementes.find((l) => l.id === lote.lote_sementes_id && !l.excluido);
   if (!ls) return r2;
-  const coletaIds = new Set(ativos(d2.ligacoes).filter((l) => l.lote_sementes_id === ls.id).map((l) => String(l.coleta_id)));
-  const matrizIds = new Set(ativos(d2.coletas).filter((c) => coletaIds.has(c.id)).map((c) => String(c.matriz_id)));
+  const coletaIds = new Set(ativos2(d2.ligacoes).filter((l) => l.lote_sementes_id === ls.id).map((l) => String(l.coleta_id)));
+  const matrizIds = new Set(ativos2(d2.coletas).filter((c) => coletaIds.has(c.id)).map((c) => String(c.matriz_id)));
   const nomesMun = new Map(d2.municipios.map((m) => [m.id, String(m.nome)]));
   const municipios = /* @__PURE__ */ new Set();
   for (const m of d2.matrizes) if (matrizIds.has(m.id) && m.municipio_id) municipios.add((_d = nomesMun.get(String(m.municipio_id))) != null ? _d : "");
@@ -1028,6 +1042,117 @@ function fichaPublica(e) {
   const f = { id: e.id };
   for (const c of CAMPOS_FICHA_PUBLICA) if (e[c] !== void 0 && e[c] !== null && e[c] !== "" && e[c] !== 0) f[c] = e[c];
   return f;
+}
+
+// ../dominio/src/posplantio.ts
+var ativos3 = (rs) => rs.filter((r2) => !r2.excluido);
+function taxaSobrevivencia(plantadas, vivas) {
+  if (!plantadas) return null;
+  return Math.round(vivas / plantadas * 1e3) / 10;
+}
+function sobrevivenciaDoPlantio(plantioItens, monitoramentos, monitoramentoItens) {
+  var _a, _b, _c;
+  const plantadasPor = /* @__PURE__ */ new Map();
+  for (const i of ativos3(plantioItens)) plantadasPor.set(String(i.especie_id), ((_a = plantadasPor.get(String(i.especie_id))) != null ? _a : 0) + Number((_b = i.quantidade) != null ? _b : 0));
+  const plantadas = [...plantadasPor.values()].reduce((s, q) => s + q, 0);
+  const ultimo = ativos3(monitoramentos).sort((a, b2) => String(b2.data).localeCompare(String(a.data)) || Number(b2.tipo === "vistoria") - Number(a.tipo === "vistoria"))[0];
+  if (!ultimo) {
+    return { monitoramento_id: null, data: null, tipo: null, plantadas, vivas: plantadas, taxa: null, por_especie: [...plantadasPor].map(([especie_id, p]) => ({ especie_id, plantadas: p, vivas: p, taxa: null })) };
+  }
+  const vivasPor = /* @__PURE__ */ new Map();
+  for (const i of ativos3(monitoramentoItens).filter((i2) => i2.monitoramento_id === ultimo.id)) vivasPor.set(String(i.especie_id), Number((_c = i.vivas) != null ? _c : 0));
+  const por_especie = [...plantadasPor].map(([especie_id, p]) => {
+    var _a2;
+    const v = (_a2 = vivasPor.get(especie_id)) != null ? _a2 : 0;
+    return { especie_id, plantadas: p, vivas: v, taxa: taxaSobrevivencia(p, v) };
+  });
+  const vivas = por_especie.reduce((s, e) => s + e.vivas, 0);
+  return { monitoramento_id: ultimo.id, data: String(ultimo.data), tipo: String(ultimo.tipo), plantadas, vivas, taxa: taxaSobrevivencia(plantadas, vivas), por_especie };
+}
+function pontoDoPlantio(geometria) {
+  const g = geometria;
+  if (!g || g.type !== "Point" || !Array.isArray(g.coordinates)) return null;
+  const [lon, lat] = g.coordinates;
+  return coordenadaValida(lat, lon) ? { lat, lon } : null;
+}
+
+// ../dominio/src/relatorios.ts
+var ativos4 = (rs) => rs.filter((r2) => !r2.excluido);
+var dia2 = (v) => String(v != null ? v : "").slice(0, 10);
+function doacoesDoPrograma(historico, programaId) {
+  const ids = new Set(ativos4(historico).filter((h) => h.programa_id === programaId).map((h) => String(h.doacao_id)));
+  return new Set([...ids].filter((d2) => marcadaNoPrograma(historico, d2, programaId)));
+}
+var generalizar = (v) => Math.round(v * 100) / 100;
+function montarTransparencia(d2, programaId = "plantandoagua01") {
+  var _a, _b, _c;
+  const retiradas = ativos4(d2.doacoes).filter((x) => x.situacao === "retirada");
+  const ids = new Set(retiradas.map((x) => x.id));
+  const itens = ativos4(d2.doacaoItens).filter((i) => ids.has(String(i.doacao_id)));
+  const ficticias = new Set(ativos4(d2.especies).filter((e) => e.ficticia).map((e) => e.id));
+  const nomes = new Map(ativos4(d2.especies).map((e) => [e.id, String(e.nome_cientifico)]));
+  const vistos = /* @__PURE__ */ new Set();
+  for (const n2 of ativos4(d2.nomesPopulares)) if (!vistos.has(String(n2.especie_id))) {
+    vistos.add(String(n2.especie_id));
+    nomes.set(String(n2.especie_id), String(n2.nome));
+  }
+  const porEspecie = /* @__PURE__ */ new Map();
+  for (const i of itens) if (!ficticias.has(String(i.especie_id))) porEspecie.set(String(i.especie_id), ((_a = porEspecie.get(String(i.especie_id))) != null ? _a : 0) + Number((_b = i.qtd_entregue) != null ? _b : 0));
+  const programa = doacoesDoPrograma(d2.historicoProgramas, programaId);
+  const ano = (r2) => {
+    var _a2, _b2;
+    return dia2((_b2 = (_a2 = r2.data) != null ? _a2 : r2.criado_no_aparelho_em) != null ? _b2 : r2.created).slice(0, 4) || "sem data";
+  };
+  const porAno = /* @__PURE__ */ new Map();
+  for (const x of retiradas) {
+    const q = itens.filter((i) => i.doacao_id === x.id).reduce((s, i) => {
+      var _a2;
+      return s + Number((_a2 = i.qtd_entregue) != null ? _a2 : 0);
+    }, 0);
+    porAno.set(ano(x), ((_c = porAno.get(ano(x))) != null ? _c : 0) + q);
+  }
+  let plantadasComAcomp = 0;
+  let vivas = 0;
+  const pontos = [];
+  for (const p of ativos4(d2.plantios)) {
+    const s = sobrevivenciaDoPlantio(
+      d2.plantioItens.filter((i) => i.plantio_id === p.id),
+      d2.monitoramentos.filter((m) => m.plantio_id === p.id),
+      d2.monitoramentoItens
+    );
+    if (s.taxa !== null) {
+      plantadasComAcomp += s.plantadas;
+      vivas += s.vivas;
+    }
+    const pt = pontoDoPlantio(p.geometria);
+    if (pt) pontos.push({ lat: generalizar(pt.lat), lon: generalizar(pt.lon), mudas: s.plantadas, ano: ano(p) });
+  }
+  const mudasDoadas = itens.reduce((s, i) => {
+    var _a2;
+    return s + Number((_a2 = i.qtd_entregue) != null ? _a2 : 0);
+  }, 0);
+  return {
+    mudas_doadas: mudasDoadas,
+    mudas_plantadas: ativos4(d2.plantioItens).reduce((s, i) => {
+      var _a2;
+      return s + Number((_a2 = i.quantidade) != null ? _a2 : 0);
+    }, 0),
+    sobrevivencia: taxaSobrevivencia(plantadasComAcomp, vivas),
+    doacoes: retiradas.length,
+    plantando_agua: {
+      doacoes: retiradas.filter((x) => programa.has(x.id)).length,
+      mudas_doadas: itens.filter((i) => programa.has(String(i.doacao_id))).reduce((s, i) => {
+        var _a2;
+        return s + Number((_a2 = i.qtd_entregue) != null ? _a2 : 0);
+      }, 0)
+    },
+    especies_mais_distribuidas: [...porEspecie].sort((a, b2) => b2[1] - a[1]).slice(0, 10).map(([e, mudas]) => {
+      var _a2;
+      return { especie: (_a2 = nomes.get(e)) != null ? _a2 : "", mudas };
+    }),
+    plantios: pontos,
+    por_ano: [...porAno].sort((a, b2) => a[0].localeCompare(b2[0])).map(([a, m]) => ({ ano: a, mudas_doadas: m }))
+  };
 }
 
 // src/crads.ts
@@ -1366,15 +1491,15 @@ function expirarPrazos(app, hoje = hojeISO()) {
   let reservas = 0;
   let pedidos = 0;
   app.runInTransaction((tx) => {
-    const dia2 = hoje.slice(0, 10);
+    const dia3 = hoje.slice(0, 10);
     for (const r2 of todos(tx, "reserva")) {
-      if (r2.situacao === "ativa" && r2.valida_ate && String(r2.valida_ate).slice(0, 10) < dia2) {
+      if (r2.situacao === "ativa" && r2.valida_ate && String(r2.valida_ate).slice(0, 10) < dia3) {
         gravar(tx, colecao("reserva"), __spreadProps(__spreadValues({}, r2), { situacao: "expirada", versao: Number(r2.versao) + 1 }));
         reservas++;
       }
     }
     for (const d2 of todos(tx, "doacao")) {
-      if (SITUACOES_APROVADAS.includes(String(d2.situacao)) && d2.retirar_ate && String(d2.retirar_ate).slice(0, 10) < dia2) {
+      if (SITUACOES_APROVADAS.includes(String(d2.situacao)) && d2.retirar_ate && String(d2.retirar_ate).slice(0, 10) < dia3) {
         gravar(tx, colecao("doacao"), __spreadProps(__spreadValues({}, d2), { situacao: "expirada", versao: Number(d2.versao) + 1 }));
         auditar(tx, { colecao: "doacao", registro_id: d2.id, acao: "expirar", antes: { situacao: d2.situacao }, depois: { situacao: "expirada" }, usuario_id: "sistema" });
         pedidos++;
@@ -1438,6 +1563,32 @@ function especiePublica(app, id) {
     }),
     lotes
   };
+}
+function transparencia(app) {
+  const t2 = (n2) => todos(app, n2);
+  return __spreadProps(__spreadValues({}, montarTransparencia({
+    viveiros: [],
+    especies: t2("especie"),
+    nomesPopulares: t2("nome_popular"),
+    matrizes: [],
+    coletas: [],
+    lotesSementes: [],
+    ligacoes: [],
+    movSementes: [],
+    lotesMudas: [],
+    eventosMudas: [],
+    movMudas: [],
+    doacoes: t2("doacao"),
+    doacaoItens: t2("doacao_item"),
+    doacaoItemLotes: [],
+    historicoProgramas: t2("doacao_programa_historico"),
+    plantios: t2("plantio"),
+    plantioItens: t2("plantio_item"),
+    monitoramentos: t2("monitoramento"),
+    monitoramentoItens: t2("monitoramento_item")
+  })), {
+    gerado_em: (/* @__PURE__ */ new Date()).toISOString()
+  });
 }
 function rastreioPublico(app, codigo) {
   let rec;

@@ -45,7 +45,9 @@ export default async function preparar() {
   // Módulo 6: uma doação já retirada pelo solicitante, para registrar o plantio.
   const pessoaSol = await criar('pessoa', { nome: 'Solicitante Teste', usuario_id: solicitante.id });
   const doacaoRet = await criar('doacao', { codigo: 'DO-2026-901', solicitante_pessoa_id: pessoaSol.id, solicitante_usuario_id: solicitante.id, situacao: 'retirada', viveiro_id: VIVEIRO_TESTE });
-  await criar('doacao_item', { doacao_id: doacaoRet.id, especie_id: doa.id, qtd_pedida: 20, qtd_aprovada: 20, qtd_entregue: 20, solicitante_usuario_id: solicitante.id, viveiro_id: VIVEIRO_TESTE });
+  const itemRet = await criar('doacao_item', { doacao_id: doacaoRet.id, especie_id: doa.id, qtd_pedida: 20, qtd_aprovada: 20, qtd_entregue: 20, solicitante_usuario_id: solicitante.id, viveiro_id: VIVEIRO_TESTE });
+  // Módulo 7: de que lote saíram as mudas (para o rastreio completo).
+  await criar('doacao_item_lote', { doacao_item_id: itemRet.id, lote_mudas_id: lmDoa.id, quantidade: 20, viveiro_id: VIVEIRO_TESTE });
   process.env.CRADS_PB_URL = s.url;
   process.env.CRADS_PB_ADMIN = s.admin;
   return () => s.parar();

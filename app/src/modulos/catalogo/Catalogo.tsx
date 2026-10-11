@@ -92,6 +92,9 @@ export function Catalogo() {
         </label>
         <button className="botao-secundario">Ver de onde vieram as sementes</button>
       </form>
+      <Link to="/transparencia" className="botao-grande">
+        <Icone nome="relatorio" /> Resultados das doações (transparência)
+      </Link>
     </Pagina>
   );
 }

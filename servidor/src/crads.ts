@@ -20,6 +20,7 @@ import {
   existeColecao,
   fichaPublica,
   montarCatalogo,
+  montarTransparencia,
   montarRastreio,
   formatarCodigo,
   montarRecebimento,
@@ -502,6 +503,35 @@ export function especiePublica(app: App, id: string) {
     nomes_populares: d.nomesPopulares.filter((n) => n.especie_id === id).map((n) => String(n.nome)),
     fotos: d.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => ({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: f.credito ?? '' })),
     lotes,
+  };
+}
+
+/** GET /api/crads/publico/transparencia — totais e mapa dos plantios, sem dados pessoais. */
+export function transparencia(app: App) {
+  const t = (n: string) => todos(app, n);
+  return {
+    ...montarTransparencia({
+      viveiros: [],
+      especies: t('especie'),
+      nomesPopulares: t('nome_popular'),
+      matrizes: [],
+      coletas: [],
+      lotesSementes: [],
+      ligacoes: [],
+      movSementes: [],
+      lotesMudas: [],
+      eventosMudas: [],
+      movMudas: [],
+      doacoes: t('doacao'),
+      doacaoItens: t('doacao_item'),
+      doacaoItemLotes: [],
+      historicoProgramas: t('doacao_programa_historico'),
+      plantios: t('plantio'),
+      plantioItens: t('plantio_item'),
+      monitoramentos: t('monitoramento'),
+      monitoramentoItens: t('monitoramento_item'),
+    }),
+    gerado_em: new Date().toISOString(),
   };
 }
 
