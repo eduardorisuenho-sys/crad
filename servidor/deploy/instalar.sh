@@ -18,7 +18,8 @@ id crads >/dev/null 2>&1 || useradd --system --home "$PASTA" --shell /usr/sbin/n
 
 echo "==> Código do CRADS"
 if [ -d "$PASTA/.git" ]; then
-  git -C "$PASTA" pull --ff-only
+  # A pasta é do usuário crads; o git (rodando como root) precisa desta liberação.
+  git -c safe.directory="$PASTA" -C "$PASTA" pull --ff-only
 else
   git clone --depth 1 "$REPO" "$PASTA"
 fi
