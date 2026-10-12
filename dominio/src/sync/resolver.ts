@@ -195,6 +195,11 @@ function alterar(
   const falta = faltando(col, novo);
   if (falta.length) return rejeitar(op, `faltam campos obrigatórios: ${falta.join(', ')}`, atual);
 
+  // Matriz reprovada pelo gestor vai para a lixeira (some dos aparelhos; o administrador pode restaurar).
+  if (col.nome === 'matriz' && novo.situacao_validacao === 'reprovada' && atual.situacao_validacao !== 'reprovada') {
+    novo.excluido = true;
+    aplicar.excluido = true;
+  }
   const antes: Record<string, unknown> = {};
   for (const k of Object.keys(aplicar)) antes[k] = atual[k];
   return {

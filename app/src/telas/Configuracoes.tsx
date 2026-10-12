@@ -81,6 +81,12 @@ export function Configuracoes() {
             <span>Municípios (IBGE)</span>
           </button>
         )}
+        {sessao?.gestorGeral && (
+          <button className="botao-grande" onClick={() => navegar('/lixeira')}>
+            <Icone nome="lixo" tamanho={40} />
+            <span>Corrigir cadastros e lixeira</span>
+          </button>
+        )}
         {(sessao?.gestorGeral || pode('equipe')) && (
           <button className="botao-grande" onClick={() => navegar('/permissoes')}>
             <Icone nome="cadeado" tamanho={40} />

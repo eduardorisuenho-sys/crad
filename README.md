@@ -45,6 +45,21 @@ já estavam aqui":
 - Quem pode, por padrão: gestor e viveirista (linha própria na tabela de
   permissões).
 
+Corrigir cadastros e lixeira (administrador, em Ajustes):
+
+- **Excluir um cadastro** preenchido errado (matriz, coleta, lote, doação,
+  plantio, espécie, pessoa, viveiro). Funciona sem internet. O cadastro vai
+  para a **lixeira** e some de todos os aparelhos.
+- **Matriz reprovada** pelo gestor vai sozinha para a lixeira.
+- Na lixeira (com internet), o administrador pode:
+  - **restaurar**;
+  - **apagar de vez**. Leva junto os detalhes (fotos, flor e fruto, itens,
+    movimentos). Não apaga se ainda houver algo ativo ligado, como uma coleta
+    de uma matriz; o app diz o que é. Fica só a anotação de quem apagou e
+    quando. Para pessoas, os dados pessoais saem também do histórico (LGPD).
+- Em Equipe, o administrador pode **apagar a conta** de alguém. O que a
+  pessoa já registrou continua.
+
 Contas, equipe e permissões:
 
 - **Criar conta pelo celular** (botão "Criar conta" na entrada):

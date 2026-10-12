@@ -47,6 +47,7 @@ export const FUNCIONALIDADES: Funcionalidade[] = [
   { chave: 'viveiros', grupo: 'Gestão', rotulo: 'Cadastrar viveiros e municípios', padrao: ['gestor'], escrita: ['viveiro', 'municipio'] },
   { chave: 'equipe', grupo: 'Gestão', rotulo: 'Cadastrar equipe e aprovar acessos', padrao: ['gestor'], escrita: ['usuario_viveiro', 'pedido_acesso'] },
   { chave: 'parametros', grupo: 'Gestão', rotulo: 'Ajustar parâmetros e metas', padrao: ['gestor'], escrita: ['parametro', 'meta', 'programa'] },
+  { chave: 'lixeira', grupo: 'Gestão', rotulo: 'Excluir cadastros e apagar de vez (lixeira)', padrao: [], soAdministrador: true },
   { chave: 'permissoes', grupo: 'Gestão', rotulo: 'Mudar esta tabela de permissões', padrao: [], soAdministrador: true },
 ];
 

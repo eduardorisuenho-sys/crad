@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
+import { apagarConta } from '../lixeira/api';
 import { cadastrarPessoa, lerEquipe, removerAcesso, responderPedido, ROTULO_PERFIL, type DadosEquipe } from './api';
 
 const PERFIS_EQUIPE = ['coletor', 'viveirista', 'gestor'];
@@ -168,6 +169,15 @@ export function Equipe() {
                     <strong>{p.nome || p.email}</strong>
                     <small>{p.email}</small>
                   </div>
+                  {sessao?.gestorGeral && p.usuario_id !== sessao.id && (
+                    <button
+                      className="link"
+                      disabled={ocupado}
+                      onClick={() => confirm(`Apagar a conta de ${p.nome || p.email}? A pessoa não consegue mais entrar. O que ela já registrou continua.`) && void fazer(() => apagarConta(sessao, p.usuario_id), 'Conta apagada.')}
+                    >
+                      Apagar conta
+                    </button>
+                  )}
                   <ul className="chips">
                     {p.vinculos.map((v) => (
                       <li key={v.id} className="chip">

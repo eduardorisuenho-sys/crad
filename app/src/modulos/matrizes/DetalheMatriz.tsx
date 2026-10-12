@@ -50,7 +50,7 @@ export function DetalheMatriz() {
       if (!nota.trim()) return;
     }
     await repo.salvar('matriz', { situacao_validacao: situacao, validado_em: new Date().toISOString(), nota_validacao: nota || null }, id);
-    setMensagem(situacao === 'aprovada' ? 'Matriz aprovada: já pode ser usada para coleta.' : 'Matriz reprovada.');
+    setMensagem(situacao === 'aprovada' ? 'Matriz aprovada: já pode ser usada para coleta.' : 'Matriz reprovada: vai para a lixeira ao sincronizar (o administrador pode restaurar).');
   }
 
   if (corrigindo) {

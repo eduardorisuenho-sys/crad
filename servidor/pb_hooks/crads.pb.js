@@ -168,3 +168,36 @@ routerAdd("POST", "/api/crads/equipe/vinculo/{id}/remover", (e) => {
     throw new BadRequestError(String(err).replace(/^Error: /, ""));
   }
 }, $apis.requireAuth("users"));
+
+// Lixeira e contas (só o administrador).
+routerAdd("GET", "/api/crads/lixeira", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.lixeira($app, e.auth));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("POST", "/api/crads/lixeira/{colecao}/{id}/{acao}", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  const acao = e.request.pathValue("acao");
+  try {
+    const col = e.request.pathValue("colecao");
+    const id = e.request.pathValue("id");
+    if (acao === "restaurar") return e.json(200, crads.lixeiraRestaurar($app, e.auth, col, id));
+    if (acao === "apagar") return e.json(200, crads.lixeiraApagar($app, e.auth, col, id));
+    throw new Error("Ação desconhecida.");
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("POST", "/api/crads/equipe/usuario/{id}/apagar", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.apagarConta($app, e.auth, e.request.pathValue("id")));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));

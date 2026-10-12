@@ -12,6 +12,12 @@ import {
   parametro,
   planejarReservas,
   matrizDe,
+  APAGA_JUNTO,
+  COLECOES_LIXEIRA,
+  dependentesAtivos,
+  mensagemDependentes,
+  referenciasPara,
+  rotuloRegistro,
   prazoRetirada,
   temPermissao,
   situacaoAposAnalise,
@@ -561,6 +567,121 @@ export function equipeRemover(app: App, auth: RecordPB, id: string) {
     if (v.perfil === 'gestor') exigirPodeDarPerfil(ctx, String(v.viveiro_id), 'gestor');
     gravar(tx, colecao('usuario_viveiro'), { ...v, excluido: true, versao: Number(v.versao) + 1, atualizado_por: ctx.id });
     auditar(tx, { colecao: 'usuario_viveiro', registro_id: id, acao: 'excluir', antes: v, depois: { excluido: true }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// lixeira (só o administrador)
+
+function exigirAdministrador(ctx: ContextoUsuario) {
+  if (!ctx.gestorGeral) throw new Error('Só o administrador pode fazer isso.');
+}
+
+function nomeUsuario(app: App, id: string): string {
+  const u = id ? buscar(app, 'users', id) : null;
+  return u ? u.getString('name') || u.getString('email') : '';
+}
+
+/** GET /api/crads/lixeira — o que está excluído e pode voltar ou ser apagado de vez. */
+export function lixeira(app: App, auth: RecordPB) {
+  exigirAdministrador(contextoDe(app, auth));
+  const itens: { colecao: string; tipo: string; id: string; rotulo: string; excluido_em: string; por: string }[] = [];
+  for (const c of COLECOES_LIXEIRA) {
+    const col = colecao(c.nome);
+    for (const r of app.findRecordsByFilter(c.nome, 'excluido = true', '-updated', 300, 0)) {
+      const o = paraObjeto(col, r);
+      itens.push({ colecao: c.nome, tipo: c.rotulo, id: o.id, rotulo: rotuloRegistro(c.nome, o), excluido_em: String(o.updated ?? ''), por: nomeUsuario(app, String(o.atualizado_por ?? '')) });
+    }
+  }
+  return { itens: itens.sort((a, b) => b.excluido_em.localeCompare(a.excluido_em)) };
+}
+
+function registroDaLixeira(tx: App, nome: string, id: string): { col: Colecao; reg: Registro } {
+  if (!COLECOES_LIXEIRA.some((c) => c.nome === nome)) throw new Error('Tipo de cadastro inválido.');
+  const rec = buscar(tx, nome, id);
+  if (!rec) throw new Error('Registro não encontrado.');
+  const col = colecao(nome);
+  return { col, reg: paraObjeto(col, rec) };
+}
+
+/** POST /api/crads/lixeira/{colecao}/{id}/restaurar */
+export function lixeiraRestaurar(app: App, auth: RecordPB, nome: string, id: string) {
+  const ctx = contextoDe(app, auth);
+  exigirAdministrador(ctx);
+  app.runInTransaction((tx: App) => {
+    const { col, reg } = registroDaLixeira(tx, nome, id);
+    if (!reg.excluido) throw new Error('Este registro não está na lixeira.');
+    gravar(tx, col, { ...reg, excluido: false, versao: Number(reg.versao) + 1, atualizado_por: ctx.id });
+    auditar(tx, { colecao: nome, registro_id: id, acao: 'restaurar', antes: { excluido: true }, depois: { excluido: false }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
+
+function apagarRegistro(tx: App, nome: string, id: string) {
+  const rec = buscar(tx, nome, id);
+  if (rec) tx.delete(rec);
+  // Fotos ligadas pelo registro_id (matriz, plantio, acompanhamento…).
+  for (const f of tx.findRecordsByFilter('foto', 'registro_id = {:i}', '', 0, 0, { i: id })) tx.delete(f);
+}
+
+/**
+ * POST /api/crads/lixeira/{colecao}/{id}/apagar — apaga de vez (só o que já está
+ * na lixeira e sem nada ativo ligado). Leva junto os detalhes do registro.
+ */
+export function lixeiraApagar(app: App, auth: RecordPB, nome: string, id: string) {
+  const ctx = contextoDe(app, auth);
+  exigirAdministrador(ctx);
+  let rotulo = '';
+  app.runInTransaction((tx: App) => {
+    const { reg } = registroDaLixeira(tx, nome, id);
+    if (!reg.excluido) throw new Error('Exclua primeiro (mande para a lixeira) e depois apague de vez.');
+    const deps = dependentesAtivos(nome, id, (c, campo, valor) => tx.findRecordsByFilter(c, `${campo} = {:v}`, '', 0, 0, { v: valor }).map((r: RecordPB) => ({ id: r.id, excluido: r.getBool('excluido') })));
+    if (deps.length) throw new Error(mensagemDependentes(deps));
+    rotulo = nome === 'pessoa' ? '(dados pessoais apagados)' : rotuloRegistro(nome, reg);
+    const filhos: string[] = [];
+    for (const junto of APAGA_JUNTO[nome] ?? []) {
+      for (const { colecao: c, campo } of referenciasPara(nome).filter((x) => x.colecao.nome === junto)) {
+        for (const r of tx.findRecordsByFilter(c.nome, `${campo} = {:v}`, '', 0, 0, { v: id })) {
+          filhos.push(r.id);
+          // um nível abaixo (ex.: itens do acompanhamento do plantio)
+          for (const neto of APAGA_JUNTO[c.nome] ?? []) for (const ref of referenciasPara(c.nome).filter((x) => x.colecao.nome === neto)) for (const n of tx.findRecordsByFilter(neto, `${ref.campo} = {:v}`, '', 0, 0, { v: r.id })) tx.delete(n);
+          apagarRegistro(tx, c.nome, r.id);
+        }
+      }
+    }
+    apagarRegistro(tx, nome, id);
+    // LGPD: dados de pessoa não ficam nem no histórico.
+    if (nome === 'pessoa') {
+      for (const rid of [id, ...filhos]) for (const a of tx.findRecordsByFilter('auditoria', 'registro_id = {:r}', '', 0, 0, { r: rid })) {
+        a.set('antes', null);
+        a.set('depois', null);
+        tx.save(a);
+      }
+    }
+    auditar(tx, { colecao: nome, registro_id: id, acao: 'apagar_definitivo', antes: null, depois: { rotulo, junto: filhos.length }, usuario_id: ctx.id });
+  });
+  return { ok: true, rotulo };
+}
+
+/** POST /api/crads/equipe/usuario/{id}/apagar — o administrador apaga a conta de alguém (não a própria nem de outro administrador). */
+export function apagarConta(app: App, auth: RecordPB, usuarioId: string) {
+  const ctx = contextoDe(app, auth);
+  exigirAdministrador(ctx);
+  if (usuarioId === ctx.id) throw new Error('Você não pode apagar a própria conta.');
+  app.runInTransaction((tx: App) => {
+    const u = buscar(tx, 'users', usuarioId);
+    if (!u) throw new Error('Conta não encontrada.');
+    if (u.getBool('gestor_geral')) throw new Error('Não é possível apagar a conta de outro administrador.');
+    for (const nomeCol of ['usuario_viveiro', 'pedido_acesso']) {
+      const col = colecao(nomeCol);
+      for (const r of tx.findRecordsByFilter(nomeCol, 'usuario_id = {:u} && excluido = false', '', 0, 0, { u: usuarioId })) {
+        const o = paraObjeto(col, r);
+        gravar(tx, col, { ...o, excluido: true, versao: Number(o.versao) + 1, atualizado_por: ctx.id });
+      }
+    }
+    tx.delete(u);
+    auditar(tx, { colecao: 'users', registro_id: usuarioId, acao: 'apagar_conta', antes: null, depois: null, usuario_id: ctx.id });
   });
   return { ok: true };
 }

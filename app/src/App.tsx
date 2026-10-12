@@ -46,6 +46,7 @@ import { CriarConta } from './modulos/equipe/CriarConta';
 import { Equipe } from './modulos/equipe/Equipe';
 import { Permissoes } from './modulos/equipe/Permissoes';
 import { EstoqueInicial } from './modulos/viveiro/EstoqueInicial';
+import { Lixeira } from './modulos/lixeira/Lixeira';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -113,6 +114,7 @@ function Rotas() {
       <Route path="/municipios" element={<ImportarMunicipios />} />
       <Route path="/equipe" element={<Equipe />} />
       <Route path="/permissoes" element={<Permissoes />} />
+      <Route path="/lixeira" element={<Lixeira />} />
       <Route path="/relatorios" element={<PainelRelatorios />} />
       <Route path="/relatorios/rastreio" element={<RastreioInterno />} />
       <Route path="/especies/importar" element={<ImportarEspecies />} />

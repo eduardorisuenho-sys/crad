@@ -41,6 +41,7 @@ __export(crads_exports, {
   COLECOES_SINCRONIZADAS: () => COLECOES_SINCRONIZADAS,
   analisarDoacao: () => analisarDoacao,
   antesDeGravarPeloPainel: () => antesDeGravarPeloPainel,
+  apagarConta: () => apagarConta,
   auditarPainel: () => auditarPainel,
   catalogoPublico: () => catalogoPublico,
   contextoDe: () => contextoDe,
@@ -53,6 +54,9 @@ __export(crads_exports, {
   especiePublica: () => especiePublica,
   eu: () => eu,
   expirarPrazos: () => expirarPrazos,
+  lixeira: () => lixeira,
+  lixeiraApagar: () => lixeiraApagar,
+  lixeiraRestaurar: () => lixeiraRestaurar,
   paraObjeto: () => paraObjeto,
   rastreioPublico: () => rastreioPublico,
   receber: () => receber,
@@ -590,6 +594,7 @@ var FUNCIONALIDADES = [
   { chave: "viveiros", grupo: "Gest\xE3o", rotulo: "Cadastrar viveiros e munic\xEDpios", padrao: ["gestor"], escrita: ["viveiro", "municipio"] },
   { chave: "equipe", grupo: "Gest\xE3o", rotulo: "Cadastrar equipe e aprovar acessos", padrao: ["gestor"], escrita: ["usuario_viveiro", "pedido_acesso"] },
   { chave: "parametros", grupo: "Gest\xE3o", rotulo: "Ajustar par\xE2metros e metas", padrao: ["gestor"], escrita: ["parametro", "meta", "programa"] },
+  { chave: "lixeira", grupo: "Gest\xE3o", rotulo: "Excluir cadastros e apagar de vez (lixeira)", padrao: [], soAdministrador: true },
   { chave: "permissoes", grupo: "Gest\xE3o", rotulo: "Mudar esta tabela de permiss\xF5es", padrao: [], soAdministrador: true }
 ];
 var ORDEM = ["coletor", "viveirista", "gestor", "solicitante"];
@@ -897,6 +902,10 @@ function alterar(op, col, atual, limpos, base, baseVersao, ctx) {
   if (regra) return rejeitar(op, regra, atual);
   const falta = faltando(col, novo);
   if (falta.length) return rejeitar(op, `faltam campos obrigat\xF3rios: ${falta.join(", ")}`, atual);
+  if (col.nome === "matriz" && novo.situacao_validacao === "reprovada" && atual.situacao_validacao !== "reprovada") {
+    novo.excluido = true;
+    aplicar.excluido = true;
+  }
   const antes = {};
   for (const k of Object.keys(aplicar)) antes[k] = atual[k];
   return {
@@ -1313,6 +1322,67 @@ var UF_CODIGO = {
   DF: "53"
 };
 var UF_POR_CODIGO = Object.fromEntries(Object.entries(UF_CODIGO).map(([uf, c]) => [c, uf]));
+
+// ../dominio/src/lixeira.ts
+var COLECOES_LIXEIRA = [
+  { nome: "matriz", rotulo: "Matrizes" },
+  { nome: "coleta", rotulo: "Coletas" },
+  { nome: "lote_sementes", rotulo: "Lotes de sementes" },
+  { nome: "lote_mudas", rotulo: "Lotes de mudas" },
+  { nome: "doacao", rotulo: "Pedidos de doa\xE7\xE3o" },
+  { nome: "plantio", rotulo: "Plantios" },
+  { nome: "monitoramento", rotulo: "Acompanhamentos" },
+  { nome: "especie", rotulo: "Esp\xE9cies" },
+  { nome: "pessoa", rotulo: "Pessoas (solicitantes, propriet\xE1rios)" },
+  { nome: "viveiro", rotulo: "Viveiros" }
+];
+function referenciasPara(nomeColecao) {
+  const out = [];
+  for (const c of COLECOES) for (const f of c.campos) if (f.tipo === "ref" && f.ref === nomeColecao) out.push({ colecao: c, campo: f.nome });
+  return out;
+}
+function rotuloRegistro(colecao2, r2) {
+  var _a, _b, _c, _d;
+  const dia3 = (v) => String(v != null ? v : "").slice(0, 10).split("-").reverse().join("/");
+  switch (colecao2) {
+    case "especie":
+      return String((_a = r2.nome_cientifico) != null ? _a : r2.id);
+    case "pessoa":
+    case "viveiro":
+      return String((_b = r2.nome) != null ? _b : r2.id);
+    case "coleta":
+    case "fenologia":
+    case "plantio":
+    case "monitoramento":
+      return `${colecao2 === "monitoramento" ? "Acompanhamento" : colecao2 === "plantio" ? "Plantio" : colecao2 === "fenologia" ? "Flor e fruto" : "Coleta"} de ${dia3((_c = r2.data) != null ? _c : r2.criado_no_aparelho_em)}`;
+    default:
+      return String((_d = r2.codigo) != null ? _d : r2.id);
+  }
+}
+var APAGA_JUNTO = {
+  matriz: ["fenologia"],
+  lote_sementes: ["lote_sementes_coleta", "movimento_sementes"],
+  lote_mudas: ["movimento_estoque_mudas", "evento_lote_mudas"],
+  doacao: ["doacao_item", "doacao_programa", "doacao_programa_historico"],
+  plantio: ["plantio_item", "monitoramento"],
+  monitoramento: ["monitoramento_item"],
+  especie: ["nome_popular", "sinonimo", "especie_ocorrencia", "especie_municipio", "especie_opcao", "especie_foto", "especie_confusao"],
+  pessoa: ["dados_pessoais"]
+};
+function dependentesAtivos(nomeColecao, id, registrosDe) {
+  var _a, _b;
+  const contagem = /* @__PURE__ */ new Map();
+  const junto = new Set((_a = APAGA_JUNTO[nomeColecao]) != null ? _a : []);
+  for (const { colecao: colecao2, campo } of referenciasPara(nomeColecao)) {
+    if (junto.has(colecao2.nome)) continue;
+    const n2 = registrosDe(colecao2.nome, campo, id).filter((r2) => !r2.excluido).length;
+    if (n2) contagem.set(colecao2.nome, ((_b = contagem.get(colecao2.nome)) != null ? _b : 0) + n2);
+  }
+  return [...contagem].map(([colecao2, quantidade]) => ({ colecao: colecao2, quantidade }));
+}
+function mensagemDependentes(d2) {
+  return `Ainda h\xE1 registros ligados a este: ${d2.map((x) => `${x.quantidade} em ${x.colecao.replace(/_/g, " ")}`).join(", ")}. Exclua ou corrija esses antes.`;
+}
 
 // src/crads.ts
 var ALFABETO_ID = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -1767,6 +1837,102 @@ function equipeRemover(app, auth, id) {
     if (v.perfil === "gestor") exigirPodeDarPerfil(ctx, String(v.viveiro_id), "gestor");
     gravar(tx, colecao("usuario_viveiro"), __spreadProps(__spreadValues({}, v), { excluido: true, versao: Number(v.versao) + 1, atualizado_por: ctx.id }));
     auditar(tx, { colecao: "usuario_viveiro", registro_id: id, acao: "excluir", antes: v, depois: { excluido: true }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
+function exigirAdministrador(ctx) {
+  if (!ctx.gestorGeral) throw new Error("S\xF3 o administrador pode fazer isso.");
+}
+function nomeUsuario(app, id) {
+  const u = id ? buscar(app, "users", id) : null;
+  return u ? u.getString("name") || u.getString("email") : "";
+}
+function lixeira(app, auth) {
+  var _a, _b;
+  exigirAdministrador(contextoDe(app, auth));
+  const itens = [];
+  for (const c of COLECOES_LIXEIRA) {
+    const col = colecao(c.nome);
+    for (const r2 of app.findRecordsByFilter(c.nome, "excluido = true", "-updated", 300, 0)) {
+      const o2 = paraObjeto(col, r2);
+      itens.push({ colecao: c.nome, tipo: c.rotulo, id: o2.id, rotulo: rotuloRegistro(c.nome, o2), excluido_em: String((_a = o2.updated) != null ? _a : ""), por: nomeUsuario(app, String((_b = o2.atualizado_por) != null ? _b : "")) });
+    }
+  }
+  return { itens: itens.sort((a, b2) => b2.excluido_em.localeCompare(a.excluido_em)) };
+}
+function registroDaLixeira(tx, nome, id) {
+  if (!COLECOES_LIXEIRA.some((c) => c.nome === nome)) throw new Error("Tipo de cadastro inv\xE1lido.");
+  const rec = buscar(tx, nome, id);
+  if (!rec) throw new Error("Registro n\xE3o encontrado.");
+  const col = colecao(nome);
+  return { col, reg: paraObjeto(col, rec) };
+}
+function lixeiraRestaurar(app, auth, nome, id) {
+  const ctx = contextoDe(app, auth);
+  exigirAdministrador(ctx);
+  app.runInTransaction((tx) => {
+    const { col, reg } = registroDaLixeira(tx, nome, id);
+    if (!reg.excluido) throw new Error("Este registro n\xE3o est\xE1 na lixeira.");
+    gravar(tx, col, __spreadProps(__spreadValues({}, reg), { excluido: false, versao: Number(reg.versao) + 1, atualizado_por: ctx.id }));
+    auditar(tx, { colecao: nome, registro_id: id, acao: "restaurar", antes: { excluido: true }, depois: { excluido: false }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
+function apagarRegistro(tx, nome, id) {
+  const rec = buscar(tx, nome, id);
+  if (rec) tx.delete(rec);
+  for (const f of tx.findRecordsByFilter("foto", "registro_id = {:i}", "", 0, 0, { i: id })) tx.delete(f);
+}
+function lixeiraApagar(app, auth, nome, id) {
+  const ctx = contextoDe(app, auth);
+  exigirAdministrador(ctx);
+  let rotulo = "";
+  app.runInTransaction((tx) => {
+    var _a, _b;
+    const { reg } = registroDaLixeira(tx, nome, id);
+    if (!reg.excluido) throw new Error("Exclua primeiro (mande para a lixeira) e depois apague de vez.");
+    const deps = dependentesAtivos(nome, id, (c, campo, valor) => tx.findRecordsByFilter(c, `${campo} = {:v}`, "", 0, 0, { v: valor }).map((r2) => ({ id: r2.id, excluido: r2.getBool("excluido") })));
+    if (deps.length) throw new Error(mensagemDependentes(deps));
+    rotulo = nome === "pessoa" ? "(dados pessoais apagados)" : rotuloRegistro(nome, reg);
+    const filhos = [];
+    for (const junto of (_a = APAGA_JUNTO[nome]) != null ? _a : []) {
+      for (const { colecao: c, campo } of referenciasPara(nome).filter((x) => x.colecao.nome === junto)) {
+        for (const r2 of tx.findRecordsByFilter(c.nome, `${campo} = {:v}`, "", 0, 0, { v: id })) {
+          filhos.push(r2.id);
+          for (const neto of (_b = APAGA_JUNTO[c.nome]) != null ? _b : []) for (const ref of referenciasPara(c.nome).filter((x) => x.colecao.nome === neto)) for (const n2 of tx.findRecordsByFilter(neto, `${ref.campo} = {:v}`, "", 0, 0, { v: r2.id })) tx.delete(n2);
+          apagarRegistro(tx, c.nome, r2.id);
+        }
+      }
+    }
+    apagarRegistro(tx, nome, id);
+    if (nome === "pessoa") {
+      for (const rid of [id, ...filhos]) for (const a of tx.findRecordsByFilter("auditoria", "registro_id = {:r}", "", 0, 0, { r: rid })) {
+        a.set("antes", null);
+        a.set("depois", null);
+        tx.save(a);
+      }
+    }
+    auditar(tx, { colecao: nome, registro_id: id, acao: "apagar_definitivo", antes: null, depois: { rotulo, junto: filhos.length }, usuario_id: ctx.id });
+  });
+  return { ok: true, rotulo };
+}
+function apagarConta(app, auth, usuarioId) {
+  const ctx = contextoDe(app, auth);
+  exigirAdministrador(ctx);
+  if (usuarioId === ctx.id) throw new Error("Voc\xEA n\xE3o pode apagar a pr\xF3pria conta.");
+  app.runInTransaction((tx) => {
+    const u = buscar(tx, "users", usuarioId);
+    if (!u) throw new Error("Conta n\xE3o encontrada.");
+    if (u.getBool("gestor_geral")) throw new Error("N\xE3o \xE9 poss\xEDvel apagar a conta de outro administrador.");
+    for (const nomeCol of ["usuario_viveiro", "pedido_acesso"]) {
+      const col = colecao(nomeCol);
+      for (const r2 of tx.findRecordsByFilter(nomeCol, "usuario_id = {:u} && excluido = false", "", 0, 0, { u: usuarioId })) {
+        const o2 = paraObjeto(col, r2);
+        gravar(tx, col, __spreadProps(__spreadValues({}, o2), { excluido: true, versao: Number(o2.versao) + 1, atualizado_por: ctx.id }));
+      }
+    }
+    tx.delete(u);
+    auditar(tx, { colecao: "users", registro_id: usuarioId, acao: "apagar_conta", antes: null, depois: null, usuario_id: ctx.id });
   });
   return { ok: true };
 }

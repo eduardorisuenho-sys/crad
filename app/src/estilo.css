@@ -314,3 +314,4 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .botao-instalar span { display: flex; flex-direction: column; }
 .botao-instalar small { font-weight: 600; font-size: 0.85rem; opacity: 0.9; }
 .botao-instalar:active { background: var(--azul-escuro); }
+.botao-secundario.perigo { background: var(--azul-escuro); color: var(--branco); }
