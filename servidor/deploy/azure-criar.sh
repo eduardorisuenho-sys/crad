@@ -15,6 +15,25 @@ OPCOES="Standard_B1s:x64 Standard_B2ats_v2:x64 Standard_B1ms:x64 Standard_B2s:x6
 IMG_X64="Canonical:ubuntu-24_04-lts:server:latest"
 IMG_ARM="Canonical:ubuntu-24_04-lts:server-arm64:latest"
 
+echo "==> Ativando os serviços de máquina virtual na assinatura (só na primeira vez)"
+for P in Microsoft.Compute Microsoft.Network Microsoft.Storage; do az provider register -n "$P" --wait -o none 2>/dev/null || true; done
+
+# Contas de estudante só aceitam algumas regiões (política "Allowed locations").
+PERMITIDAS=$(az policy assignment list -o json 2>/dev/null | python3 -c '
+import json,sys
+regs=[]
+for a in json.load(sys.stdin):
+    for k,v in (a.get("parameters") or {}).items():
+        if "location" in k.lower() and isinstance(v,dict) and isinstance(v.get("value"),list):
+            regs+= [r.lower() for r in v["value"]]
+print(" ".join(dict.fromkeys(regs)))' 2>/dev/null)
+if [ -n "$PERMITIDAS" ]; then
+  echo "    regiões permitidas para esta conta: $PERMITIDAS"
+  ORDENADAS=""
+  for R in brazilsouth $PERMITIDAS; do case " $PERMITIDAS " in *" $R "*) case " $ORDENADAS " in *" $R "*) ;; *) ORDENADAS="$ORDENADAS $R";; esac;; esac; done
+  REGIOES="$ORDENADAS"
+fi
+
 echo "==> Procurando uma região e um tamanho liberados para a sua conta (pode levar alguns minutos)…"
 CRIADO=""
 for R in $REGIOES; do
@@ -23,14 +42,16 @@ for R in $REGIOES; do
     IMG=$IMG_X64; [ "$A" = arm ] && IMG=$IMG_ARM
     GRUPO="crads-$R"
     echo "   tentando $T em $R…"
-    az group create -n "$GRUPO" -l "$R" -o none 2>/dev/null || continue
+    if ! az group create -n "$GRUPO" -l "$R" -o none 2>/tmp/erro-azure.txt; then
+      echo "     não deu: $(grep -m1 -vE '^\s*$' /tmp/erro-azure.txt | cut -c1-220)"; continue
+    fi
     if az vm create -g "$GRUPO" -n "$NOME" -l "$R" --image "$IMG" --size "$T" \
         --admin-username crads --generate-ssh-keys \
         --public-ip-sku Standard --public-ip-address-allocation static --public-ip-address-dns-name "$ROTULO" \
         --nsg-rule SSH -o none 2>/tmp/erro-azure.txt; then
       CRIADO="$GRUPO"; break 2
     fi
-    echo "     não deu: $(grep -oE '(SkuNotAvailable|NotAvailableForSubscription|RequestDisallowedByPolicy|QuotaExceeded|OperationNotAllowed|InvalidParameter)[^\"]{0,80}' /tmp/erro-azure.txt | head -1)"
+    echo "     não deu: $(grep -vE '^\s*$|^WARNING' /tmp/erro-azure.txt | head -2 | tr '\n' ' ' | cut -c1-260)"
     az group delete -n "$GRUPO" --yes --no-wait -o none 2>/dev/null
   done
 done
