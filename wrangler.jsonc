@@ -3,6 +3,9 @@
 {
   "name": "crad",
   "compatibility_date": "2026-09-01",
+  // endereço gratuito crad.<conta>.workers.dev; sem cópias de prévia por branch
+  "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "directory": "./app/dist",
     // Telas como /catalogo ou /transparencia abrem direto pelo endereço.
