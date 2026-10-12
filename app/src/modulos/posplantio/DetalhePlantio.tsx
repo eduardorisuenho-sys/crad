@@ -15,8 +15,7 @@ const data = (s: unknown) => (s ? new Date(String(s).slice(0, 10) + 'T12:00').to
 export function DetalhePlantio() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const { db, perfis } = useApp();
-  const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
+  const { db, pode } = useApp();
   const plantio = useLiveQuery(() => db.colecao('plantio').get(id!), [id]);
   const doacao = useLiveQuery(() => (plantio ? db.colecao('doacao').get(String(plantio.doacao_id)) : undefined), [plantio?.doacao_id]);
   const resumo = useLiveQuery(() => resumoPlantio(db, id!), [id]);
@@ -76,7 +75,7 @@ export function DetalhePlantio() {
         <Link to={`/pos-plantio/${id}/acompanhamento`} className="botao-principal">
           <Icone nome="plantio" /> Novo acompanhamento
         </Link>
-        {equipe && (
+        {pode('vistoria', plantio?.viveiro_id) && (
           <Link to={`/pos-plantio/${id}/acompanhamento?tipo=vistoria`} className="botao-secundario">
             Vistoria
           </Link>

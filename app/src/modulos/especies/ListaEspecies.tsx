@@ -10,7 +10,7 @@ import { criarEspeciesFicticias, criarPerguntasPadrao } from '../assistente/dado
 import { indiceBusca } from './dados';
 
 export function ListaEspecies() {
-  const { db, repo, perfis } = useApp();
+  const { db, repo, pode } = useApp();
   const [aviso, setAviso] = useState('');
   const [busca, setBusca] = useState('');
   const [soRevisar, setSoRevisar] = useState(false);
@@ -33,7 +33,7 @@ export function ListaEspecies() {
   }, [especies, indice, busca, soRevisar]);
 
   const paraRevisar = especies.filter((e) => e.revisar).length;
-  const gestor = perfis.includes('gestor');
+  const gestor = pode('especies');
 
   return (
     <Tela titulo="Espécies">

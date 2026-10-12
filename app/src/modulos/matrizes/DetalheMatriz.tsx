@@ -16,9 +16,9 @@ const ROTULO_FASE: Record<string, string> = { folha: 'Só folhas', flor: 'Flor',
 export function DetalheMatriz() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const { db, repo, perfis, viveiroId } = useApp();
-  const gestor = perfis.includes('gestor');
+  const { db, repo, pode, viveiroId } = useApp();
   const m = useLiveQuery(() => db.colecao('matriz').get(id!), [id]);
+  const gestor = pode('validar_matriz', m?.viveiro_id);
   const especie = useLiveQuery(() => (m?.especie_id ? db.colecao('especie').get(String(m.especie_id)) : undefined), [m?.especie_id]);
   const popular = useLiveQuery(async () => (m?.especie_id ? (await db.colecao('nome_popular').where('especie_id').equals(String(m.especie_id)).first())?.nome : undefined), [m?.especie_id]);
   const fotos = useLiveQuery(async () => (await db.colecao('foto').where('registro_id').equals(id!).toArray()).filter((f) => !f.excluido), [id]) ?? [];

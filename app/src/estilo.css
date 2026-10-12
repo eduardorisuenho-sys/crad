@@ -275,3 +275,36 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .lista-simples small { color: var(--suave); }
 .cadeia > li > div { display: flex; flex-direction: column; }
 .link-centro { text-align: center; }
+
+/* Criar conta, equipe e permissões */
+.dica-botao { display: block; color: var(--suave); font-weight: 600; font-size: 0.85rem; }
+.botao-grande span { display: flex; flex-direction: column; text-align: left; }
+.aguardando-acesso { border-left: 6px solid var(--azul); display: flex; flex-direction: column; gap: 10px; }
+.aguardando-acesso p { margin: 0; color: var(--azul-escuro); }
+.pedido-acesso, .pessoa-equipe { background: var(--branco); border: 1px solid var(--azul-escuro-25); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; color: var(--azul-escuro); }
+.pedido-acesso > div:first-child, .pessoa-equipe > div:first-child { display: flex; flex-direction: column; }
+.pedido-acesso small, .pessoa-equipe small { color: var(--suave); }
+.pessoa-equipe .chips { margin: 0; }
+.acoes-permissoes { margin-top: 0; }
+.tabela-permissoes { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 560px; background: var(--branco); border: 1px solid var(--azul-escuro-25); border-radius: var(--raio); overflow: hidden; font-size: 0.92rem; }
+.tabela-permissoes th, .tabela-permissoes td { padding: 8px 6px; border-bottom: 1px solid var(--azul-escuro-10); text-align: center; }
+.tabela-permissoes thead th { background: var(--azul-10); color: var(--azul-escuro); position: sticky; top: 0; }
+.tabela-permissoes thead th:first-child, .tabela-permissoes tbody th[scope='row'] { text-align: left; position: sticky; left: 0; background: var(--branco); z-index: 1; min-width: 150px; }
+.tabela-permissoes thead th:first-child { background: var(--azul-10); z-index: 2; }
+.tabela-permissoes tbody th[scope='row'] { font-weight: 600; color: var(--azul-escuro); }
+.tabela-permissoes tr.grupo th { text-align: left; background: var(--fundo); color: var(--verde); font-weight: 800; }
+.tabela-permissoes input[type='checkbox'] { width: 24px; height: 24px; accent-color: var(--azul); cursor: pointer; }
+.tabela-permissoes input[type='checkbox']:disabled { cursor: not-allowed; opacity: 0.55; }
+.pilula { display: inline-block; border-radius: 99px; padding: 3px 10px; font-size: 0.78rem; font-weight: 800; white-space: nowrap; }
+.pilula-admin { background: var(--azul-escuro); color: var(--branco); }
+.pilula-gestor { background: var(--verde); color: var(--branco); }
+.pilula-viveirista { background: var(--azul); color: var(--branco); }
+.pilula-coletor { background: var(--verde-10); color: var(--verde); border: 1px solid var(--verde); }
+.pilula-solicitante { background: var(--branco); color: var(--azul-escuro); border: 1px solid var(--azul-escuro); }
+.lista-permissoes { display: flex; flex-direction: column; gap: 12px; }
+.linha-permissao { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--azul-escuro-10); color: var(--azul-escuro); font-weight: 600 !important; }
+.linha-permissao:last-child { border-bottom: 0; }
+.linha-permissao span { flex: 1; }
+.linha-permissao.travada { color: var(--suave); }
+.linha-permissao svg { color: var(--suave); }
+.linha-permissao input { width: 28px; height: 28px; accent-color: var(--azul); flex: none; }

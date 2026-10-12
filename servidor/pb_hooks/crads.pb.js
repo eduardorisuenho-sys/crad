@@ -117,3 +117,54 @@ routerAdd("POST", "/api/crads/manutencao/expirar", (e) => {
   const hoje = e.requestInfo().body.hoje;
   return e.json(200, crads.expirarPrazos($app, hoje || undefined));
 }, $apis.requireSuperuserAuth());
+
+// Contas criadas pelo próprio celular e equipe do viveiro.
+routerAdd("GET", "/api/crads/publico/viveiros", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  return e.json(200, crads.viveirosPublicos($app));
+});
+
+routerAdd("POST", "/api/crads/conta", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.criarConta($app, e.requestInfo().body));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+});
+
+routerAdd("GET", "/api/crads/equipe", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.equipe($app, e.auth));
+  } catch (err) {
+    throw new ForbiddenError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("POST", "/api/crads/equipe/pessoa", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.equipeCadastrar($app, e.auth, e.requestInfo().body));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("POST", "/api/crads/equipe/pedido/{id}", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.equipeResponder($app, e.auth, e.request.pathValue("id"), e.requestInfo().body));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("POST", "/api/crads/equipe/vinculo/{id}/remover", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.equipeRemover($app, e.auth, e.request.pathValue("id")));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));

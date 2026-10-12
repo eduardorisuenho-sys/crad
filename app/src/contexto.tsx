@@ -1,7 +1,7 @@
 /** Estado global do app: banco local, sessão, viveiro atual e sincronização. */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { Perfil } from '@crads/dominio';
+import { matrizDe, temPermissao, type MatrizPermissoes, type Perfil } from '@crads/dominio';
 import { BancoCrads } from './dados/db';
 import { Repositorio } from './dados/repositorio';
 import { idDispositivo, perfisNoViveiro, renovar, sessaoSalva, type Sessao } from './dados/sessao';
@@ -20,6 +20,10 @@ interface ValorApp {
   viveiroId: string | undefined;
   escolherViveiro(id: string): Promise<void>;
   perfis: Perfil[];
+  /** tabela de permissões em vigor */
+  matriz: MatrizPermissoes;
+  /** pode fazer isso (no viveiro informado ou no atual)? */
+  pode(chave: string, viveiroId?: unknown): boolean;
   online: boolean;
   estadoSync: EstadoSync;
   mensagemSync: string;
@@ -64,6 +68,8 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
 
   const pendentes = useLiveQuery(async () => (await db._fila.count()) + (await db._arquivos.count()), [], 0);
   const avisosAbertos = useLiveQuery(() => db._avisos.filter((a) => !a.resolvido).count(), [], 0);
+  const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [], []);
+  const matriz = useMemo(() => matrizDe(parametros ?? []), [parametros]);
   const ultimaSync = useLiveQuery(() => db.lerMeta<string | null>('ultima_sincronizacao', null), [], null);
 
   // Abre com a sessão guardada no aparelho (funciona sem internet).
@@ -135,6 +141,8 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
     viveiroId,
     escolherViveiro,
     perfis: sessao ? perfisNoViveiro(sessao, viveiroId) : [],
+    matriz,
+    pode: (chave, viveiro) => !!sessao && temPermissao({ ...sessao, permissoes: matriz }, chave, viveiro === undefined ? viveiroId : viveiro),
     online,
     estadoSync,
     mensagemSync,

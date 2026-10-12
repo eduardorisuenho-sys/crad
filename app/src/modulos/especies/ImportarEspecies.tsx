@@ -40,14 +40,14 @@ const FORMAS = [
 ];
 
 export function ImportarEspecies() {
-  const { db, repo, perfis } = useApp();
+  const { db, repo, pode } = useApp();
   const navegar = useNavigate();
   const [estado, setEstado] = useState<Estado>({ etapa: 'escolher' });
   const [erro, setErro] = useState('');
   const [uf, setUf] = useState('TO');
   const [formas, setFormas] = useState<string[]>(FORMAS_VIDA_PADRAO);
 
-  if (!perfis.includes('gestor')) return <Tela titulo="Importar espécies"><p className="vazio">Só o gestor importa espécies.</p></Tela>;
+  if (!pode('especies')) return <Tela titulo="Importar espécies"><p className="vazio">Só o gestor importa espécies.</p></Tela>;
 
   async function preverPlanilha(aba: Aba) {
     const { registros, erro } = lerLinhas(aba.linhas);

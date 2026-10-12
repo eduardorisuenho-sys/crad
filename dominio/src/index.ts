@@ -23,3 +23,4 @@ export * from './posplantio';
 export * from './relatorios';
 export * from './planilha/exportar';
 export * from './municipios';
+export * from './permissoes';

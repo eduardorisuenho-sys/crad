@@ -42,6 +42,9 @@ import { PainelRelatorios } from './modulos/relatorios/Painel';
 import { RastreioInterno } from './modulos/relatorios/RastreioInterno';
 import { Transparencia } from './modulos/relatorios/Transparencia';
 import { ImportarMunicipios } from './modulos/municipios/ImportarMunicipios';
+import { CriarConta } from './modulos/equipe/CriarConta';
+import { Equipe } from './modulos/equipe/Equipe';
+import { Permissoes } from './modulos/equipe/Permissoes';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -66,6 +69,7 @@ function Rotas() {
     return (
       <Routes>
         {publicas}
+        <Route path="/criar-conta" element={<CriarConta />} />
         <Route path="*" element={<Entrar />} />
       </Routes>
     );
@@ -104,6 +108,8 @@ function Rotas() {
       <Route path="/pos-plantio/:id" element={<DetalhePlantio />} />
       <Route path="/pos-plantio/:id/acompanhamento" element={<NovoAcompanhamento />} />
       <Route path="/municipios" element={<ImportarMunicipios />} />
+      <Route path="/equipe" element={<Equipe />} />
+      <Route path="/permissoes" element={<Permissoes />} />
       <Route path="/relatorios" element={<PainelRelatorios />} />
       <Route path="/relatorios/rastreio" element={<RastreioInterno />} />
       <Route path="/especies/importar" element={<ImportarEspecies />} />
@@ -111,7 +117,7 @@ function Rotas() {
       <Route path="/avisos" element={<Avisos />} />
       <Route path="/instalar" element={<Instalar />} />
       <Route path="/configuracoes" element={<Configuracoes />} />
-      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo', '/doacao', '/pos-plantio', '/relatorios'].includes(b.rota)).map((b) => (
+      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo', '/doacao', '/pos-plantio', '/relatorios', '/equipe'].includes(b.rota)).map((b) => (
         <Route key={b.rota} path={`${b.rota}/*`} element={<EmBreve titulo={b.rotulo} icone={b.icone} />} />
       ))}
       <Route path="*" element={<Navigate to="/" replace />} />

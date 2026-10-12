@@ -163,6 +163,16 @@ export const COLECOES: Colecao[] = [
     escrita: SO_GESTOR,
   },
   {
+    // Pedido de acesso de quem se cadastrou pelo celular como coletor ou viveirista.
+    nome: 'pedido_acesso',
+    natureza: 'cadastro',
+    porViveiro: true,
+    campos: [r('usuario_id', 'users', true), t('nome'), t('email'), o('perfil', ['coletor', 'viveirista'], true), o('situacao', ['pendente', 'aprovado', 'recusado'], true), r('analisado_por', 'users'), t('motivo')],
+    indices: ['usuario_id'],
+    leitura: SO_GESTOR,
+    escrita: SO_GESTOR,
+  },
+  {
     nome: 'pessoa',
     natureza: 'cadastro',
     porViveiro: false,

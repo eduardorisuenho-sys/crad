@@ -5,6 +5,7 @@
  */
 import { perfisPara, type ContextoUsuario } from './acesso';
 import type { Colecao } from './esquema';
+import { temPermissao } from './permissoes';
 
 type Reg = Record<string, unknown>;
 
@@ -21,6 +22,16 @@ function soSolicitante(ctx: ContextoUsuario, reg: Reg): boolean {
 
 /** Devolve o motivo da recusa, ou null se a gravação pode seguir. */
 export function violacaoRegra(col: Colecao, antes: Reg | null, depois: Reg, ctx: ContextoUsuario): string | null {
+  // Permissões por funcionalidade que não dependem só da coleção.
+  if (col.nome === 'matriz' && mudou(antes, depois, 'situacao_validacao') && !(antes === null && depois.situacao_validacao === 'pendente')) {
+    if (!temPermissao(ctx, 'validar_matriz', depois.viveiro_id)) return 'Você não tem permissão para aprovar matrizes.';
+  }
+  if (col.nome === 'monitoramento' && depois.tipo === 'vistoria' && mudou(antes, depois, 'tipo')) {
+    if (!temPermissao(ctx, 'vistoria', depois.viveiro_id)) return 'Você não tem permissão para registrar vistoria.';
+  }
+  if (col.nome === 'parametro' && (depois.chave === 'permissoes' || antes?.chave === 'permissoes') && !ctx.gestorGeral) {
+    return 'Só o administrador muda a tabela de permissões.';
+  }
   if (col.nome === 'doacao') {
     if (mudou(antes, depois, 'situacao') && SITUACOES_SO_SERVIDOR.includes(String(depois.situacao))) {
       return 'A aprovação do pedido é feita com internet, para reservar as mudas no servidor.';

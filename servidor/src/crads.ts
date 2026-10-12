@@ -10,10 +10,10 @@ import {
   colecao,
   disponivelPorLote,
   parametro,
-  perfisPara,
   planejarReservas,
-  podeAprovar,
+  matrizDe,
   prazoRetirada,
+  temPermissao,
   situacaoAposAnalise,
   SITUACOES_APROVADAS,
   SITUACOES_EM_ANALISE,
@@ -126,6 +126,7 @@ export function contextoDe(app: App, auth: RecordPB): ContextoUsuario {
     gestorGeral: !!auth.getBool('gestor_geral'),
     solicitante: !!auth.getBool('solicitante'),
     perfisPorViveiro,
+    permissoes: matrizDe(todos(app, 'parametro')),
   };
 }
 
@@ -325,7 +326,11 @@ export function reservarFaixas(app: App, auth: RecordPB, corpo: { dispositivo_id
 /** GET /api/crads/eu — quem sou eu, meus perfis e viveiros. */
 export function eu(app: App, auth: RecordPB) {
   const ctx = contextoDe(app, auth);
-  return { ...ctx, nome: auth.getString('name'), email: auth.getString('email') };
+  const viveiros = new Map(todos(app, 'viveiro').map((v) => [v.id, String(v.nome)]));
+  const pedidos = app
+    .findRecordsByFilter('pedido_acesso', 'usuario_id = {:u} && excluido = false', '-created', 5, 0, { u: auth.id })
+    .map((r: RecordPB) => ({ perfil: r.getString('perfil'), viveiro: viveiros.get(r.getString('viveiro_id')) ?? '', situacao: r.getString('situacao'), motivo: r.getString('motivo') }));
+  return { ...ctx, nome: auth.getString('name'), email: auth.getString('email'), pedidos_acesso: pedidos };
 }
 
 /** POST /api/crads/arquivo/{colecao}/{id}/{campo} — envia foto, assinatura ou PDF. */
@@ -366,6 +371,195 @@ function registrarDispositivo(app: App, id: string, usuarioId: string, campo: st
 }
 
 // ---------------------------------------------------------------------------
+// contas e equipe
+
+const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PERFIS_EQUIPE = ['coletor', 'viveirista', 'gestor'];
+
+function controle(usuarioId: string, viveiroId: string) {
+  return { versao: 1, excluido: false, criado_por: usuarioId, atualizado_por: usuarioId, criado_no_aparelho_em: hojeISO(), viveiro_id: viveiroId };
+}
+
+function usuarioPorEmail(app: App, email: string): RecordPB | null {
+  try {
+    return app.findAuthRecordByEmail('users', email);
+  } catch {
+    return null;
+  }
+}
+
+function novoUsuario(app: App, d: { nome: string; email: string; senha: string; solicitante: boolean }): RecordPB {
+  const u = new Record(app.findCollectionByNameOrId('users'));
+  u.setEmail(d.email);
+  u.setPassword(d.senha);
+  u.set('name', d.nome);
+  u.set('solicitante', d.solicitante);
+  app.save(u);
+  return u;
+}
+
+function validarConta(d: { nome?: string; email?: string; senha?: string }) {
+  const nome = String(d.nome ?? '').trim();
+  const email = String(d.email ?? '').trim().toLowerCase();
+  const senha = String(d.senha ?? '');
+  if (nome.length < 3) throw new Error('Escreva o nome completo.');
+  if (!EMAIL_OK.test(email)) throw new Error('E-mail inválido.');
+  if (senha.length < 8) throw new Error('A senha precisa ter pelo menos 8 letras ou números.');
+  return { nome, email, senha };
+}
+
+function viveiroAtivo(app: App, id: string) {
+  const v = buscar(app, 'viveiro', id);
+  if (!v || v.getBool('excluido') || v.getBool('ativo') === false) throw new Error('Escolha um viveiro.');
+  return v;
+}
+
+/** GET /api/crads/publico/viveiros — para escolher o viveiro ao criar a conta. */
+export function viveirosPublicos(app: App) {
+  return todos(app, 'viveiro')
+    .filter((v) => v.ativo !== false)
+    .map((v) => ({ id: v.id, nome: String(v.nome), sigla: String(v.sigla ?? '') }))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+}
+
+/**
+ * POST /api/crads/conta — a própria pessoa cria a conta pelo celular.
+ * Solicitante entra na hora; coletor e viveirista ficam aguardando o gestor.
+ */
+export function criarConta(app: App, corpo: { nome?: string; email?: string; senha?: string; perfil?: string; viveiro_id?: string }) {
+  const d = validarConta(corpo);
+  const perfil = String(corpo.perfil ?? 'solicitante');
+  if (!['solicitante', 'coletor', 'viveirista'].includes(perfil)) throw new Error('Perfil inválido.');
+  // Freio contra robôs: no máximo 30 contas novas por hora no servidor todo.
+  const umaHora = new Date(Date.now() - 3600_000).toISOString().replace('T', ' ');
+  if (app.findRecordsByFilter('users', 'created >= {:t}', '', 31, 0, { t: umaHora }).length > 30) throw new Error('Muitos cadastros agora. Tente de novo mais tarde.');
+  let pendente = false;
+  app.runInTransaction((tx: App) => {
+    if (usuarioPorEmail(tx, d.email)) throw new Error('Este e-mail já tem conta. Toque em Entrar.');
+    const u = novoUsuario(tx, { ...d, solicitante: perfil === 'solicitante' });
+    if (perfil !== 'solicitante') {
+      const viveiroId = String(corpo.viveiro_id ?? '');
+      viveiroAtivo(tx, viveiroId);
+      const pedido = { id: novoId(), ...controle(u.id, viveiroId), usuario_id: u.id, nome: d.nome, email: d.email, perfil, situacao: 'pendente' };
+      gravar(tx, colecao('pedido_acesso'), pedido);
+      auditar(tx, { colecao: 'pedido_acesso', registro_id: pedido.id, acao: 'criar', antes: null, depois: pedido, usuario_id: u.id });
+      pendente = true;
+    }
+  });
+  return { ok: true, pendente };
+}
+
+/** Viveiros em que o usuário pode cuidar da equipe (null = todos). */
+function viveirosDaEquipe(ctx: ContextoUsuario): string[] | null {
+  if (ctx.gestorGeral) return null;
+  return Object.keys(ctx.perfisPorViveiro).filter((v) => temPermissao(ctx, 'equipe', v));
+}
+
+function exigirEquipe(ctx: ContextoUsuario, viveiroId: string) {
+  if (!temPermissao(ctx, 'equipe', viveiroId)) throw new Error('Você não tem permissão para cuidar da equipe deste viveiro.');
+}
+
+function exigirPodeDarPerfil(ctx: ContextoUsuario, viveiroId: string, perfil: string) {
+  if (!PERFIS_EQUIPE.includes(perfil)) throw new Error('Perfil inválido.');
+  // Só gestor dá o perfil de gestor (ninguém se promove por tabela de permissões).
+  if (perfil === 'gestor' && !ctx.gestorGeral && !(ctx.perfisPorViveiro[viveiroId] ?? []).includes('gestor')) throw new Error('Só um gestor pode cadastrar outro gestor.');
+}
+
+/** GET /api/crads/equipe — pessoas e pedidos de acesso dos viveiros do gestor. */
+export function equipe(app: App, auth: RecordPB) {
+  const ctx = contextoDe(app, auth);
+  const meus = viveirosDaEquipe(ctx);
+  if (meus && !meus.length) throw new Error('Você não tem permissão para cuidar da equipe.');
+  const dentro = (v: unknown) => !meus || meus.includes(String(v));
+  const viveiros = todos(app, 'viveiro').filter((v) => dentro(v.id)).map((v) => ({ id: v.id, nome: String(v.nome) }));
+  const vinculos = todos(app, 'usuario_viveiro').filter((v) => dentro(v.viveiro_id));
+  const pedidos = todos(app, 'pedido_acesso').filter((p) => dentro(p.viveiro_id) && p.situacao === 'pendente');
+  const pessoas = new Map<string, { usuario_id: string; nome: string; email: string; vinculos: { id: string; viveiro_id: string; perfil: string }[] }>();
+  for (const v of vinculos) {
+    const id = String(v.usuario_id);
+    let p = pessoas.get(id);
+    if (!p) {
+      const u = buscar(app, 'users', id);
+      p = { usuario_id: id, nome: u ? u.getString('name') : '', email: u ? u.getString('email') : '', vinculos: [] };
+      pessoas.set(id, p);
+    }
+    p.vinculos.push({ id: v.id, viveiro_id: String(v.viveiro_id), perfil: String(v.perfil) });
+  }
+  return {
+    viveiros,
+    pedidos: pedidos.map((p) => ({ id: p.id, nome: p.nome, email: p.email, perfil: p.perfil, viveiro_id: p.viveiro_id, criado: p.created })),
+    pessoas: [...pessoas.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
+  };
+}
+
+function vincular(tx: App, ctx: ContextoUsuario, usuarioId: string, viveiroId: string, perfil: string) {
+  const ja = todos(tx, 'usuario_viveiro').some((v) => v.usuario_id === usuarioId && v.viveiro_id === viveiroId && v.perfil === perfil);
+  if (ja) return;
+  const reg = { id: novoId(), ...controle(ctx.id, viveiroId), usuario_id: usuarioId, perfil };
+  gravar(tx, colecao('usuario_viveiro'), reg);
+  auditar(tx, { colecao: 'usuario_viveiro', registro_id: reg.id, acao: 'criar', antes: null, depois: reg, usuario_id: ctx.id });
+}
+
+/** POST /api/crads/equipe/pessoa — o gestor cadastra alguém (ou dá mais um perfil a quem já tem conta). */
+export function equipeCadastrar(app: App, auth: RecordPB, corpo: { nome?: string; email?: string; senha?: string; viveiro_id?: string; perfil?: string }) {
+  const ctx = contextoDe(app, auth);
+  const viveiroId = String(corpo.viveiro_id ?? '');
+  const perfil = String(corpo.perfil ?? '');
+  exigirEquipe(ctx, viveiroId);
+  exigirPodeDarPerfil(ctx, viveiroId, perfil);
+  let criada = false;
+  app.runInTransaction((tx: App) => {
+    viveiroAtivo(tx, viveiroId);
+    const email = String(corpo.email ?? '').trim().toLowerCase();
+    let u = EMAIL_OK.test(email) ? usuarioPorEmail(tx, email) : null;
+    if (!u) {
+      u = novoUsuario(tx, { ...validarConta(corpo), solicitante: false });
+      criada = true;
+    }
+    vincular(tx, ctx, u.id, viveiroId, perfil);
+  });
+  return { ok: true, conta_nova: criada };
+}
+
+/** POST /api/crads/equipe/pedido/{id} — aprova ou recusa um pedido de acesso. */
+export function equipeResponder(app: App, auth: RecordPB, id: string, corpo: { aprovar?: boolean; motivo?: string; perfil?: string }) {
+  const ctx = contextoDe(app, auth);
+  app.runInTransaction((tx: App) => {
+    const rec = buscar(tx, 'pedido_acesso', id);
+    if (!rec || rec.getBool('excluido')) throw new Error('Pedido não encontrado.');
+    const pedido = paraObjeto(colecao('pedido_acesso'), rec);
+    const viveiroId = String(pedido.viveiro_id);
+    exigirEquipe(ctx, viveiroId);
+    if (pedido.situacao !== 'pendente') throw new Error('Este pedido já foi respondido.');
+    const perfil = String(corpo.perfil || pedido.perfil);
+    if (corpo.aprovar) {
+      exigirPodeDarPerfil(ctx, viveiroId, perfil);
+      vincular(tx, ctx, String(pedido.usuario_id), viveiroId, perfil);
+    }
+    const novo = { ...pedido, situacao: corpo.aprovar ? 'aprovado' : 'recusado', analisado_por: ctx.id, motivo: String(corpo.motivo ?? ''), versao: Number(pedido.versao) + 1, atualizado_por: ctx.id };
+    gravar(tx, colecao('pedido_acesso'), novo);
+    auditar(tx, { colecao: 'pedido_acesso', registro_id: id, acao: corpo.aprovar ? 'aprovar' : 'recusar', antes: { situacao: 'pendente' }, depois: { situacao: novo.situacao, perfil }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
+
+/** POST /api/crads/equipe/vinculo/{id}/remover — tira o acesso da pessoa a um viveiro. */
+export function equipeRemover(app: App, auth: RecordPB, id: string) {
+  const ctx = contextoDe(app, auth);
+  app.runInTransaction((tx: App) => {
+    const rec = buscar(tx, 'usuario_viveiro', id);
+    if (!rec || rec.getBool('excluido')) throw new Error('Acesso não encontrado.');
+    const v = paraObjeto(colecao('usuario_viveiro'), rec);
+    exigirEquipe(ctx, String(v.viveiro_id));
+    if (v.usuario_id === ctx.id) throw new Error('Você não pode tirar o próprio acesso.');
+    if (v.perfil === 'gestor') exigirPodeDarPerfil(ctx, String(v.viveiro_id), 'gestor');
+    gravar(tx, colecao('usuario_viveiro'), { ...v, excluido: true, versao: Number(v.versao) + 1, atualizado_por: ctx.id });
+    auditar(tx, { colecao: 'usuario_viveiro', registro_id: id, acao: 'excluir', antes: v, depois: { excluido: true }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
 // doação: análise com reservas (só com internet) e expiração dos prazos
 
 const hojeISO = () => new Date().toISOString();
@@ -388,8 +582,7 @@ export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { it
     const doacao = paraObjeto(colecao('doacao'), docRec);
     if (!SITUACOES_EM_ANALISE.includes(String(doacao.situacao))) throw new Error('Este pedido não está aguardando análise.');
     const viveiroId = String(doacao.viveiro_id);
-    const aprovadores = lerParametro<string[]>(tx, 'perfis_aprovadores', viveiroId);
-    if (!podeAprovar([...perfisPara(ctx, viveiroId)], aprovadores)) throw new Error(`Só ${aprovadores.join(' ou ')} pode analisar pedidos.`);
+    if (!temPermissao(ctx, 'aprovar_doacao', viveiroId)) throw new Error('Você não tem permissão para aprovar pedidos de mudas.');
 
     const itens = tx.findRecordsByFilter('doacao_item', 'doacao_id = {:d} && excluido = false', '', 0, 0, { d: id }).map((r: RecordPB) => paraObjeto(colecao('doacao_item'), r));
     const pedidoAprovado = new Map((corpo.itens ?? []).map((i) => [i.item_id, Number(i.qtd_aprovada)]));

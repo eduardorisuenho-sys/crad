@@ -65,7 +65,7 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
     const p = await novoPedido(50);
     expect(await catalogo()).toBe(130);
     const negado = await chamar(s, viveirista.token, 'POST', `/api/crads/doacao/${p.doacao}/analisar`, { itens: [{ item_id: p.item, qtd_aprovada: 50 }] });
-    expect(negado).toMatchObject({ status: 400, dados: { message: expect.stringMatching(/Só gestor/) } });
+    expect(negado).toMatchObject({ status: 400, dados: { message: expect.stringMatching(/permissão para aprovar/) } });
     const r = await chamar(s, gestor.token, 'POST', `/api/crads/doacao/${p.doacao}/analisar`, { itens: [{ item_id: p.item, qtd_aprovada: 40 }], justificativa: 'parte do estoque vai para outro pedido' });
     expect(r.status).toBe(200);
     expect(r.dados.doacao).toMatchObject({ situacao: 'aprovada_parcial', analisado_por: gestor.id });

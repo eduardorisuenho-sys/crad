@@ -14,6 +14,8 @@ const CAMINHOS: Record<string, string> = {
   voltar: 'M15 5l-7 7 7 7',
   mais: 'M12 5v14M5 12h14',
   viveiro: 'M3 21V10l9-6 9 6v11M3 21h18M8 21v-6h8v6',
+  pessoas: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a7 7 0 0 1 14 0v1M17 11a3 3 0 1 0 0-6M22 21v-1a5 5 0 0 0-4-5',
+  cadeado: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4M12 15v2',
   sair: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
   certo: 'M5 13l4 4 10-10',
   compartilhar: 'M12 3v12M7 8l5-5 5 5M5 13v8h14v-8',

@@ -16,9 +16,9 @@ const CAMPOS = new Map<string, Campo>(colecao('especie').campos.map((c) => [c.no
 export function FichaEspecie() {
   const { id } = useParams();
   const nova = id === 'nova';
-  const { db, repo, perfis } = useApp();
+  const { db, repo, pode } = useApp();
   const navegar = useNavigate();
-  const gestor = perfis.includes('gestor');
+  const gestor = pode('especies');
   const especie = useLiveQuery(() => (nova || !id ? undefined : db.colecao('especie').get(id)), [id]);
   const populares = useLiveQuery(() => (nova || !id ? [] : nomesPopularesDe(db, id)), [id]) ?? [];
   const [form, setForm] = useState<Record<string, unknown>>({});

@@ -25,6 +25,29 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 7. Módulo 6, Pós-plantio | **pronta** |
 | 8. Módulo 7, Relatórios e transparência | **pronta** |
 
+Contas, equipe e permissões:
+
+- **Criar conta pelo celular** (botão "Criar conta" na entrada):
+  - quem vai **pedir mudas** entra na hora;
+  - quem vai **coletar sementes** ou **trabalhar no viveiro** escolhe o
+    viveiro e fica aguardando o gestor. Enquanto isso, a tela inicial mostra
+    o pedido em análise.
+- **Equipe** (gestor, precisa de internet):
+  - aprovar ou recusar pedidos de acesso, com motivo;
+  - cadastrar uma pessoa com senha inicial, viveiro e perfil;
+  - tirar o acesso de alguém.
+
+  Só um gestor dá o perfil de gestor, e ninguém tira o próprio acesso.
+- **Permissões** (Ajustes → Permissões): uma tabela com o que cada perfil
+  pode fazer (administrador, grupo gestor, viveirista, coletor, solicitante).
+  - Só o administrador (gestor geral) muda a tabela.
+  - Algumas caixas são fixas: CPF e telefone (LGPD) continuam só com o
+    gestor, e o solicitante não recebe funções internas do viveiro.
+  - A tabela vale também no servidor, não só nos botões do app.
+  - No celular, escolhe-se um perfil por vez; no computador aparece a tabela
+    inteira.
+  - Sem mudanças na tabela, valem as regras originais. Um teste garante isso.
+
 O que o Módulo 7 entrega:
 
 - **Painel do gestor** (menu Relatórios), calculado no aparelho com os dados

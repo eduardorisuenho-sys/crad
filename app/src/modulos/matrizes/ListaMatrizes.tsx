@@ -12,8 +12,8 @@ export const ROTULO_VALIDACAO: Record<string, string> = { pendente: 'aguardando 
 export const ROTULO_CERTEZA: Record<string, string> = { certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' };
 
 export function ListaMatrizes() {
-  const { db, repo, perfis, sessao, viveiroId } = useApp();
-  const gestor = perfis.includes('gestor');
+  const { db, repo, pode, sessao, viveiroId } = useApp();
+  const gestor = pode('validar_matriz');
   const [filtro, setFiltro] = useState<Filtro>(gestor ? 'validar' : 'minhas');
   const [busca, setBusca] = useState('');
   const matrizes = useLiveQuery(() => repo.listar('matriz'), [repo, viveiroId]) ?? [];

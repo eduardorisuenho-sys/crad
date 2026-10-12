@@ -44,7 +44,12 @@ __export(crads_exports, {
   auditarPainel: () => auditarPainel,
   catalogoPublico: () => catalogoPublico,
   contextoDe: () => contextoDe,
+  criarConta: () => criarConta,
   enviar: () => enviar,
+  equipe: () => equipe,
+  equipeCadastrar: () => equipeCadastrar,
+  equipeRemover: () => equipeRemover,
+  equipeResponder: () => equipeResponder,
   especiePublica: () => especiePublica,
   eu: () => eu,
   expirarPrazos: () => expirarPrazos,
@@ -53,7 +58,8 @@ __export(crads_exports, {
   receber: () => receber,
   receberArquivo: () => receberArquivo,
   reservarFaixas: () => reservarFaixas,
-  transparencia: () => transparencia
+  transparencia: () => transparencia,
+  viveirosPublicos: () => viveirosPublicos
 });
 module.exports = __toCommonJS(crads_exports);
 
@@ -129,6 +135,16 @@ var COLECOES = [
     natureza: "cadastro",
     porViveiro: true,
     campos: [r("usuario_id", "users", true), o("perfil", ["coletor", "viveirista", "gestor"], true)],
+    indices: ["usuario_id"],
+    leitura: SO_GESTOR,
+    escrita: SO_GESTOR
+  },
+  {
+    // Pedido de acesso de quem se cadastrou pelo celular como coletor ou viveirista.
+    nome: "pedido_acesso",
+    natureza: "cadastro",
+    porViveiro: true,
+    campos: [r("usuario_id", "users", true), t("nome"), t("email"), o("perfil", ["coletor", "viveirista"], true), o("situacao", ["pendente", "aprovado", "recusado"], true), r("analisado_por", "users"), t("motivo")],
     indices: ["usuario_id"],
     leitura: SO_GESTOR,
     escrita: SO_GESTOR
@@ -538,6 +554,86 @@ function ehProvisorio(codigo) {
   return ((_a = lerCodigo(codigo)) == null ? void 0 : _a.provisorio) === true;
 }
 
+// ../dominio/src/permissoes.ts
+var FUNCIONALIDADES = [
+  { chave: "cadastrar_matriz", grupo: "Matrizes", rotulo: "Cadastrar matriz e rota de campo", padrao: ["coletor", "gestor"], escrita: ["matriz", "rota_campo"] },
+  { chave: "fenologia", grupo: "Matrizes", rotulo: "Registrar flor e fruto", padrao: ["coletor", "viveirista", "gestor"], escrita: ["fenologia"] },
+  { chave: "validar_matriz", grupo: "Matrizes", rotulo: "Aprovar matriz para coleta", padrao: ["gestor"] },
+  { chave: "registrar_coleta", grupo: "Coleta e sementes", rotulo: "Registrar coleta de sementes", padrao: ["coletor", "viveirista", "gestor"], escrita: ["coleta"] },
+  { chave: "lotes_sementes", grupo: "Coleta e sementes", rotulo: "Formar lotes e guardar sementes", padrao: ["viveirista", "gestor"], escrita: ["lote_sementes", "lote_sementes_coleta", "movimento_sementes", "endereco_armazenamento"] },
+  { chave: "producao", grupo: "Viveiro", rotulo: "Semear e cuidar das mudas", padrao: ["viveirista", "gestor"], escrita: ["lote_mudas", "evento_lote_mudas", "movimento_estoque_mudas"] },
+  { chave: "inventario", grupo: "Viveiro", rotulo: "Fazer invent\xE1rio", padrao: ["viveirista", "gestor"], escrita: ["inventario", "inventario_item"] },
+  { chave: "pedir_mudas", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Pedir mudas", padrao: ["viveirista", "gestor", "solicitante"], escrita: ["doacao", "doacao_item"], solicitantePode: true },
+  { chave: "aprovar_doacao", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Aprovar pedidos de mudas", padrao: ["gestor"] },
+  { chave: "retirada", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Entregar mudas (retirada)", padrao: ["viveirista", "gestor"], escrita: ["retirada", "reserva", "doacao_item_lote"] },
+  { chave: "plantando_agua", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Marcar Plantando \xC1gua", padrao: ["viveirista", "gestor"], escrita: ["doacao_programa", "doacao_programa_historico"] },
+  { chave: "registrar_plantio", grupo: "P\xF3s-plantio", rotulo: "Registrar plantio e acompanhamento", padrao: ["viveirista", "gestor", "solicitante"], escrita: ["plantio", "plantio_item", "monitoramento", "monitoramento_item"], solicitantePode: true },
+  { chave: "vistoria", grupo: "P\xF3s-plantio", rotulo: "Fazer vistoria t\xE9cnica", padrao: ["viveirista", "gestor"] },
+  { chave: "especies", grupo: "Esp\xE9cies", rotulo: "Editar e importar esp\xE9cies", padrao: ["gestor"], escrita: ["especie", "sinonimo", "nome_popular", "especie_ocorrencia", "especie_municipio", "especie_confusao", "especie_foto", "pergunta", "opcao", "especie_opcao"] },
+  { chave: "relatorios", grupo: "Relat\xF3rios", rotulo: "Ver relat\xF3rios e baixar planilhas", padrao: ["gestor"] },
+  { chave: "dados_pessoais", grupo: "Relat\xF3rios", rotulo: "Ver CPF e telefone (LGPD)", padrao: ["gestor"], fixa: true },
+  { chave: "viveiros", grupo: "Gest\xE3o", rotulo: "Cadastrar viveiros e munic\xEDpios", padrao: ["gestor"], escrita: ["viveiro", "municipio"] },
+  { chave: "equipe", grupo: "Gest\xE3o", rotulo: "Cadastrar equipe e aprovar acessos", padrao: ["gestor"], escrita: ["usuario_viveiro", "pedido_acesso"] },
+  { chave: "parametros", grupo: "Gest\xE3o", rotulo: "Ajustar par\xE2metros e metas", padrao: ["gestor"], escrita: ["parametro", "meta", "programa"] },
+  { chave: "permissoes", grupo: "Gest\xE3o", rotulo: "Mudar esta tabela de permiss\xF5es", padrao: [], soAdministrador: true }
+];
+var ORDEM = ["coletor", "viveirista", "gestor", "solicitante"];
+var ordenar = (ps) => ORDEM.filter((p) => new Set(ps).has(p));
+var POR_CHAVE = new Map(FUNCIONALIDADES.map((f) => [f.chave, f]));
+function celulaEditavel(f, perfil) {
+  if (f.fixa || f.soAdministrador) return false;
+  if (perfil === "solicitante") return !!f.solicitantePode;
+  return true;
+}
+function matrizPadrao() {
+  return Object.fromEntries(FUNCIONALIDADES.map((f) => [f.chave, ordenar(f.padrao)]));
+}
+function normalizarMatriz(m) {
+  const out = {};
+  for (const f of FUNCIONALIDADES) {
+    const marcados = new Set(Array.isArray(m == null ? void 0 : m[f.chave]) ? m[f.chave] : f.padrao);
+    out[f.chave] = ordenar(ORDEM.filter((p) => celulaEditavel(f, p) ? marcados.has(p) : f.padrao.includes(p)));
+  }
+  return out;
+}
+function matrizDe(parametros) {
+  const p = parametros.find((x) => x.chave === "permissoes" && !x.excluido && !x.viveiro_id);
+  const salvo = (p == null ? void 0 : p.valor) && typeof p.valor === "object" ? p.valor : {};
+  if (!salvo.aprovar_doacao) {
+    const ap = parametros.find((x) => x.chave === "perfis_aprovadores" && !x.excluido && !x.viveiro_id);
+    if (Array.isArray(ap == null ? void 0 : ap.valor)) salvo.aprovar_doacao = ap.valor;
+  }
+  return normalizarMatriz(salvo);
+}
+function escritaEfetiva(col, m) {
+  if (!m) return col.escrita;
+  const cobrem = FUNCIONALIDADES.filter((f) => {
+    var _a;
+    return (_a = f.escrita) == null ? void 0 : _a.includes(col.nome);
+  });
+  if (!cobrem.length) return col.escrita;
+  const dosPadroes = new Set(cobrem.flatMap((f) => f.padrao));
+  const fixos = col.escrita.filter((p) => !dosPadroes.has(p));
+  return ordenar([...fixos, ...cobrem.flatMap((f) => {
+    var _a;
+    return (_a = m[f.chave]) != null ? _a : f.padrao;
+  })]);
+}
+function perfisComPermissao(m, chave) {
+  var _a, _b, _c;
+  return (_c = (_b = (m != null ? m : matrizPadrao())[chave]) != null ? _b : (_a = POR_CHAVE.get(chave)) == null ? void 0 : _a.padrao) != null ? _c : [];
+}
+function temPermissao(ctx, chave, viveiroId) {
+  var _a;
+  if (ctx.gestorGeral) return true;
+  const f = POR_CHAVE.get(chave);
+  if (!f || f.soAdministrador) return false;
+  const permitidos = new Set(perfisComPermissao(ctx.permissoes, chave));
+  if (ctx.solicitante && permitidos.has("solicitante")) return true;
+  const listas = typeof viveiroId === "string" && viveiroId ? [(_a = ctx.perfisPorViveiro[viveiroId]) != null ? _a : []] : Object.values(ctx.perfisPorViveiro);
+  return listas.some((ps) => ps.some((p) => permitidos.has(p)));
+}
+
 // ../dominio/src/acesso.ts
 function perfisPara(ctx, viveiroId) {
   var _a;
@@ -570,14 +666,17 @@ function podeLer(ctx, col, reg) {
   return false;
 }
 function podeEscrever(ctx, col, reg) {
+  if (ctx.gestorGeral) return true;
+  const escrita = escritaEfetiva(col, ctx.permissoes);
   const perfis = perfisPara(ctx, col.porViveiro ? reg.viveiro_id : void 0);
-  if (viaDono(col, perfis, col.escrita)) return reg[col.campoDono] === ctx.id;
-  for (const p of perfis) if (col.escrita.includes(p)) return true;
+  if (viaDono(col, perfis, escrita)) return reg[col.campoDono] === ctx.id;
+  for (const p of perfis) if (escrita.includes(p)) return true;
   return false;
 }
 function escreveComoSolicitante(ctx, col, reg) {
+  if (ctx.gestorGeral) return false;
   const perfis = perfisPara(ctx, col.porViveiro ? reg.viveiro_id : void 0);
-  return viaDono(col, perfis, col.escrita);
+  return viaDono(col, perfis, escritaEfetiva(col, ctx.permissoes));
 }
 
 // ../dominio/src/sync/valores.ts
@@ -587,14 +686,14 @@ function vazio(v) {
 function iguais(a, b2) {
   if (vazio(a) && vazio(b2)) return true;
   if (a === b2) return true;
-  if (typeof a === "object" && typeof b2 === "object" && a && b2) return JSON.stringify(ordenar(a)) === JSON.stringify(ordenar(b2));
+  if (typeof a === "object" && typeof b2 === "object" && a && b2) return JSON.stringify(ordenar2(a)) === JSON.stringify(ordenar2(b2));
   return false;
 }
-function ordenar(v) {
-  if (Array.isArray(v)) return v.map(ordenar);
+function ordenar2(v) {
+  if (Array.isArray(v)) return v.map(ordenar2);
   if (v && typeof v === "object") {
     const o2 = {};
-    for (const k of Object.keys(v).sort()) o2[k] = ordenar(v[k]);
+    for (const k of Object.keys(v).sort()) o2[k] = ordenar2(v[k]);
     return o2;
   }
   return v;
@@ -609,6 +708,15 @@ function soSolicitante(ctx, reg) {
   return p.has("solicitante") && !p.has("viveirista") && !p.has("gestor") && !p.has("coletor");
 }
 function violacaoRegra(col, antes, depois, ctx) {
+  if (col.nome === "matriz" && mudou(antes, depois, "situacao_validacao") && !(antes === null && depois.situacao_validacao === "pendente")) {
+    if (!temPermissao(ctx, "validar_matriz", depois.viveiro_id)) return "Voc\xEA n\xE3o tem permiss\xE3o para aprovar matrizes.";
+  }
+  if (col.nome === "monitoramento" && depois.tipo === "vistoria" && mudou(antes, depois, "tipo")) {
+    if (!temPermissao(ctx, "vistoria", depois.viveiro_id)) return "Voc\xEA n\xE3o tem permiss\xE3o para registrar vistoria.";
+  }
+  if (col.nome === "parametro" && (depois.chave === "permissoes" || (antes == null ? void 0 : antes.chave) === "permissoes") && !ctx.gestorGeral) {
+    return "S\xF3 o administrador muda a tabela de permiss\xF5es.";
+  }
   if (col.nome === "doacao") {
     if (mudou(antes, depois, "situacao") && SITUACOES_SO_SERVIDOR.includes(String(depois.situacao))) {
       return "A aprova\xE7\xE3o do pedido \xE9 feita com internet, para reservar as mudas no servidor.";
@@ -915,9 +1023,6 @@ function situacaoAposAnalise(itens) {
   const aprovado = itens.reduce((s, i) => s + i.qtd_aprovada, 0);
   if (!aprovado) return "negada";
   return itens.every((i) => i.qtd_aprovada >= i.qtd_pedida) ? "aprovada" : "aprovada_parcial";
-}
-function podeAprovar(perfis, aprovadores) {
-  return perfis.some((p) => aprovadores.includes(p));
 }
 function prazoRetirada(aprovadoEm, dias) {
   const d2 = /* @__PURE__ */ new Date(`${dia(aprovadoEm)}T12:00:00Z`);
@@ -1253,7 +1358,8 @@ function contextoDe(app, auth) {
     id: auth.id,
     gestorGeral: !!auth.getBool("gestor_geral"),
     solicitante: !!auth.getBool("solicitante"),
-    perfisPorViveiro
+    perfisPorViveiro,
+    permissoes: matrizDe(todos(app, "parametro"))
   };
 }
 function reservarNumeros(app, tipo, ano, quantidade) {
@@ -1432,7 +1538,12 @@ function reservarFaixas(app, auth, corpo) {
 }
 function eu(app, auth) {
   const ctx = contextoDe(app, auth);
-  return __spreadProps(__spreadValues({}, ctx), { nome: auth.getString("name"), email: auth.getString("email") });
+  const viveiros = new Map(todos(app, "viveiro").map((v) => [v.id, String(v.nome)]));
+  const pedidos = app.findRecordsByFilter("pedido_acesso", "usuario_id = {:u} && excluido = false", "-created", 5, 0, { u: auth.id }).map((r2) => {
+    var _a;
+    return { perfil: r2.getString("perfil"), viveiro: (_a = viveiros.get(r2.getString("viveiro_id"))) != null ? _a : "", situacao: r2.getString("situacao"), motivo: r2.getString("motivo") };
+  });
+  return __spreadProps(__spreadValues({}, ctx), { nome: auth.getString("name"), email: auth.getString("email"), pedidos_acesso: pedidos });
 }
 function receberArquivo(app, auth, nomeCol, id, campo, arquivos, dispositivo = "") {
   if (!existeColecao(nomeCol)) throw new Error("cole\xE7\xE3o desconhecida");
@@ -1467,6 +1578,171 @@ function registrarDispositivo(app, id, usuarioId, campo) {
   } catch (e) {
   }
 }
+var EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+var PERFIS_EQUIPE = ["coletor", "viveirista", "gestor"];
+function controle(usuarioId, viveiroId) {
+  return { versao: 1, excluido: false, criado_por: usuarioId, atualizado_por: usuarioId, criado_no_aparelho_em: hojeISO(), viveiro_id: viveiroId };
+}
+function usuarioPorEmail(app, email) {
+  try {
+    return app.findAuthRecordByEmail("users", email);
+  } catch (e) {
+    return null;
+  }
+}
+function novoUsuario(app, d2) {
+  const u = new Record(app.findCollectionByNameOrId("users"));
+  u.setEmail(d2.email);
+  u.setPassword(d2.senha);
+  u.set("name", d2.nome);
+  u.set("solicitante", d2.solicitante);
+  app.save(u);
+  return u;
+}
+function validarConta(d2) {
+  var _a, _b, _c;
+  const nome = String((_a = d2.nome) != null ? _a : "").trim();
+  const email = String((_b = d2.email) != null ? _b : "").trim().toLowerCase();
+  const senha = String((_c = d2.senha) != null ? _c : "");
+  if (nome.length < 3) throw new Error("Escreva o nome completo.");
+  if (!EMAIL_OK.test(email)) throw new Error("E-mail inv\xE1lido.");
+  if (senha.length < 8) throw new Error("A senha precisa ter pelo menos 8 letras ou n\xFAmeros.");
+  return { nome, email, senha };
+}
+function viveiroAtivo(app, id) {
+  const v = buscar(app, "viveiro", id);
+  if (!v || v.getBool("excluido") || v.getBool("ativo") === false) throw new Error("Escolha um viveiro.");
+  return v;
+}
+function viveirosPublicos(app) {
+  return todos(app, "viveiro").filter((v) => v.ativo !== false).map((v) => {
+    var _a;
+    return { id: v.id, nome: String(v.nome), sigla: String((_a = v.sigla) != null ? _a : "") };
+  }).sort((a, b2) => a.nome.localeCompare(b2.nome, "pt-BR"));
+}
+function criarConta(app, corpo) {
+  var _a;
+  const d2 = validarConta(corpo);
+  const perfil = String((_a = corpo.perfil) != null ? _a : "solicitante");
+  if (!["solicitante", "coletor", "viveirista"].includes(perfil)) throw new Error("Perfil inv\xE1lido.");
+  const umaHora = new Date(Date.now() - 36e5).toISOString().replace("T", " ");
+  if (app.findRecordsByFilter("users", "created >= {:t}", "", 31, 0, { t: umaHora }).length > 30) throw new Error("Muitos cadastros agora. Tente de novo mais tarde.");
+  let pendente = false;
+  app.runInTransaction((tx) => {
+    var _a2;
+    if (usuarioPorEmail(tx, d2.email)) throw new Error("Este e-mail j\xE1 tem conta. Toque em Entrar.");
+    const u = novoUsuario(tx, __spreadProps(__spreadValues({}, d2), { solicitante: perfil === "solicitante" }));
+    if (perfil !== "solicitante") {
+      const viveiroId = String((_a2 = corpo.viveiro_id) != null ? _a2 : "");
+      viveiroAtivo(tx, viveiroId);
+      const pedido = __spreadProps(__spreadValues({ id: novoId() }, controle(u.id, viveiroId)), { usuario_id: u.id, nome: d2.nome, email: d2.email, perfil, situacao: "pendente" });
+      gravar(tx, colecao("pedido_acesso"), pedido);
+      auditar(tx, { colecao: "pedido_acesso", registro_id: pedido.id, acao: "criar", antes: null, depois: pedido, usuario_id: u.id });
+      pendente = true;
+    }
+  });
+  return { ok: true, pendente };
+}
+function viveirosDaEquipe(ctx) {
+  if (ctx.gestorGeral) return null;
+  return Object.keys(ctx.perfisPorViveiro).filter((v) => temPermissao(ctx, "equipe", v));
+}
+function exigirEquipe(ctx, viveiroId) {
+  if (!temPermissao(ctx, "equipe", viveiroId)) throw new Error("Voc\xEA n\xE3o tem permiss\xE3o para cuidar da equipe deste viveiro.");
+}
+function exigirPodeDarPerfil(ctx, viveiroId, perfil) {
+  var _a;
+  if (!PERFIS_EQUIPE.includes(perfil)) throw new Error("Perfil inv\xE1lido.");
+  if (perfil === "gestor" && !ctx.gestorGeral && !((_a = ctx.perfisPorViveiro[viveiroId]) != null ? _a : []).includes("gestor")) throw new Error("S\xF3 um gestor pode cadastrar outro gestor.");
+}
+function equipe(app, auth) {
+  const ctx = contextoDe(app, auth);
+  const meus = viveirosDaEquipe(ctx);
+  if (meus && !meus.length) throw new Error("Voc\xEA n\xE3o tem permiss\xE3o para cuidar da equipe.");
+  const dentro = (v) => !meus || meus.includes(String(v));
+  const viveiros = todos(app, "viveiro").filter((v) => dentro(v.id)).map((v) => ({ id: v.id, nome: String(v.nome) }));
+  const vinculos = todos(app, "usuario_viveiro").filter((v) => dentro(v.viveiro_id));
+  const pedidos = todos(app, "pedido_acesso").filter((p) => dentro(p.viveiro_id) && p.situacao === "pendente");
+  const pessoas = /* @__PURE__ */ new Map();
+  for (const v of vinculos) {
+    const id = String(v.usuario_id);
+    let p = pessoas.get(id);
+    if (!p) {
+      const u = buscar(app, "users", id);
+      p = { usuario_id: id, nome: u ? u.getString("name") : "", email: u ? u.getString("email") : "", vinculos: [] };
+      pessoas.set(id, p);
+    }
+    p.vinculos.push({ id: v.id, viveiro_id: String(v.viveiro_id), perfil: String(v.perfil) });
+  }
+  return {
+    viveiros,
+    pedidos: pedidos.map((p) => ({ id: p.id, nome: p.nome, email: p.email, perfil: p.perfil, viveiro_id: p.viveiro_id, criado: p.created })),
+    pessoas: [...pessoas.values()].sort((a, b2) => a.nome.localeCompare(b2.nome, "pt-BR"))
+  };
+}
+function vincular(tx, ctx, usuarioId, viveiroId, perfil) {
+  const ja = todos(tx, "usuario_viveiro").some((v) => v.usuario_id === usuarioId && v.viveiro_id === viveiroId && v.perfil === perfil);
+  if (ja) return;
+  const reg = __spreadProps(__spreadValues({ id: novoId() }, controle(ctx.id, viveiroId)), { usuario_id: usuarioId, perfil });
+  gravar(tx, colecao("usuario_viveiro"), reg);
+  auditar(tx, { colecao: "usuario_viveiro", registro_id: reg.id, acao: "criar", antes: null, depois: reg, usuario_id: ctx.id });
+}
+function equipeCadastrar(app, auth, corpo) {
+  var _a, _b;
+  const ctx = contextoDe(app, auth);
+  const viveiroId = String((_a = corpo.viveiro_id) != null ? _a : "");
+  const perfil = String((_b = corpo.perfil) != null ? _b : "");
+  exigirEquipe(ctx, viveiroId);
+  exigirPodeDarPerfil(ctx, viveiroId, perfil);
+  let criada = false;
+  app.runInTransaction((tx) => {
+    var _a2;
+    viveiroAtivo(tx, viveiroId);
+    const email = String((_a2 = corpo.email) != null ? _a2 : "").trim().toLowerCase();
+    let u = EMAIL_OK.test(email) ? usuarioPorEmail(tx, email) : null;
+    if (!u) {
+      u = novoUsuario(tx, __spreadProps(__spreadValues({}, validarConta(corpo)), { solicitante: false }));
+      criada = true;
+    }
+    vincular(tx, ctx, u.id, viveiroId, perfil);
+  });
+  return { ok: true, conta_nova: criada };
+}
+function equipeResponder(app, auth, id, corpo) {
+  const ctx = contextoDe(app, auth);
+  app.runInTransaction((tx) => {
+    var _a;
+    const rec = buscar(tx, "pedido_acesso", id);
+    if (!rec || rec.getBool("excluido")) throw new Error("Pedido n\xE3o encontrado.");
+    const pedido = paraObjeto(colecao("pedido_acesso"), rec);
+    const viveiroId = String(pedido.viveiro_id);
+    exigirEquipe(ctx, viveiroId);
+    if (pedido.situacao !== "pendente") throw new Error("Este pedido j\xE1 foi respondido.");
+    const perfil = String(corpo.perfil || pedido.perfil);
+    if (corpo.aprovar) {
+      exigirPodeDarPerfil(ctx, viveiroId, perfil);
+      vincular(tx, ctx, String(pedido.usuario_id), viveiroId, perfil);
+    }
+    const novo = __spreadProps(__spreadValues({}, pedido), { situacao: corpo.aprovar ? "aprovado" : "recusado", analisado_por: ctx.id, motivo: String((_a = corpo.motivo) != null ? _a : ""), versao: Number(pedido.versao) + 1, atualizado_por: ctx.id });
+    gravar(tx, colecao("pedido_acesso"), novo);
+    auditar(tx, { colecao: "pedido_acesso", registro_id: id, acao: corpo.aprovar ? "aprovar" : "recusar", antes: { situacao: "pendente" }, depois: { situacao: novo.situacao, perfil }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
+function equipeRemover(app, auth, id) {
+  const ctx = contextoDe(app, auth);
+  app.runInTransaction((tx) => {
+    const rec = buscar(tx, "usuario_viveiro", id);
+    if (!rec || rec.getBool("excluido")) throw new Error("Acesso n\xE3o encontrado.");
+    const v = paraObjeto(colecao("usuario_viveiro"), rec);
+    exigirEquipe(ctx, String(v.viveiro_id));
+    if (v.usuario_id === ctx.id) throw new Error("Voc\xEA n\xE3o pode tirar o pr\xF3prio acesso.");
+    if (v.perfil === "gestor") exigirPodeDarPerfil(ctx, String(v.viveiro_id), "gestor");
+    gravar(tx, colecao("usuario_viveiro"), __spreadProps(__spreadValues({}, v), { excluido: true, versao: Number(v.versao) + 1, atualizado_por: ctx.id }));
+    auditar(tx, { colecao: "usuario_viveiro", registro_id: id, acao: "excluir", antes: v, depois: { excluido: true }, usuario_id: ctx.id });
+  });
+  return { ok: true };
+}
 var hojeISO = () => (/* @__PURE__ */ new Date()).toISOString();
 function lerParametro(app, chave, viveiroId) {
   return parametro(todos(app, "parametro"), chave, viveiroId);
@@ -1481,8 +1757,7 @@ function analisarDoacao(app, auth, id, corpo) {
     const doacao = paraObjeto(colecao("doacao"), docRec);
     if (!SITUACOES_EM_ANALISE.includes(String(doacao.situacao))) throw new Error("Este pedido n\xE3o est\xE1 aguardando an\xE1lise.");
     const viveiroId = String(doacao.viveiro_id);
-    const aprovadores = lerParametro(tx, "perfis_aprovadores", viveiroId);
-    if (!podeAprovar([...perfisPara(ctx, viveiroId)], aprovadores)) throw new Error(`S\xF3 ${aprovadores.join(" ou ")} pode analisar pedidos.`);
+    if (!temPermissao(ctx, "aprovar_doacao", viveiroId)) throw new Error("Voc\xEA n\xE3o tem permiss\xE3o para aprovar pedidos de mudas.");
     const itens = tx.findRecordsByFilter("doacao_item", "doacao_id = {:d} && excluido = false", "", 0, 0, { d: id }).map((r2) => paraObjeto(colecao("doacao_item"), r2));
     const pedidoAprovado = new Map(((_a = corpo.itens) != null ? _a : []).map((i) => [i.item_id, Number(i.qtd_aprovada)]));
     for (const [itemId, q] of pedidoAprovado) {
@@ -1509,8 +1784,8 @@ function analisarDoacao(app, auth, id, corpo) {
     if ("erro" in plano) throw new Error(plano.erro);
     const agora = hojeISO();
     const retirarAte = situacao === "negada" ? null : prazoRetirada(agora, lerParametro(tx, "prazo_retirada_dias", viveiroId));
-    const controle = { versao: 1, excluido: false, criado_por: ctx.id, atualizado_por: ctx.id, criado_no_aparelho_em: agora, viveiro_id: viveiroId };
-    for (const r2 of plano.reservas) gravar(tx, colecao("reserva"), __spreadProps(__spreadValues(__spreadValues({ id: novoId() }, controle), r2), { valida_ate: retirarAte, situacao: "ativa" }));
+    const controle2 = { versao: 1, excluido: false, criado_por: ctx.id, atualizado_por: ctx.id, criado_no_aparelho_em: agora, viveiro_id: viveiroId };
+    for (const r2 of plano.reservas) gravar(tx, colecao("reserva"), __spreadProps(__spreadValues(__spreadValues({ id: novoId() }, controle2), r2), { valida_ate: retirarAte, situacao: "ativa" }));
     for (const a of aprovados) gravar(tx, colecao("doacao_item"), __spreadProps(__spreadValues({}, a.item), { qtd_aprovada: a.qtd, versao: Number(a.item.versao) + 1, atualizado_por: ctx.id }));
     const novo = __spreadProps(__spreadValues({}, doacao), { situacao, analisado_por: ctx.id, analisado_em: agora, justificativa: (_c = corpo.justificativa) != null ? _c : "", retirar_ate: retirarAte, versao: Number(doacao.versao) + 1, atualizado_por: ctx.id });
     const salvo = gravar(tx, colecao("doacao"), novo);

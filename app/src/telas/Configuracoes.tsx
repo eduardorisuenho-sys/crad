@@ -9,7 +9,7 @@ import { idDispositivo, reservarFaixas, sair } from '../dados/sessao';
 import { espacoUsado, formatarBytes } from '../plataforma/armazenamento';
 
 export function Configuracoes() {
-  const { perfis, sessao, db, pendentes, ultimaSync, sincronizar, estadoSync, definirSessao, online } = useApp();
+  const { pode, sessao, db, pendentes, ultimaSync, sincronizar, estadoSync, definirSessao, online } = useApp();
   const navegar = useNavigate();
   const [espaco, setEspaco] = useState<{ usado: number; total: number } | null>(null);
   const [msg, setMsg] = useState('');
@@ -71,10 +71,16 @@ export function Configuracoes() {
           <Icone nome="arvore" tamanho={40} />
           <span>Preparar para ir a campo</span>
         </button>
-        {perfis.includes('gestor') && (
+        {pode('viveiros') && (
           <button className="botao-grande" onClick={() => navegar('/municipios')}>
             <Icone nome="viveiro" tamanho={40} />
             <span>Municípios (IBGE)</span>
+          </button>
+        )}
+        {(sessao?.gestorGeral || pode('equipe')) && (
+          <button className="botao-grande" onClick={() => navegar('/permissoes')}>
+            <Icone nome="cadeado" tamanho={40} />
+            <span>Permissões</span>
           </button>
         )}
         <button className="botao-grande" onClick={() => navegar('/instalar')}>

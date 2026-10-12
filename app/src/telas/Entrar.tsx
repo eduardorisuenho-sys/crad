@@ -43,6 +43,9 @@ export function Entrar() {
         <button className="botao-principal" disabled={enviando}>
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
+        <Link to="/criar-conta" className="botao-secundario">
+          Criar conta
+        </Link>
         <Link to="/catalogo" className="botao-secundario">
           Ver o catálogo de mudas (sem login)
         </Link>

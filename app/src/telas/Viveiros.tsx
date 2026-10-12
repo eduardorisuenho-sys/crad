@@ -6,7 +6,7 @@ import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
 
 export function Viveiros() {
-  const { repo, db, perfis } = useApp();
+  const { repo, db, pode } = useApp();
   const viveiros = useLiveQuery(() => repo.listar('viveiro'), [repo]) ?? [];
   const naFila = useLiveQuery(async () => new Set((await db._fila.toArray()).map((o) => o.registro_id)), [db]) ?? new Set<string>();
   const [novo, setNovo] = useState(false);
@@ -21,7 +21,7 @@ export function Viveiros() {
     setNovo(false);
   }
 
-  if (!perfis.includes('gestor')) {
+  if (!pode('viveiros')) {
     return (
       <Tela titulo="Viveiros">
         <p className="vazio">Só o gestor cadastra viveiros.</p>

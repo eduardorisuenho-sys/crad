@@ -13,14 +13,14 @@ import { listaMunicipios } from './dados';
 type Estado = { etapa: 'escolher' } | { etapa: 'previa'; plano: PlanoMunicipios; avisos: string[] } | { etapa: 'gravando'; feito: number; total: number } | { etapa: 'pronto'; mensagem: string };
 
 export function ImportarMunicipios() {
-  const { db, repo, perfis, online } = useApp();
+  const { db, repo, pode, online } = useApp();
   const [estado, setEstado] = useState<Estado>({ etapa: 'escolher' });
   const [uf, setUf] = useState('TO');
   const [erro, setErro] = useState('');
   const [baixando, setBaixando] = useState(false);
   const total = useLiveQuery(async () => (await listaMunicipios(db)).length, [db]);
 
-  if (!perfis.includes('gestor')) return <Tela titulo="Municípios"><p className="vazio">Só o gestor importa municípios.</p></Tela>;
+  if (!pode('viveiros')) return <Tela titulo="Municípios"><p className="vazio">Só o gestor importa municípios.</p></Tela>;
 
   async function prever(malha: unknown, nomes?: unknown) {
     const { municipios, erros } = lerMunicipiosIbge(malha, nomes);

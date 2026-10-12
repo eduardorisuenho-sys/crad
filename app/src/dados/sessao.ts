@@ -13,6 +13,8 @@ export interface Sessao extends ContextoUsuario {
   servidor: string;
   /** último contato bem-sucedido com o servidor */
   validadaEm: string;
+  /** pedidos de acesso feitos pela própria pessoa (coletor, viveirista) */
+  pedidos_acesso?: { perfil: string; viveiro: string; situacao: string; motivo: string }[];
 }
 
 export const SERVIDOR_PADRAO: string = import.meta.env?.VITE_SERVIDOR_URL || 'http://127.0.0.1:8090';

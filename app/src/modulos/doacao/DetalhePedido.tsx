@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { bloqueioRetirada, parametro, podeAprovar, SITUACOES_APROVADAS, SITUACOES_EM_ANALISE } from '@crads/dominio';
+import { bloqueioRetirada, SITUACOES_APROVADAS, SITUACOES_EM_ANALISE } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -16,14 +16,13 @@ const data = (s: unknown) => (s ? new Date(String(s).slice(0, 10) + 'T12:00').to
 export function DetalhePedido() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const { db, repo, perfis, sessao, sincronizar, online } = useApp();
+  const { db, repo, perfis, pode, sessao, sincronizar, online } = useApp();
   const doacao = useLiveQuery(() => db.colecao('doacao').get(id!), [id]);
   const itens = useLiveQuery(() => itensDoPedido(db, id!), [id]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const pessoa = useLiveQuery(() => (doacao ? db.colecao('pessoa').get(String(doacao.solicitante_pessoa_id)) : undefined), [doacao?.solicitante_pessoa_id]);
   const viveiro = useLiveQuery(() => (doacao ? db.colecao('viveiro').get(String(doacao.viveiro_id)) : undefined), [doacao?.viveiro_id]);
   const disp = useLiveQuery(() => (doacao ? disponivelLocal(db, String(doacao.viveiro_id)) : undefined), [doacao?.viveiro_id]);
-  const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [db]) ?? [];
   const instalacao = useLiveQuery(async () => (await db.colecao('instalacao').toArray())[0], [db]);
   const noPrograma = useLiveQuery(() => doacoesNoPrograma(db), [db]);
   const retirada = useLiveQuery(async () => (doacao ? (await db.colecao('retirada').where('doacao_id').equals(doacao.id).toArray()).find((r) => !r.excluido) : undefined), [doacao?.id]);
@@ -38,8 +37,7 @@ export function DetalhePedido() {
   if (!doacao) return <Tela titulo="Pedido">{null}</Tela>;
   const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
   const situacao = String(doacao.situacao);
-  const aprovadores = parametro<string[]>(parametros, 'perfis_aprovadores', String(doacao.viveiro_id));
-  const podeAnalisar = podeAprovar(perfis, aprovadores) && SITUACOES_EM_ANALISE.includes(situacao) && doacao.versao !== 0;
+  const podeAnalisar = pode('aprovar_doacao', doacao.viveiro_id) && SITUACOES_EM_ANALISE.includes(situacao) && doacao.versao !== 0;
   const bloqueio = bloqueioRetirada({ situacao: doacao.situacao, retirar_ate: doacao.retirar_ate }, new Date().toISOString());
 
   function dadosPdf(): DadosPdf {
@@ -141,7 +139,7 @@ export function DetalhePedido() {
         </table>
       </section>
 
-      {equipe && <BotaoPlantandoAgua doacao={doacao} editavel={situacao !== 'cancelada'} />}
+      {pode('plantando_agua', doacao.viveiro_id) && <BotaoPlantandoAgua doacao={doacao} editavel={situacao !== 'cancelada'} />}
 
       {podeAnalisar && !analisando && (
         <button className="botao-principal" onClick={() => setAnalisando(true)}>
@@ -186,7 +184,7 @@ export function DetalhePedido() {
         </section>
       )}
 
-      {equipe && SITUACOES_APROVADAS.includes(situacao) && (
+      {pode('retirada', doacao.viveiro_id) && SITUACOES_APROVADAS.includes(situacao) && (
         <>
           {bloqueio ? (
             <p className="mensagem alerta">{bloqueio}</p>
