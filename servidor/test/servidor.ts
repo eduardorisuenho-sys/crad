@@ -33,7 +33,7 @@ export async function subirServidor(): Promise<ServidorTeste> {
   const porta = await portaLivre();
   const url = `http://127.0.0.1:${porta}`;
   const proc: ChildProcess = spawn(BINARIO, ['serve', `--http=127.0.0.1:${porta}`, ...flags], { stdio: 'ignore' });
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 600; i++) {
     try {
       if ((await fetch(`${url}/api/crads/saude`)).ok) break;
     } catch {

@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { Assistente, type ResultadoIdentificacao } from './Assistente';
+import { BotaoLens } from '../../componentes/BotaoLens';
+import { comprimirFoto } from '../../plataforma/imagem';
 
 const GRAU: Record<string, string> = { certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' };
 
@@ -14,8 +16,17 @@ export function TelaIdentificar() {
   const [rodada, setRodada] = useState(0);
   const especie = useLiveQuery(() => (resultado?.especie_id ? db.colecao('especie').get(resultado.especie_id) : undefined), [resultado?.especie_id]);
 
+  const [foto, setFoto] = useState<Blob | null>(null);
   return (
     <Tela titulo="Identificar árvore">
+      <details className="cartao" data-testid="por-foto">
+        <summary>Pesquisar por foto (Google Lens)</summary>
+        <label className="botao-secundario botao-arquivo">
+          Tirar foto da árvore
+          <input type="file" accept="image/*" capture="environment" hidden onChange={async (e) => e.target.files?.[0] && setFoto((await comprimirFoto(e.target.files[0])).foto)} />
+        </label>
+        {foto && <BotaoLens obterFoto={async () => foto} />}
+      </details>
       {resultado ? (
         <div className="vazio">
           <p data-testid="resultado">

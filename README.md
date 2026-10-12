@@ -45,6 +45,19 @@ já estavam aqui":
 - Quem pode, por padrão: gestor e viveirista (linha própria na tabela de
   permissões).
 
+Identificar com ajuda do Google Lens (com internet):
+
+- Na matriz ainda sem espécie certa, o bloco **Ajuda para identificar**:
+  1. **Pesquisar no Google Lens**. No celular, a foto vai pelo "Compartilhar"
+     (escolha Google Lens ou Pesquisar com o Google). No computador, a foto é
+     baixada e o Lens abre noutra aba.
+  2. **Escolher a espécie sugerida**: a pessoa escolhe a espécie na lista do
+     app. Ela fica como **provável**, com a marca "com ajuda do Google Lens",
+     até o gestor confirmar.
+- Em Identificar árvore também dá para tirar uma foto e mandar ao Lens.
+- O Lens só sugere: nada é gravado sem a pessoa escolher, e só espécies que
+  já existem no cadastro podem ser escolhidas.
+
 Relatório de serviço do coletor (Coleta e sementes → Relatório de serviço):
 
 - Comprova o trabalho de campo num período (este mês, mês passado, este ano

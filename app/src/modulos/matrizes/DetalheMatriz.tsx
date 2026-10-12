@@ -8,6 +8,8 @@ import { Icone } from '../../componentes/Icone';
 import { Miniatura } from '../../componentes/Miniatura';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
+import { BotaoLens } from '../../componentes/BotaoLens';
+import { fotoGuardadaOuBaixada } from '../../dados/arquivos';
 import { EscolherEspecie } from '../especies/EscolherEspecie';
 import { ROTULO_CERTEZA, ROTULO_VALIDACAO } from './ListaMatrizes';
 
@@ -16,7 +18,8 @@ const ROTULO_FASE: Record<string, string> = { folha: 'Só folhas', flor: 'Flor',
 export function DetalheMatriz() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const { db, repo, pode, viveiroId } = useApp();
+  const { db, repo, pode, viveiroId, sessao } = useApp();
+  const [escolhendoSugerida, setEscolhendoSugerida] = useState(false);
   const m = useLiveQuery(() => db.colecao('matriz').get(id!), [id]);
   const gestor = pode('validar_matriz', m?.viveiro_id);
   const especie = useLiveQuery(() => (m?.especie_id ? db.colecao('especie').get(String(m.especie_id)) : undefined), [m?.especie_id]);
@@ -51,6 +54,24 @@ export function DetalheMatriz() {
     }
     await repo.salvar('matriz', { situacao_validacao: situacao, validado_em: new Date().toISOString(), nota_validacao: nota || null }, id);
     setMensagem(situacao === 'aprovada' ? 'Matriz aprovada: já pode ser usada para coleta.' : 'Matriz reprovada: vai para a lixeira ao sincronizar (o administrador pode restaurar).');
+  }
+
+  if (escolhendoSugerida) {
+    return (
+      <Tela titulo={`Espécie de ${codigo}`}>
+        <p className="dica">Escolha a espécie que o Google Lens sugeriu (confira na ficha). Ela fica como “provável” até o gestor confirmar.</p>
+        <EscolherEspecie
+          aoEscolher={async (especieId) => {
+            await repo.salvar('matriz', { especie_id: especieId, grau_certeza: 'provavel', metodo_identificacao: 'foto_lens' }, id);
+            setEscolhendoSugerida(false);
+            setMensagem('Espécie sugerida registrada como provável. O gestor confirma na validação.');
+          }}
+        />
+        <button className="botao-secundario" onClick={() => setEscolhendoSugerida(false)}>
+          Cancelar
+        </button>
+      </Tela>
+    );
   }
 
   if (corrigindo) {
@@ -105,7 +126,7 @@ export function DetalheMatriz() {
         <dt>Identificação</dt>
         <dd>
           {ROTULO_CERTEZA[String(m.grau_certeza)]}
-          {m.metodo_identificacao === 'assistente' ? ' · pelo assistente' : ''}
+          {m.metodo_identificacao === 'assistente' ? ' · pelo assistente' : m.metodo_identificacao === 'foto_lens' ? ' · com ajuda do Google Lens' : ''}
         </dd>
         <dt>Validação</dt>
         <dd>
@@ -151,6 +172,25 @@ export function DetalheMatriz() {
               </figure>
             ))}
           </div>
+        </section>
+      )}
+
+      {fotos.length > 0 && m.grau_certeza !== 'certo' && pode('cadastrar_matriz', m.viveiro_id) && (
+        <section className="cartao nao-imprimir" data-testid="ajuda-lens">
+          <h2>Ajuda para identificar</h2>
+          <BotaoLens
+            nome={`${codigo}.jpg`}
+            obterFoto={async () => {
+              const ordem = ['arvore', 'folha', 'flor', 'fruto', 'tronco', 'casca'];
+              const posicao = (f: Record<string, unknown>) => (ordem.includes(String(f.parte)) ? ordem.indexOf(String(f.parte)) : 99);
+              const melhor = [...fotos].sort((a, b) => posicao(a) - posicao(b))[0];
+              const local = await db._miniaturas.get(melhor.id);
+              return local?.blob ?? (await fotoGuardadaOuBaixada(db, sessao, melhor.id));
+            }}
+          />
+          <button className="botao-secundario" onClick={() => setEscolhendoSugerida(true)}>
+            Escolher a espécie sugerida
+          </button>
         </section>
       )}
 

@@ -270,7 +270,7 @@ var COLECOES = [
       t("codigo", true),
       r("especie_id", "especie"),
       o("grau_certeza", GRAUS_CERTEZA, true),
-      o("metodo_identificacao", ["assistente", "manual"]),
+      o("metodo_identificacao", ["assistente", "manual", "foto_lens"]),
       j("respostas_assistente"),
       r("municipio_id", "municipio"),
       n("lat"),
