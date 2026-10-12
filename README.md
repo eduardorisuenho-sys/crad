@@ -284,6 +284,19 @@ Os testes do servidor e o de ponta a ponta sobem um PocketBase temporário
 sozinhos. Para isso, é preciso ter rodado `npm run baixar-pocketbase -w
 servidor` antes.
 
+## Instalar o servidor com um comando
+
+Em qualquer máquina Ubuntu com as portas 80 e 443 abertas (Azure, Oracle ou
+servidor do Estado), troque o endereço e rode:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/eduardorisuenho-sys/crad/HEAD/servidor/deploy/instalar.sh | sudo bash -s -- crads-to.brazilsouth.cloudapp.azure.com
+```
+
+O script baixa o CRADS e o PocketBase e deixa o serviço ligando sozinho, com
+HTTPS. No fim, mostra como criar o administrador. Para atualizar, rode o mesmo
+comando de novo.
+
 ## Hospedar de graça
 
 São duas partes: o **app**, que é um site estático, e o **servidor**, o
