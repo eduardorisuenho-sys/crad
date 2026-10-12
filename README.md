@@ -313,14 +313,16 @@ PocketBase.
    ou Backblaze B2, 10 GB grátis). A Oracle pode recuperar VMs gratuitas
    paradas, então o backup é obrigatório.
 
-### App: Cloudflare Pages
+### App: Cloudflare (plano gratuito)
+
+Na Cloudflare: **Workers e Pages → Criar → Importar repositório → crad**.
 
 - Comando de build: `npm install && npm run build -w app`
-- Pasta publicada: `app/dist`
-- Variável de ambiente: `VITE_SERVIDOR_URL=https://crads.seudominio.gov.br`
-- O arquivo `app/public/_headers` já faz o Cloudflare conferir sempre se há
-  versão nova do app. As telas como `/catalogo` abrem direto pelo endereço,
-  porque o Cloudflare Pages manda o `index.html` quando não acha o arquivo.
+- Comando de deploy: `npx wrangler deploy` (usa o `wrangler.jsonc` da raiz)
+- Variáveis de build: `NODE_VERSION=22` e
+  `VITE_SERVIDOR_URL=https://crads.seudominio.gov.br`
+- O `app/public/_headers` faz o celular conferir sempre se há versão nova.
+  As telas como `/catalogo` abrem direto pelo endereço.
 
 O app precisa de **HTTPS** para funcionar offline, usar o GPS e a câmera. Os
 dois serviços já dão HTTPS.

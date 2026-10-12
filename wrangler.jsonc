@@ -1,0 +1,11 @@
+// Publicação do app na Cloudflare (Workers com arquivos estáticos, plano gratuito).
+// Build: npm install && npm run build -w app   ·   Deploy: npx wrangler deploy
+{
+  "name": "crad",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./app/dist",
+    // Telas como /catalogo ou /transparencia abrem direto pelo endereço.
+    "not_found_handling": "single-page-application"
+  }
+}
