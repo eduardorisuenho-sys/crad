@@ -14,6 +14,7 @@ import { EscolherEspecie } from '../especies/EscolherEspecie';
 import { baixar } from '../relatorios/dados';
 import { cadastrarEstoqueInicial } from './estoque';
 import { ROTULO_FASE } from './dados';
+import { ForaDoCatalogo } from '../doacao/ForaDoCatalogo';
 
 type Modo = 'escolher' | 'uma' | 'lista' | 'planilha';
 const FASES = [...FASES_MUDA].reverse(); // Pronta primeiro
@@ -97,10 +98,11 @@ export function EstoqueInicial() {
         </p>
       )}
       {msg && <p className="mensagem" data-testid="estoque-ok">{msg}</p>}
+      {msg && <ForaDoCatalogo />}
 
       {modo === 'escolher' && (
         <div className="lista-grande">
-          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. Elas entram no catálogo e podem ser doadas. A origem das sementes fica como “não registrada”.</p>
+          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. As que estiverem prontas ficam disponíveis para doação. A origem das sementes fica como “não registrada”.</p>
           <button className="botao-grande" onClick={() => setModo('uma')}>
             <Icone nome="muda" tamanho={40} />
             <span>

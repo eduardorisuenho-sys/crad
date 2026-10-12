@@ -8,6 +8,7 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { IconeAgua } from './BotaoPlantandoAgua';
 import { doacoesNoPrograma, ROTULO_SITUACAO } from './dados';
+import { ForaDoCatalogo } from './ForaDoCatalogo';
 
 type Filtro = 'analisar' | 'retirar' | 'retirados' | 'todos' | 'programa';
 
@@ -49,6 +50,7 @@ export function InicioDoacao() {
       <Link to="/doacao/novo" className="botao-principal">
         <Icone nome="doacao" /> {equipe ? 'Registrar pedido no balcão' : 'Pedir mudas'}
       </Link>
+      {equipe && <ForaDoCatalogo />}
       {equipe && (
         <div className="filtros" role="group" aria-label="Situação">
           {(

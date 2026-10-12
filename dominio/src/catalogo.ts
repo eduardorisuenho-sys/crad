@@ -55,6 +55,23 @@ export function disponivelPorLote(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimen
   return m;
 }
 
+/**
+ * Espécies com mudas prontas para doar que ainda não aparecem para quem pede
+ * mudas (a espécie não está publicada no catálogo). Fictícias ficam de fora.
+ */
+export function prontasForaDoCatalogo(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>, hoje = new Date().toISOString()): { especie_id: string; mudas: number }[] {
+  const disp = disponivelPorLote(d, hoje);
+  const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
+  const m = new Map<string, number>();
+  for (const l of ativos(d.lotesMudas)) {
+    const q = disp.get(l.id) ?? 0;
+    const e = especies.get(String(l.especie_id));
+    if (q <= 0 || !e || e.publicada || e.ficticia) continue;
+    m.set(e.id, (m.get(e.id) ?? 0) + q);
+  }
+  return [...m].map(([especie_id, mudas]) => ({ especie_id, mudas })).sort((a, b) => b.mudas - a.mudas);
+}
+
 /** Espécies publicadas com mudas prontas disponíveis, somadas por viveiro. */
 export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
   const disp = disponivelPorLote(d);

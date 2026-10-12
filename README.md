@@ -37,8 +37,14 @@ já estavam aqui":
     baixar o modelo, e a prévia mostra as linhas com problema antes de gravar.
 - Cada espécie vira um lote **LM-AAAA-I-NNN** (I de inicial), com plaqueta e
   QR. O código definitivo vem do servidor na sincronização.
-- Entram no catálogo, nas reservas e nas doações. Como são as mais antigas,
-  saem primeiro nas reservas.
+- As que estão na fase **Pronta** ficam disponíveis para doação (catálogo,
+  pedidos, reservas e retirada). Como são as mais antigas, saem primeiro nas
+  reservas.
+- Espécie que ainda não está no catálogo (as importadas da planilha entram
+  assim) não aparece para quem pede mudas. O app avisa no Viveiro, em
+  Doação e logo depois do cadastro: "X mudas prontas ainda não aparecem para
+  doação". O gestor toca em **Liberar para doação** e pronto. O viveirista vê
+  o aviso e pede ao gestor.
 - **Nada é inventado**: o rastreio público diz que a origem das sementes não
   foi registrada. Essas mudas não entram na taxa de germinação, e os
   relatórios mostram o total separado.
