@@ -1,8 +1,21 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
+
+// Versão mostrada em Ajustes: o commit do build (Cloudflare informa; localmente, o git).
+function versao(): string {
+  const env = process.env.WORKERS_CI_COMMIT_SHA || process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA;
+  if (env) return env.slice(0, 7);
+  try {
+    return execSync('git rev-parse --short=7 HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return 'local';
+  }
+}
 
 export default defineConfig({
+  define: { __VERSAO__: JSON.stringify(versao()), __DATA_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
   plugins: [
     react(),
     VitePWA({

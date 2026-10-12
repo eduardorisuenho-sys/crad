@@ -42,6 +42,10 @@ export function Configuracoes() {
   return (
     <Tela titulo="Ajustes">
       <dl className="ficha">
+        <dt>Versão do app</dt>
+        <dd data-testid="versao">
+          {typeof __VERSAO__ === 'string' ? __VERSAO__ : '?'} <small>de {typeof __DATA_BUILD__ === 'string' ? __DATA_BUILD__.split('-').reverse().join('/') : '?'}</small>
+        </dd>
         <dt>Usuário</dt>
         <dd>
           {sessao?.nome} <small>{sessao?.email}</small>
