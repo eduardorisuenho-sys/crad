@@ -22,6 +22,8 @@ export interface ArquivoPendente {
   campo: string;
   nome: string;
   blob: Blob;
+  /** o servidor recusou este arquivo (fica guardado; aparece em Avisos) */
+  falhou?: string;
   criado_em: string;
 }
 

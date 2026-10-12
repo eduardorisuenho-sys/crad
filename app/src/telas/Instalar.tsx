@@ -1,25 +1,12 @@
 /** Guia com figuras para instalar o app na tela de início (essencial no iPhone). */
-import { useEffect, useState } from 'react';
 import { Icone } from '../componentes/Icone';
-import { Tela } from '../componentes/Tela';
-import { ehIOS, estaInstalado } from '../plataforma/dispositivo';
-
-interface EventoInstalar extends Event {
-  prompt(): Promise<void>;
-}
+import { Pagina as Tela } from '../modulos/catalogo/Pagina';
+import { useInstalacao } from '../plataforma/instalacao';
 
 export function Instalar() {
-  const [evento, setEvento] = useState<EventoInstalar | null>(null);
-  useEffect(() => {
-    const f = (e: Event) => {
-      e.preventDefault();
-      setEvento(e as EventoInstalar);
-    };
-    window.addEventListener('beforeinstallprompt', f);
-    return () => window.removeEventListener('beforeinstallprompt', f);
-  }, []);
+  const { instalado, direto, iphone, instalar } = useInstalacao();
 
-  if (estaInstalado()) {
+  if (instalado) {
     return (
       <Tela titulo="Instalar">
         <div className="vazio">
@@ -32,7 +19,7 @@ export function Instalar() {
 
   return (
     <Tela titulo="Instalar o CRADS">
-      {ehIOS() ? (
+      {iphone ? (
         <ol className="passos">
           <li>
             <Icone nome="compartilhar" tamanho={48} />
@@ -53,8 +40,8 @@ export function Instalar() {
             </span>
           </li>
         </ol>
-      ) : evento ? (
-        <button className="botao-principal" onClick={() => void evento.prompt()}>
+      ) : direto ? (
+        <button className="botao-principal" onClick={() => void instalar()}>
           <Icone nome="mais" /> Instalar no aparelho
         </button>
       ) : (

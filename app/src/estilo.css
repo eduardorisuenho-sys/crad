@@ -310,3 +310,7 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .linha-permissao input { width: 28px; height: 28px; accent-color: var(--azul); flex: none; }
 .campo-grande { font-size: 1.6rem !important; text-align: center; font-weight: 800; }
 .rotulo { font-weight: 700; color: var(--azul-escuro); }
+.botao-instalar { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; border-radius: 12px; border: 0; background: var(--azul); color: var(--branco); padding: 10px 16px; text-align: left; font: inherit; font-weight: 800; font-size: 1.05rem; cursor: pointer; box-shadow: 0 4px 10px rgba(51, 97, 141, 0.25); }
+.botao-instalar span { display: flex; flex-direction: column; }
+.botao-instalar small { font-weight: 600; font-size: 0.85rem; opacity: 0.9; }
+.botao-instalar:active { background: var(--azul-escuro); }

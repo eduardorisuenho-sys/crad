@@ -125,6 +125,23 @@ describe('fluxo sem internet', () => {
     expect((await db.colecao('lote_mudas').get(ruim.id))?._rejeitado).toBe(true);
   });
 
+  it('arquivo de um cadastro recusado vira aviso e não trava o resto do envio', async () => {
+    const { db, repo, sync } = aparelho(servidor, coletor);
+    const ruim = await repo.salvar('retirada', { doacao_id: 'x', data: '2026-10-12' }); // coletor não registra retirada
+    await repo.anexarArquivo('retirada', ruim.id, 'assinatura', new Blob(['png']), 'assinatura.png');
+    const boa = await repo.salvar('matriz', matriz);
+    await sync.sincronizar(); // antes, esta rodada falhava inteira por causa do arquivo
+    expect(servidor.tabela('matriz').has(boa.id)).toBe(true);
+    const arq = await db._arquivos.toArray();
+    expect(arq).toHaveLength(1);
+    expect(arq[0].falhou).toMatch(/recusado/);
+    expect((await db._avisos.toArray()).some((a) => /não foi enviado/.test(a.mensagem))).toBe(true);
+    // na próxima rodada, o arquivo guardado não trava nada
+    await repo.salvar('matriz', { ...matriz, codigo: 'MT-0501' });
+    await sync.sincronizar();
+    expect(await db._fila.count()).toBe(0);
+  });
+
   it('excluir algo que nunca foi enviado só tira da fila', async () => {
     const { db, repo, sync } = aparelho(servidor, coletor);
     const m = await repo.salvar('matriz', matriz);

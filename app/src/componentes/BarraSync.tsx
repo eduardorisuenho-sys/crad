@@ -4,7 +4,7 @@ import { useApp } from '../contexto';
 import { Icone } from './Icone';
 
 export function BarraSync() {
-  const { online, estadoSync, pendentes, avisosAbertos, sincronizar } = useApp();
+  const { online, estadoSync, mensagemSync, pendentes, avisosAbertos, sincronizar } = useApp();
 
   let classe = 'ok';
   let texto = 'Tudo enviado';
@@ -19,7 +19,7 @@ export function BarraSync() {
     texto = pendentes ? `Sem sinal · ${pendentes} guardado(s) no aparelho` : 'Sem sinal · pode continuar usando';
   } else if (pendentes) {
     classe = 'alerta';
-    texto = `${pendentes} para enviar`;
+    texto = estadoSync === 'erro' ? `${pendentes} para enviar · erro: ${mensagemSync}` : `${pendentes} para enviar`;
   } else if (estadoSync === 'erro') {
     classe = 'alerta';
     texto = 'Não foi possível enviar agora';

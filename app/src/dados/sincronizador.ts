@@ -122,7 +122,9 @@ export class Sincronizador {
           resolvido: false,
         });
       }
-      if (res.codigo_alterado) {
+      // Estoque inicial sempre nasce com código provisório: a troca é esperada, não vira aviso.
+      const esperado = op.colecao === 'lote_mudas' && res.registro?.origem === 'estoque_inicial';
+      if (res.codigo_alterado && !esperado) {
         await this.db._avisos.put({
           id: `${op.op_id}-codigo`,
           tipo: 'codigo',
@@ -154,12 +156,37 @@ export class Sincronizador {
   }
 
   private async enviarArquivos(resumo: ResumoSync) {
-    const arquivos = await this.db._arquivos.orderBy('n').toArray();
+    const arquivos = (await this.db._arquivos.orderBy('n').toArray()).filter((a) => !a.falhou);
     for (const a of arquivos) {
       // Só sobe depois que o registro existir no servidor.
       const criacaoPendente = await this.db._fila.where('registro_id').equals(a.registro_id).filter((o) => o.tipo === 'criar').count();
       if (criacaoPendente) continue;
-      const { registro } = await this.transporte.enviarArquivo(a.colecao, a.registro_id, a.campo, a.blob, a.nome, this.dispositivoId());
+      const dono = await this.db.colecao(a.colecao).get(a.registro_id);
+      let registro: Registro;
+      try {
+        if (dono?._rejeitado) throw new Error('o cadastro deste arquivo foi recusado pelo servidor');
+        ({ registro } = await this.transporte.enviarArquivo(a.colecao, a.registro_id, a.campo, a.blob, a.nome, this.dispositivoId()));
+      } catch (err) {
+        // Sem sinal ou login vencido: para a rodada. Recusa do servidor: guarda o
+        // arquivo, avisa e segue com o resto (um arquivo não trava o envio de tudo).
+        if (err instanceof SemConexao || err instanceof SessaoExpirada) throw err;
+        const motivo = String((err as Error).message ?? err);
+        await this.db.transaction('rw', [this.db._arquivos, this.db._avisos], async () => {
+          await this.db._arquivos.update(a.n!, { falhou: motivo });
+          await this.db._avisos.put({
+            id: `arquivo-${a.n}`,
+            tipo: 'rejeitada',
+            colecao: a.colecao,
+            registro_id: a.registro_id,
+            mensagem: `A foto ou arquivo não foi enviado: ${motivo}. Ele continua guardado no aparelho.`,
+            detalhes: { arquivo: a.nome, campo: a.campo },
+            criado_em: agora(),
+            resolvido: false,
+          });
+        });
+        resumo.avisos++;
+        continue;
+      }
       await this.db.transaction('rw', [this.db.colecao(a.colecao), this.db._arquivos, this.db._fila], async () => {
         await this.db._arquivos.delete(a.n!);
         await this.gravarDoServidor(a.colecao, registro);

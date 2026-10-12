@@ -64,6 +64,7 @@ function Rotas() {
       <Route path="/catalogo/:id" element={<EspeciePublica />} />
       <Route path="/rastreio/:codigo" element={<RastreioLote />} />
       <Route path="/transparencia" element={<Transparencia />} />
+      <Route path="/instalar" element={<Instalar />} />
     </>
   );
   if (!sessao) {
@@ -117,7 +118,6 @@ function Rotas() {
       <Route path="/especies/importar" element={<ImportarEspecies />} />
       <Route path="/especies/:id" element={<FichaEspecie />} />
       <Route path="/avisos" element={<Avisos />} />
-      <Route path="/instalar" element={<Instalar />} />
       <Route path="/configuracoes" element={<Configuracoes />} />
       {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo', '/doacao', '/pos-plantio', '/relatorios', '/equipe'].includes(b.rota)).map((b) => (
         <Route key={b.rota} path={`${b.rota}/*`} element={<EmBreve titulo={b.rotulo} icone={b.icone} />} />

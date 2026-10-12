@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import type { Perfil } from '@crads/dominio';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
-import { ehIOS, estaInstalado } from '../plataforma/dispositivo';
 
 interface Bloco {
   rota: string;
@@ -41,11 +41,7 @@ export function Inicio() {
 
   return (
     <Tela titulo={`Olá, ${sessao?.nome?.split(' ')[0] || 'bem-vindo'}`} voltar={false}>
-      {ehIOS() && !estaInstalado() && (
-        <Link to="/instalar" className="faixa-instalar">
-          <Icone nome="compartilhar" /> Instale o CRADS na tela de início para não perder dados
-        </Link>
-      )}
+      <BotaoInstalar />
       {semAcesso && (
         <section className="cartao aguardando-acesso" data-testid="aguardando-acesso">
           {pedido?.situacao === 'recusado' ? (

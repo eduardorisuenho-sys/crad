@@ -46,6 +46,8 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
   const [mensagemSync, setMensagemSync] = useState('');
 
   const sessaoRef = useRef<Sessao | null>(null);
+  // Falhas seguidas: espera cada vez mais antes de tentar de novo (não fica piscando).
+  const tentativasRef = useRef(0);
   sessaoRef.current = sessao;
   const dispRef = useRef('');
   dispRef.current = dispositivo;
@@ -66,7 +68,7 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
     [],
   );
 
-  const pendentes = useLiveQuery(async () => (await db._fila.count()) + (await db._arquivos.count()), [], 0);
+  const pendentes = useLiveQuery(async () => (await db._fila.count()) + (await db._arquivos.filter((a) => !a.falhou).count()), [], 0);
   const avisosAbertos = useLiveQuery(() => db._avisos.filter((a) => !a.resolvido).count(), [], 0);
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [], []);
   const matriz = useMemo(() => matrizDe(parametros ?? []), [parametros]);
@@ -91,6 +93,7 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
       const s = await renovar(db, sessaoRef.current);
       if (s !== sessaoRef.current) setSessao(s);
       const r = await sync.sincronizar();
+      tentativasRef.current = 0;
       setEstadoSync('parado');
       setMensagemSync(r.avisos ? `${r.avisos} aviso(s) para revisar` : '');
     } catch (err) {
@@ -99,6 +102,7 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
       else {
         setEstadoSync('erro');
         setMensagemSync(String((err as Error).message ?? err));
+        tentativasRef.current++;
       }
     }
   }, [sync]);
@@ -123,9 +127,11 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!sessao || !pendentes || !navigator.onLine) return;
+    // Depois de gravar, envia logo; se falhou, só tenta de novo com o intervalo de 1 minuto (ou no botão Enviar).
+    if (tentativasRef.current > 0) return;
     const t = window.setTimeout(() => void sincronizar(), 2_000);
     return () => window.clearTimeout(t);
-  }, [pendentes, sessao, sincronizar]);
+  }, [pendentes, sessao?.id, sincronizar]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const escolherViveiro = useCallback(async (id: string) => {
     await db.gravarMeta('viveiro_atual', id);

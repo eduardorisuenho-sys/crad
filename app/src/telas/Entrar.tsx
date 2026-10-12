@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { useApp } from '../contexto';
 import { entrar, guardarServidor, servidorGuardado } from '../dados/sessao';
 
@@ -43,6 +44,7 @@ export function Entrar() {
         <button className="botao-principal" disabled={enviando}>
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
+        <BotaoInstalar />
         <Link to="/criar-conta" className="botao-secundario">
           Criar conta
         </Link>
