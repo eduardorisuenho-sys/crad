@@ -26,3 +26,4 @@ export * from './municipios';
 export * from './permissoes';
 export * from './estoque-inicial';
 export * from './lixeira';
+export * from './servico-coletor';

@@ -42,6 +42,7 @@ __export(crads_exports, {
   analisarDoacao: () => analisarDoacao,
   antesDeGravarPeloPainel: () => antesDeGravarPeloPainel,
   apagarConta: () => apagarConta,
+  arquivoParaLer: () => arquivoParaLer,
   auditarPainel: () => auditarPainel,
   catalogoPublico: () => catalogoPublico,
   contextoDe: () => contextoDe,
@@ -1660,6 +1661,17 @@ function receberArquivo(app, auth, nomeCol, id, campo, arquivos, dispositivo = "
     registro = paraObjeto(col, rec);
   });
   return { registro };
+}
+function arquivoParaLer(app, auth, nomeCol, id, campo) {
+  if (!existeColecao(nomeCol)) throw new Error("cole\xE7\xE3o desconhecida");
+  const col = colecao(nomeCol);
+  if (!col.campos.some((c) => c.nome === campo && c.tipo === "arquivo")) throw new Error("campo de arquivo desconhecido");
+  const rec = buscar(app, nomeCol, id);
+  if (!rec || rec.getBool("excluido")) throw new Error("arquivo n\xE3o encontrado");
+  if (!podeLer(contextoDe(app, auth), col, paraObjeto(col, rec))) throw new Error("sem permiss\xE3o");
+  const nome = rec.getString(campo);
+  if (!nome) throw new Error("arquivo n\xE3o encontrado");
+  return { chave: `${rec.baseFilesPath()}/${nome}`, nome };
 }
 function registrarDispositivo(app, id, usuarioId, campo) {
   if (!/^[a-z0-9]{15}$/.test(id)) return;

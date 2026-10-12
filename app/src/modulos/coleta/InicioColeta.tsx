@@ -25,6 +25,10 @@ export function InicioColeta() {
             <span>Registrar coleta</span>
           </Link>
         )}
+        <Link to="/coleta/relatorio" className="botao-grande">
+          <Icone nome="relatorio" tamanho={40} />
+          <span>Relatório de serviço</span>
+        </Link>
         <Link to="/coleta/rota" className="botao-grande">
           <Icone nome="plantio" tamanho={40} />
           <span>Rota de coleta</span>

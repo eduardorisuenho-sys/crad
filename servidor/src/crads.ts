@@ -32,6 +32,7 @@ import {
   montarRecebimento,
   nomesCampos,
   podeEscrever,
+  podeLer,
   proximoCodigoLoteMudas,
   proximoCodigoEstoqueInicial,
   resolverOperacao,
@@ -364,6 +365,23 @@ export function receberArquivo(app: App, auth: RecordPB, nomeCol: string, id: st
     registro = paraObjeto(col, rec);
   });
   return { registro };
+}
+
+/**
+ * GET /api/crads/arquivo/{colecao}/{id}/{campo} — baixa uma foto ou arquivo
+ * para quem pode ler o registro (ex.: o gestor gerando o relatório do coletor).
+ * Devolve o caminho no armazenamento; a rota entrega o arquivo.
+ */
+export function arquivoParaLer(app: App, auth: RecordPB, nomeCol: string, id: string, campo: string): { chave: string; nome: string } {
+  if (!existeColecao(nomeCol)) throw new Error('coleção desconhecida');
+  const col = colecao(nomeCol);
+  if (!col.campos.some((c) => c.nome === campo && c.tipo === 'arquivo')) throw new Error('campo de arquivo desconhecido');
+  const rec = buscar(app, nomeCol, id);
+  if (!rec || rec.getBool('excluido')) throw new Error('arquivo não encontrado');
+  if (!podeLer(contextoDe(app, auth), col, paraObjeto(col, rec))) throw new Error('sem permissão');
+  const nome = rec.getString(campo);
+  if (!nome) throw new Error('arquivo não encontrado');
+  return { chave: `${rec.baseFilesPath()}/${nome}`, nome };
 }
 
 function registrarDispositivo(app: App, id: string, usuarioId: string, campo: string) {

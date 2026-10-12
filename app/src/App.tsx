@@ -47,6 +47,7 @@ import { Equipe } from './modulos/equipe/Equipe';
 import { Permissoes } from './modulos/equipe/Permissoes';
 import { EstoqueInicial } from './modulos/viveiro/EstoqueInicial';
 import { Lixeira } from './modulos/lixeira/Lixeira';
+import { RelatorioServico } from './modulos/coleta/RelatorioServico';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -93,6 +94,7 @@ function Rotas() {
       <Route path="/ler-qr" element={<LerQr />} />
       <Route path="/coleta" element={<InicioColeta />} />
       <Route path="/coleta/nova" element={<NovaColeta />} />
+      <Route path="/coleta/relatorio" element={<RelatorioServico />} />
       <Route path="/coleta/rota" element={<RotaColeta />} />
       <Route path="/coleta/lotes" element={<ListaLotes />} />
       <Route path="/coleta/lotes/novo" element={<NovoLote />} />

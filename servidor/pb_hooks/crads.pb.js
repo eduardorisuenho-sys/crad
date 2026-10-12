@@ -201,3 +201,20 @@ routerAdd("POST", "/api/crads/equipe/usuario/{id}/apagar", (e) => {
     throw new BadRequestError(String(err).replace(/^Error: /, ""));
   }
 }, $apis.requireAuth("users"));
+
+// Baixar foto/arquivo de um registro que a pessoa pode ler.
+routerAdd("GET", "/api/crads/arquivo/{colecao}/{id}/{campo}", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  let alvo;
+  try {
+    alvo = crads.arquivoParaLer($app, e.auth, e.request.pathValue("colecao"), e.request.pathValue("id"), e.request.pathValue("campo"));
+  } catch (err) {
+    throw new NotFoundError(String(err).replace(/^Error: /, ""));
+  }
+  const fsys = $app.newFilesystem();
+  try {
+    fsys.serve(e.response, e.request, alvo.chave, alvo.nome);
+  } finally {
+    fsys.close();
+  }
+}, $apis.requireAuth("users"));

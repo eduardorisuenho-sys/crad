@@ -45,6 +45,19 @@ já estavam aqui":
 - Quem pode, por padrão: gestor e viveirista (linha própria na tabela de
   permissões).
 
+Relatório de serviço do coletor (Coleta e sementes → Relatório de serviço):
+
+- Comprova o trabalho de campo num período (este mês, mês passado, este ano
+  ou outras datas):
+  - dias de campo;
+  - matrizes cadastradas com fotos, espécie, data, certeza, validação e local;
+  - coletas (data, matriz, espécie, quantidade);
+  - registros de flor e fruto.
+- Gera um PDF com espaço para a assinatura do coletor e do gestor.
+- Funciona sem internet com o que está no aparelho. Com internet, as fotos
+  tiradas em outro aparelho são baixadas do servidor.
+- O gestor escolhe de qual coletor quer o relatório.
+
 Corrigir cadastros e lixeira (administrador, em Ajustes):
 
 - **Excluir um cadastro** preenchido errado (matriz, coleta, lote, doação,

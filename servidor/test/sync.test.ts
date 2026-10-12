@@ -133,6 +133,12 @@ describe.skipIf(!temPocketBase)('sincronização com o PocketBase de verdade', (
     expect(r.status).toBe(200);
     const corpo = await r.json();
     expect(corpo.registro.arquivo).toMatch(/^folha_.*\.jpg$/);
+    // quem pode ler o registro baixa a foto (ex.: gestor no relatório do coletor); de outro viveiro, não
+    const baixa = await fetch(`${s.url}/api/crads/arquivo/foto/${id}/arquivo`, { headers: { authorization: gestor.token } });
+    expect(baixa.status).toBe(200);
+    expect([...new Uint8Array(await baixa.arrayBuffer())]).toEqual([0xff, 0xd8, 0xff, 0xd9]);
+    expect((await fetch(`${s.url}/api/crads/arquivo/foto/${id}/arquivo`, { headers: { authorization: coletorGurupi.token } })).status).toBe(404);
+    expect((await fetch(`${s.url}/api/crads/arquivo/foto/${id}/arquivo`)).status).toBe(401);
   });
 
   it('o painel do PocketBase não apaga registros de verdade, e o que muda por lá chega aos aparelhos', async () => {
