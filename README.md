@@ -293,7 +293,17 @@ servidor do Estado), troque o endereço e rode:
 curl -fsSL https://raw.githubusercontent.com/eduardorisuenho-sys/crad/HEAD/servidor/deploy/instalar.sh | sudo bash -s -- crads-to.brazilsouth.cloudapp.azure.com
 ```
 
-O script baixa o CRADS e o PocketBase e deixa o serviço ligando sozinho, com
+No **Azure**, há um atalho que também cria a máquina. Abra o Cloud Shell
+(ícone `>_` no alto do portal, modo Bash) e rode:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/eduardorisuenho-sys/crad/HEAD/servidor/deploy/azure-criar.sh | bash -s -- seu@email.com
+```
+
+Ele testa as regiões e os tamanhos pequenos liberados para a assinatura, cria
+a máquina com endereço fixo, instala o CRADS e mostra a senha do administrador.
+
+O script de instalação baixa o CRADS e o PocketBase e deixa o serviço ligando sozinho, com
 HTTPS. No fim, mostra como criar o administrador. Para atualizar, rode o mesmo
 comando de novo.
 
