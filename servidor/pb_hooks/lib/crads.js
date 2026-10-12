@@ -381,7 +381,8 @@ var COLECOES = [
     natureza: "cadastro",
     porViveiro: true,
     prefixoCodigo: "LM",
-    campos: [t("codigo", true), r("lote_sementes_id", "lote_sementes", true), r("especie_id", "especie", true), d("data_semeadura"), n("sementes_semeadas"), n("sementes_semeadas_g"), o("recipiente", RECIPIENTES), t("canteiro"), o("fase_atual", FASES_MUDA), o("situacao", ["ativo", "encerrado"])],
+    // origem "estoque_inicial": mudas que já estavam no viveiro antes do app (sem lote de sementes).
+    campos: [t("codigo", true), o("origem", ["semeadura", "estoque_inicial"]), r("lote_sementes_id", "lote_sementes"), t("observacao_origem"), r("especie_id", "especie", true), d("data_semeadura"), n("sementes_semeadas"), n("sementes_semeadas_g"), o("recipiente", RECIPIENTES), t("canteiro"), o("fase_atual", FASES_MUDA), o("situacao", ["ativo", "encerrado"])],
     indices: ["codigo", "lote_sementes_id", "especie_id", "fase_atual"],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: EQUIPE_VIVEIRO
@@ -533,9 +534,20 @@ function proximoCodigoLoteMudas(codigoLS, existentes) {
   let maior = -1;
   for (const c of existentes) {
     const lm = lerCodigo(c);
-    if (lm && lm.tipo === "LM" && lm.ano === ls.ano && lm.numero === ls.numero) maior = Math.max(maior, indiceDaLetra(lm.letra));
+    if (lm && lm.tipo === "LM" && !lm.inicial && lm.ano === ls.ano && lm.numero === ls.numero) maior = Math.max(maior, indiceDaLetra(lm.letra));
   }
   return codigoLoteMudas(codigoLS, maior + 1);
+}
+function codigoEstoqueInicial(ano, numero) {
+  return `LM-${ano}-I-${pad(numero, 3)}`;
+}
+function proximoCodigoEstoqueInicial(ano, existentes) {
+  let maior = 0;
+  for (const c of existentes) {
+    const lm = lerCodigo(c);
+    if ((lm == null ? void 0 : lm.inicial) && lm.ano === ano) maior = Math.max(maior, lm.numero);
+  }
+  return codigoEstoqueInicial(ano, maior + 1);
 }
 function lerCodigo(codigo) {
   const s = codigo.trim().toUpperCase();
@@ -543,6 +555,8 @@ function lerCodigo(codigo) {
   if (m) return { tipo: "MT", ano: 0, numero: Number(m[1]), provisorio: false };
   m = /^(LS|DO)-(\d{4})-(\d{3,})$/.exec(s);
   if (m) return { tipo: m[1], ano: Number(m[2]), numero: Number(m[3]), provisorio: false };
+  m = /^LM-(\d{4})-I-(\d{3,})$/.exec(s);
+  if (m) return { tipo: "LM", ano: Number(m[1]), numero: Number(m[2]), provisorio: false, inicial: true };
   m = /^LM-(\d{4})-(\d{3,})-([A-Z]+)$/.exec(s);
   if (m) return { tipo: "LM", ano: Number(m[1]), numero: Number(m[2]), letra: m[3], provisorio: false };
   m = /^(MT|LS|DO|LM)-P-([A-Z0-9]+)-(\d+)$/.exec(s);
@@ -562,6 +576,7 @@ var FUNCIONALIDADES = [
   { chave: "registrar_coleta", grupo: "Coleta e sementes", rotulo: "Registrar coleta de sementes", padrao: ["coletor", "viveirista", "gestor"], escrita: ["coleta"] },
   { chave: "lotes_sementes", grupo: "Coleta e sementes", rotulo: "Formar lotes e guardar sementes", padrao: ["viveirista", "gestor"], escrita: ["lote_sementes", "lote_sementes_coleta", "movimento_sementes", "endereco_armazenamento"] },
   { chave: "producao", grupo: "Viveiro", rotulo: "Semear e cuidar das mudas", padrao: ["viveirista", "gestor"], escrita: ["lote_mudas", "evento_lote_mudas", "movimento_estoque_mudas"] },
+  { chave: "estoque_inicial", grupo: "Viveiro", rotulo: "Cadastrar mudas que j\xE1 estavam no viveiro", padrao: ["viveirista", "gestor"], escrita: ["lote_mudas", "movimento_estoque_mudas"] },
   { chave: "inventario", grupo: "Viveiro", rotulo: "Fazer invent\xE1rio", padrao: ["viveirista", "gestor"], escrita: ["inventario", "inventario_item"] },
   { chave: "pedir_mudas", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Pedir mudas", padrao: ["viveirista", "gestor", "solicitante"], escrita: ["doacao", "doacao_item"], solicitantePode: true },
   { chave: "aprovar_doacao", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Aprovar pedidos de mudas", padrao: ["gestor"] },
@@ -713,6 +728,13 @@ function violacaoRegra(col, antes, depois, ctx) {
   }
   if (col.nome === "monitoramento" && depois.tipo === "vistoria" && mudou(antes, depois, "tipo")) {
     if (!temPermissao(ctx, "vistoria", depois.viveiro_id)) return "Voc\xEA n\xE3o tem permiss\xE3o para registrar vistoria.";
+  }
+  if (col.nome === "lote_mudas" && !antes) {
+    if (depois.origem === "estoque_inicial") {
+      if (!temPermissao(ctx, "estoque_inicial", depois.viveiro_id)) return "Voc\xEA n\xE3o tem permiss\xE3o para cadastrar mudas que j\xE1 estavam no viveiro.";
+    } else if (!depois.lote_sementes_id) {
+      return "Informe o lote de sementes da semeadura.";
+    }
   }
   if (col.nome === "parametro" && (depois.chave === "permissoes" || (antes == null ? void 0 : antes.chave) === "permissoes") && !ctx.gestorGeral) {
     return "S\xF3 o administrador muda a tabela de permiss\xF5es.";
@@ -1111,7 +1133,7 @@ function montarRastreio(lote, d2) {
   var _a, _b, _c, _d, _e;
   const viveiro = d2.viveiros.find((v) => v.id === lote.viveiro_id);
   const r2 = {
-    lote_mudas: { codigo: String(lote.codigo), viveiro: String((_a = viveiro == null ? void 0 : viveiro.nome) != null ? _a : ""), data_semeadura: String((_b = lote.data_semeadura) != null ? _b : ""), fase: String((_c = lote.fase_atual) != null ? _c : "") }
+    lote_mudas: __spreadValues({ codigo: String(lote.codigo), viveiro: String((_a = viveiro == null ? void 0 : viveiro.nome) != null ? _a : ""), data_semeadura: String((_b = lote.data_semeadura) != null ? _b : ""), fase: String((_c = lote.fase_atual) != null ? _c : "") }, lote.origem === "estoque_inicial" ? { estoque_inicial: true } : {})
   };
   const ls = d2.lotesSementes.find((l) => l.id === lote.lote_sementes_id && !l.excluido);
   if (!ls) return r2;
@@ -1395,6 +1417,11 @@ function porta(app, dispositivoId) {
       }
     },
     novoCodigo(col, reg) {
+      if (col.prefixoCodigo === "LM" && reg.origem === "estoque_inicial") {
+        const ano2 = anoDe(reg);
+        const existentes = app.findRecordsByFilter("lote_mudas", "codigo ~ {:p}", "", 0, 0, { p: `LM-${ano2}-I-` });
+        return proximoCodigoEstoqueInicial(ano2, existentes.map((r2) => r2.getString("codigo")));
+      }
       if (col.prefixoCodigo === "LM") {
         const ls = buscar(app, "lote_sementes", String(reg.lote_sementes_id));
         if (!ls) throw new Error("lote de sementes do lote de mudas n\xE3o encontrado");

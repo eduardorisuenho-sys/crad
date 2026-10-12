@@ -58,7 +58,7 @@ export interface Indicadores {
   matrizes: { total: number; aprovadas: number; aguardando: number; especies: number };
   coletas: { total: number; kg: number; matrizes: number };
   sementes: { lotes: number; estoque_g: number };
-  mudas: { lotes: number; semeadas: number; germinadas: number; taxa_germinacao: number | null; perdas: number; por_fase: Record<string, number>; prontas: number };
+  mudas: { lotes: number; semeadas: number; germinadas: number; taxa_germinacao: number | null; perdas: number; por_fase: Record<string, number>; prontas: number; estoque_inicial: number };
   doacoes: { pedidos: number; em_analise: number; mudas_pedidas: number; mudas_entregues: number; programa: number };
   plantio: { plantios: number; plantadas: number; vivas: number; sobrevivencia: number | null };
 }
@@ -82,9 +82,13 @@ export function indicadores(d: DadosRelatorio, f: FiltroRelatorio = {}, programa
   const estoque_g = lotesS.reduce((s, l) => s + saldoSementes(movS.filter((m) => m.lote_sementes_id === l.id) as never).g, 0);
   const movM = ativos(d.movMudas);
   const por_fase: Record<string, number> = {};
+  // Mudas que já estavam no viveiro antes do app (sem semeadura registrada): ficam fora da germinação.
+  let estoque_inicial = 0;
   for (const l of lotesM.filter((l) => l.situacao !== 'encerrado')) {
     const fase = String(l.fase_atual ?? 'semeadura');
-    por_fase[fase] = (por_fase[fase] ?? 0) + saldoMudas(movM.filter((m) => m.lote_mudas_id === l.id) as never);
+    const saldo = saldoMudas(movM.filter((m) => m.lote_mudas_id === l.id) as never);
+    por_fase[fase] = (por_fase[fase] ?? 0) + saldo;
+    if (l.origem === 'estoque_inicial') estoque_inicial += saldo;
   }
 
   const germinadasPorLote = new Map<string, number>();
@@ -131,7 +135,7 @@ export function indicadores(d: DadosRelatorio, f: FiltroRelatorio = {}, programa
       matrizes: new Set(coletas.map((c) => c.matriz_id)).size,
     },
     sementes: { lotes: lotesS.length, estoque_g: Math.round(estoque_g * 100) / 100 },
-    mudas: { lotes: lotesM.length, semeadas, germinadas, taxa_germinacao: taxaGerminacao(semeadas, germinadas), perdas, por_fase, prontas: por_fase.pronta ?? 0 },
+    mudas: { lotes: lotesM.length, semeadas, germinadas, taxa_germinacao: taxaGerminacao(semeadas, germinadas), perdas, por_fase, prontas: por_fase.pronta ?? 0, estoque_inicial },
     doacoes: {
       pedidos: t.pedidos,
       em_analise: doacoes.filter((x) => ['enviada', 'em_analise'].includes(String(x.situacao))).length,

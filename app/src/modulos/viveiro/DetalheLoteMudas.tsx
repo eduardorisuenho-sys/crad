@@ -48,6 +48,7 @@ export function DetalheLoteMudas() {
   const taxa = taxaGerminacao(lote.sementes_semeadas as number, germinadas);
   const previsao = dataPrevistaPronta(lote.data_semeadura as string, especie?.meses_ate_pronta as number);
   const faseAtual = String(lote.fase_atual ?? 'semeadura');
+  const inicial = lote.origem === 'estoque_inicial';
   const hoje = new Date().toISOString().slice(0, 10);
   const base = { lote_mudas_id: id, data: hoje, viveiro_id: lote.viveiro_id };
 
@@ -101,7 +102,7 @@ export function DetalheLoteMudas() {
         <div>
           <strong className="codigo-grande">{String(lote.codigo)}</strong>
           <span>{nomes?.get(String(lote.especie_id)) ?? ''}</span>
-          <small>Semeado em {new Date(String(lote.data_semeadura) + 'T12:00').toLocaleDateString('pt-BR')}</small>
+          {inicial ? <small>Estoque inicial (já estava no viveiro)</small> : <small>Semeado em {new Date(String(lote.data_semeadura) + 'T12:00').toLocaleDateString('pt-BR')}</small>}
         </div>
       </section>
       <dl className="ficha" data-testid="resumo-lm">
@@ -112,11 +113,15 @@ export function DetalheLoteMudas() {
         </dd>
         <dt>Mudas no lote</dt>
         <dd data-testid="saldo-mudas">{saldo}</dd>
-        <dt>Germinação</dt>
-        <dd data-testid="germinacao">
-          {germinadas} de {String(lote.sementes_semeadas ?? '?')}
-          {taxa !== null ? ` (${mostrarNumero(taxa)}%)` : ''}
-        </dd>
+        {!inicial && (
+          <>
+            <dt>Germinação</dt>
+            <dd data-testid="germinacao">
+              {germinadas} de {String(lote.sementes_semeadas ?? '?')}
+              {taxa !== null ? ` (${mostrarNumero(taxa)}%)` : ''}
+            </dd>
+          </>
+        )}
         {previsao && (
           <>
             <dt>Previsão de ficar pronta</dt>
@@ -129,7 +134,7 @@ export function DetalheLoteMudas() {
           {lote.canteiro ? ` · canteiro ${String(lote.canteiro)}` : ''}
         </dd>
         <dt>Origem</dt>
-        <dd>{ls ? <Link to={`/coleta/lotes/${ls.id}`}>{String(ls.codigo)}</Link> : '—'}</dd>
+        <dd data-testid="origem-lm">{inicial ? String(lote.observacao_origem || 'Estoque inicial: origem das sementes não registrada.') : ls ? <Link to={`/coleta/lotes/${ls.id}`}>{String(ls.codigo)}</Link> : '—'}</dd>
       </dl>
 
       <section className="cartao nao-imprimir">

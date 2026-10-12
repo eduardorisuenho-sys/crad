@@ -407,7 +407,8 @@ export const COLECOES: Colecao[] = [
     natureza: 'cadastro',
     porViveiro: true,
     prefixoCodigo: 'LM',
-    campos: [t('codigo', true), r('lote_sementes_id', 'lote_sementes', true), r('especie_id', 'especie', true), d('data_semeadura'), n('sementes_semeadas'), n('sementes_semeadas_g'), o('recipiente', RECIPIENTES), t('canteiro'), o('fase_atual', FASES_MUDA), o('situacao', ['ativo', 'encerrado'])],
+    // origem "estoque_inicial": mudas que já estavam no viveiro antes do app (sem lote de sementes).
+    campos: [t('codigo', true), o('origem', ['semeadura', 'estoque_inicial']), r('lote_sementes_id', 'lote_sementes'), t('observacao_origem'), r('especie_id', 'especie', true), d('data_semeadura'), n('sementes_semeadas'), n('sementes_semeadas_g'), o('recipiente', RECIPIENTES), t('canteiro'), o('fase_atual', FASES_MUDA), o('situacao', ['ativo', 'encerrado'])],
     indices: ['codigo', 'lote_sementes_id', 'especie_id', 'fase_atual'],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: EQUIPE_VIVEIRO,

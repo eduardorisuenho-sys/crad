@@ -27,6 +27,7 @@ import {
   nomesCampos,
   podeEscrever,
   proximoCodigoLoteMudas,
+  proximoCodigoEstoqueInicial,
   resolverOperacao,
   viveirosVisiveis,
   type Colecao,
@@ -167,6 +168,11 @@ function porta(app: App, dispositivoId: string): PortaServidor {
       }
     },
     novoCodigo(col, reg) {
+      if (col.prefixoCodigo === 'LM' && reg.origem === 'estoque_inicial') {
+        const ano = anoDe(reg);
+        const existentes = app.findRecordsByFilter('lote_mudas', 'codigo ~ {:p}', '', 0, 0, { p: `LM-${ano}-I-` });
+        return proximoCodigoEstoqueInicial(ano, existentes.map((r: RecordPB) => r.getString('codigo')));
+      }
       if (col.prefixoCodigo === 'LM') {
         const ls = buscar(app, 'lote_sementes', String(reg.lote_sementes_id));
         if (!ls) throw new Error('lote de sementes do lote de mudas não encontrado');

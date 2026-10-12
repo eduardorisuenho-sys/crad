@@ -31,10 +31,17 @@ export function CadeiaLote({ r }: { r: RastreioPublico }) {
           </span>
         </li>
       )}
+      {r.lote_mudas.estoque_inicial && (
+        <li>
+          <Icone nome="aviso" tamanho={28} />
+          <span>Mudas que já estavam no viveiro antes do sistema: a origem das sementes não foi registrada.</span>
+        </li>
+      )}
       <li>
         <Icone nome="muda" tamanho={28} />
         <span>
-          Lote de mudas <b>{r.lote_mudas.codigo}</b>, semeado em {data(r.lote_mudas.data_semeadura)} no {r.lote_mudas.viveiro} · {ROTULO_FASE[r.lote_mudas.fase] ?? r.lote_mudas.fase}
+          Lote de mudas <b>{r.lote_mudas.codigo}</b>
+          {r.lote_mudas.estoque_inicial ? '' : `, semeado em ${data(r.lote_mudas.data_semeadura)}`} no {r.lote_mudas.viveiro} · {ROTULO_FASE[r.lote_mudas.fase] ?? r.lote_mudas.fase}
         </span>
       </li>
     </ol>

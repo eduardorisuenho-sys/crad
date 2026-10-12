@@ -43,8 +43,8 @@ export function tabelas(d: DadosRelatorio, f: FiltroRelatorio, programa?: Set<st
     {
       nome: 'Lotes de mudas',
       linhas: [
-        ['Código', 'Espécie', 'Viveiro', 'Semeadura', 'Sementes semeadas', 'Fase'],
-        ...d.lotesMudas.filter((l) => doViveiro(l, f)).map((l) => [l.codigo, especie(l.especie_id), viveiros.get(String(l.viveiro_id)), dia(l.data_semeadura), l.sementes_semeadas || null, ROTULO_FASE[String(l.fase_atual)] ?? l.fase_atual]),
+        ['Código', 'Espécie', 'Viveiro', 'Origem', 'Semeadura', 'Sementes semeadas', 'Fase'],
+        ...d.lotesMudas.filter((l) => doViveiro(l, f)).map((l) => [l.codigo, especie(l.especie_id), viveiros.get(String(l.viveiro_id)), l.origem === 'estoque_inicial' ? 'estoque inicial' : 'semeadura', dia(l.data_semeadura), l.sementes_semeadas || null, ROTULO_FASE[String(l.fase_atual)] ?? l.fase_atual]),
       ],
     },
     {
@@ -74,6 +74,7 @@ export function indicadoresEmLinhas(r: Indicadores): unknown[][] {
     ['Sementes semeadas', r.mudas.semeadas],
     ['Taxa de germinação (%)', r.mudas.taxa_germinacao],
     ['Perdas no viveiro', r.mudas.perdas],
+    ['Mudas do estoque inicial (sem semeadura registrada)', r.mudas.estoque_inicial],
     ...Object.entries(r.mudas.por_fase).map(([f, n]) => [`Mudas em ${ROTULO_FASE[f] ?? f}`, n]),
     ['Pedidos de doação', r.doacoes.pedidos],
     ['Mudas entregues', r.doacoes.mudas_entregues],

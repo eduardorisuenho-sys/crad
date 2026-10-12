@@ -99,7 +99,7 @@ export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
 }
 
 export interface RastreioPublico {
-  lote_mudas: { codigo: string; viveiro: string; data_semeadura: string; fase: string };
+  lote_mudas: { codigo: string; viveiro: string; data_semeadura: string; fase: string; estoque_inicial?: boolean };
   lote_sementes?: { codigo: string; data_formacao: string; matrizes: number; municipios: string[] };
 }
 
@@ -113,7 +113,7 @@ export function montarRastreio(
 ): RastreioPublico {
   const viveiro = d.viveiros.find((v) => v.id === lote.viveiro_id);
   const r: RastreioPublico = {
-    lote_mudas: { codigo: String(lote.codigo), viveiro: String(viveiro?.nome ?? ''), data_semeadura: String(lote.data_semeadura ?? ''), fase: String(lote.fase_atual ?? '') },
+    lote_mudas: { codigo: String(lote.codigo), viveiro: String(viveiro?.nome ?? ''), data_semeadura: String(lote.data_semeadura ?? ''), fase: String(lote.fase_atual ?? ''), ...(lote.origem === 'estoque_inicial' ? { estoque_inicial: true } : {}) },
   };
   const ls = d.lotesSementes.find((l) => l.id === lote.lote_sementes_id && !l.excluido);
   if (!ls) return r;

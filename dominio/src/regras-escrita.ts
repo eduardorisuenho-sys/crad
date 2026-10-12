@@ -29,6 +29,13 @@ export function violacaoRegra(col: Colecao, antes: Reg | null, depois: Reg, ctx:
   if (col.nome === 'monitoramento' && depois.tipo === 'vistoria' && mudou(antes, depois, 'tipo')) {
     if (!temPermissao(ctx, 'vistoria', depois.viveiro_id)) return 'Você não tem permissão para registrar vistoria.';
   }
+  if (col.nome === 'lote_mudas' && !antes) {
+    if (depois.origem === 'estoque_inicial') {
+      if (!temPermissao(ctx, 'estoque_inicial', depois.viveiro_id)) return 'Você não tem permissão para cadastrar mudas que já estavam no viveiro.';
+    } else if (!depois.lote_sementes_id) {
+      return 'Informe o lote de sementes da semeadura.';
+    }
+  }
   if (col.nome === 'parametro' && (depois.chave === 'permissoes' || antes?.chave === 'permissoes') && !ctx.gestorGeral) {
     return 'Só o administrador muda a tabela de permissões.';
   }

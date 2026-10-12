@@ -71,7 +71,7 @@ export function proximoCodigoLoteMudas(codigoLS: string, existentes: string[]): 
   let maior = -1;
   for (const c of existentes) {
     const lm = lerCodigo(c);
-    if (lm && lm.tipo === 'LM' && lm.ano === ls.ano && lm.numero === ls.numero) maior = Math.max(maior, indiceDaLetra(lm.letra!));
+    if (lm && lm.tipo === 'LM' && !lm.inicial && lm.ano === ls.ano && lm.numero === ls.numero) maior = Math.max(maior, indiceDaLetra(lm.letra!));
   }
   return codigoLoteMudas(codigoLS, maior + 1);
 }
@@ -82,6 +82,22 @@ export interface CodigoLido {
   numero: number;
   letra?: string;
   provisorio: boolean;
+  /** lote de mudas do estoque inicial (LM-2026-I-001) */
+  inicial?: boolean;
+}
+
+/** LM-2026-I-001: mudas que já estavam no viveiro antes do app (sem lote de sementes). */
+export function codigoEstoqueInicial(ano: number, numero: number): string {
+  return `LM-${ano}-I-${pad(numero, 3)}`;
+}
+
+export function proximoCodigoEstoqueInicial(ano: number, existentes: string[]): string {
+  let maior = 0;
+  for (const c of existentes) {
+    const lm = lerCodigo(c);
+    if (lm?.inicial && lm.ano === ano) maior = Math.max(maior, lm.numero);
+  }
+  return codigoEstoqueInicial(ano, maior + 1);
 }
 
 export function lerCodigo(codigo: string): CodigoLido | null {
@@ -90,6 +106,8 @@ export function lerCodigo(codigo: string): CodigoLido | null {
   if (m) return { tipo: 'MT', ano: 0, numero: Number(m[1]), provisorio: false };
   m = /^(LS|DO)-(\d{4})-(\d{3,})$/.exec(s);
   if (m) return { tipo: m[1] as PrefixoCodigo, ano: Number(m[2]), numero: Number(m[3]), provisorio: false };
+  m = /^LM-(\d{4})-I-(\d{3,})$/.exec(s);
+  if (m) return { tipo: 'LM', ano: Number(m[1]), numero: Number(m[2]), provisorio: false, inicial: true };
   m = /^LM-(\d{4})-(\d{3,})-([A-Z]+)$/.exec(s);
   if (m) return { tipo: 'LM', ano: Number(m[1]), numero: Number(m[2]), letra: m[3], provisorio: false };
   m = /^(MT|LS|DO|LM)-P-([A-Z0-9]+)-(\d+)$/.exec(s);

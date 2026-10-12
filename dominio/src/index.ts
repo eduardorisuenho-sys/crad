@@ -24,3 +24,4 @@ export * from './relatorios';
 export * from './planilha/exportar';
 export * from './municipios';
 export * from './permissoes';
+export * from './estoque-inicial';

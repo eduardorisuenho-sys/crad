@@ -25,6 +25,26 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 7. Módulo 6, Pós-plantio | **pronta** |
 | 8. Módulo 7, Relatórios e transparência | **pronta** |
 
+Mudas que já estavam no viveiro (estoque inicial), em Viveiro → "Mudas que
+já estavam aqui":
+
+- Três formas, todas sem internet:
+  - **uma espécie por vez**: espécie → quantidade → fase (já vem "Pronta") →
+    canteiro opcional;
+  - **várias de uma vez**: lista de espécies com a quantidade ao lado;
+  - **planilha** (.xlsx ou .csv), com as colunas Espécie (nome popular ou
+    científico), Quantidade, Fase, Canteiro e Observação. Há um botão para
+    baixar o modelo, e a prévia mostra as linhas com problema antes de gravar.
+- Cada espécie vira um lote **LM-AAAA-I-NNN** (I de inicial), com plaqueta e
+  QR. O código definitivo vem do servidor na sincronização.
+- Entram no catálogo, nas reservas e nas doações. Como são as mais antigas,
+  saem primeiro nas reservas.
+- **Nada é inventado**: o rastreio público diz que a origem das sementes não
+  foi registrada. Essas mudas não entram na taxa de germinação, e os
+  relatórios mostram o total separado.
+- Quem pode, por padrão: gestor e viveirista (linha própria na tabela de
+  permissões).
+
 Contas, equipe e permissões:
 
 - **Criar conta pelo celular** (botão "Criar conta" na entrada):

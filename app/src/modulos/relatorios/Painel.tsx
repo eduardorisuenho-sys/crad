@@ -64,7 +64,7 @@ export function PainelRelatorios() {
     ['Matrizes', r.matrizes.total, `${r.matrizes.aprovadas} aprovadas · ${r.matrizes.especies} espécies`],
     ['Coletas', r.coletas.total, `${mostrarNumero(r.coletas.kg)} kg`],
     ['Sementes em estoque', `${mostrarNumero(Math.round(r.sementes.estoque_g) / 1000)} kg`, `${r.sementes.lotes} lotes`],
-    ['Mudas prontas', r.mudas.prontas, `germinação ${r.mudas.taxa_germinacao == null ? '—' : mostrarNumero(r.mudas.taxa_germinacao) + '%'}`],
+    ['Mudas prontas', r.mudas.prontas, `germinação ${r.mudas.taxa_germinacao == null ? '—' : mostrarNumero(r.mudas.taxa_germinacao) + '%'}${r.mudas.estoque_inicial ? ` · ${r.mudas.estoque_inicial} do estoque inicial` : ''}`],
     ['Mudas doadas', r.doacoes.mudas_entregues, `${r.doacoes.pedidos} pedidos · ${r.doacoes.em_analise} em análise`],
     ['Plantando Água', r.doacoes.programa, 'doações marcadas'],
     ['Mudas plantadas', r.plantio.plantadas, `${r.plantio.plantios} plantios`],

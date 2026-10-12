@@ -11,7 +11,7 @@ import { lotesDeMudas, ROTULO_FASE } from './dados';
 import { mostrarNumero } from '../../plataforma/numero';
 
 export function InicioViveiro() {
-  const { repo, db, viveiroId } = useApp();
+  const { repo, db, viveiroId, pode } = useApp();
   const [fase, setFase] = useState<string>('');
   const lotes = useLiveQuery(() => lotesDeMudas(repo), [repo, viveiroId]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
@@ -41,6 +41,14 @@ export function InicioViveiro() {
           <Icone nome="catalogo" /> Inventário
         </Link>
       </div>
+      {pode('estoque_inicial') && (
+        <Link to="/viveiro/estoque-inicial" className="botao-grande">
+          <Icone nome="mais" tamanho={36} />
+          <span>
+            Mudas que já estavam aqui<small className="dica-botao">Cadastrar o estoque de antes do app</small>
+          </span>
+        </Link>
+      )}
       <div className="filtros" role="group" aria-label="Fases">
         <button className={`chip ${!fase ? 'ativo' : ''}`} onClick={() => setFase('')}>
           Todas

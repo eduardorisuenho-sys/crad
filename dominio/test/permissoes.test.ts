@@ -20,7 +20,8 @@ describe('tabela de permissões', () => {
   });
 
   it('dar permissão ao coletor libera a gravação; tirar do viveirista bloqueia', () => {
-    const m = normalizarMatriz({ ...matrizPadrao(), producao: ['coletor', 'gestor'] });
+    // lote_mudas é gravado por duas linhas (semear e estoque inicial): tira o viveirista das duas.
+    const m = normalizarMatriz({ ...matrizPadrao(), producao: ['coletor', 'gestor'], estoque_inicial: ['gestor'] });
     const lote = { viveiro_id: 'v1', id: 'x' };
     expect(podeEscrever(ctx({ v1: ['coletor'] }, { permissoes: m }), colecao('lote_mudas'), lote)).toBe(true);
     expect(podeEscrever(ctx({ v1: ['viveirista'] }, { permissoes: m }), colecao('lote_mudas'), lote)).toBe(false);
