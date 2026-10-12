@@ -7,7 +7,7 @@ import { useApp } from '../../contexto';
 import { nomesEspecies } from './dados';
 
 export function InicioColeta() {
-  const { repo, db, perfis, sessao } = useApp();
+  const { repo, db, perfis, sessao, pode } = useApp();
   const equipeViveiro = perfis.includes('viveirista') || perfis.includes('gestor');
   const coletas = useLiveQuery(async () => (await repo.listar('coleta')).sort((a, b) => String(b.data).localeCompare(String(a.data))), [repo]) ?? [];
   const matrizes = useLiveQuery(async () => new Map((await repo.listar('matriz')).map((m) => [m.id, m])), [repo]);
@@ -19,7 +19,7 @@ export function InicioColeta() {
     <Tela titulo="Coleta e sementes">
       {params.get('salva') && <p className="mensagem">Coleta salva. Vai para o servidor quando houver sinal.</p>}
       <div className="lista-grande">
-        {(perfis.includes('coletor') || perfis.includes('viveirista') || perfis.includes('gestor')) && (
+        {pode('registrar_coleta') && (
           <Link to="/coleta/nova" className="botao-grande">
             <Icone nome="semente" tamanho={40} />
             <span>Registrar coleta</span>

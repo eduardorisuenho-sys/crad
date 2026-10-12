@@ -83,8 +83,11 @@ Corrigir cadastros e lixeira (administrador, em Ajustes):
     movimentos). Não apaga se ainda houver algo ativo ligado, como uma coleta
     de uma matriz; o app diz o que é. Fica só a anotação de quem apagou e
     quando. Para pessoas, os dados pessoais saem também do histórico (LGPD).
+    Os aparelhos também tiram o que foi apagado de vez, mesmo os que estavam
+    sem internet.
 - Em Equipe, o administrador pode **apagar a conta** de alguém. O que a
-  pessoa já registrou continua.
+  pessoa já registrou continua. O nome e o e-mail do pedido de acesso dela
+  são apagados, inclusive do histórico.
 
 Contas, equipe e permissões:
 
@@ -92,7 +95,12 @@ Contas, equipe e permissões:
   - quem vai **pedir mudas** entra na hora;
   - quem vai **coletar sementes** ou **trabalhar no viveiro** escolhe o
     viveiro e fica aguardando o gestor. Enquanto isso, a tela inicial mostra
-    o pedido em análise.
+    o pedido em análise. Até ser aprovada, a conta não vê dados de ninguém.
+  - Freio contra robôs: no máximo 10 contas por hora por endereço de
+    internet.
+- **Telas protegidas**: quem digita o endereço de uma tela que não é do seu
+  perfil vê "Sem acesso", e os botões das tarefas sem permissão não aparecem.
+  O servidor também recusa a gravação.
 - **Equipe** (gestor, precisa de internet):
   - aprovar ou recusar pedidos de acesso, com motivo;
   - cadastrar uma pessoa com senha inicial, viveiro e perfil;

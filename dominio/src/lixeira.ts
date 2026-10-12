@@ -25,6 +25,8 @@ export const COLECOES_LIXEIRA: { nome: string; rotulo: string }[] = [
 export function referenciasPara(nomeColecao: string): { colecao: Colecao; campo: string }[] {
   const out: { colecao: Colecao; campo: string }[] = [];
   for (const c of COLECOES) for (const f of c.campos) if (f.tipo === 'ref' && f.ref === nomeColecao) out.push({ colecao: c, campo: f.nome });
+  // O viveiro_id das coleções por viveiro é implícito (não está nos campos).
+  if (nomeColecao === 'viveiro') for (const c of COLECOES) if (c.porViveiro && !out.some((x) => x.colecao === c && x.campo === 'viveiro_id')) out.push({ colecao: c, campo: 'viveiro_id' });
   return out;
 }
 

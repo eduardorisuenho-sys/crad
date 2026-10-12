@@ -214,6 +214,8 @@ function excluir(op: Operacao, col: Colecao, atual: Registro | null, ctx: Contex
   if (!atual || atual.excluido) return { gravar: null, resultado: resultado(op, 'aplicada', { registro: atual ?? undefined }), auditoria: null, conflitos: [] };
   if (col.natureza === 'evento') return rejeitar(op, 'eventos não podem ser excluídos; registre um evento de correção', atual);
   if (!podeEscrever(ctx, col, atual)) return rejeitar(op, 'sem permissão para excluir este registro', atual);
+  const regra = violacaoRegra(col, atual, { ...atual, excluido: true }, ctx);
+  if (regra) return rejeitar(op, regra, atual);
   if (atual.versao !== op.base_versao) {
     const conflitos: ConflitoCampo[] = [{ campo: '(exclusão)', valor_base: op.base_versao, valor_aparelho: 'excluir', valor_servidor: atual.versao }];
     return {

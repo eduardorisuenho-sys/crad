@@ -29,12 +29,25 @@ export function violacaoRegra(col: Colecao, antes: Reg | null, depois: Reg, ctx:
   if (col.nome === 'monitoramento' && depois.tipo === 'vistoria' && mudou(antes, depois, 'tipo')) {
     if (!temPermissao(ctx, 'vistoria', depois.viveiro_id)) return 'Você não tem permissão para registrar vistoria.';
   }
-  if (col.nome === 'lote_mudas' && !antes) {
-    if (depois.origem === 'estoque_inicial') {
+  if (col.nome === 'lote_mudas') {
+    if (!antes && depois.origem === 'estoque_inicial') {
       if (!temPermissao(ctx, 'estoque_inicial', depois.viveiro_id)) return 'Você não tem permissão para cadastrar mudas que já estavam no viveiro.';
-    } else if (!depois.lote_sementes_id) {
-      return 'Informe o lote de sementes da semeadura.';
+    } else {
+      // Semear, cuidar e mudar o lote é da produção (o estoque inicial só cadastra).
+      if (!temPermissao(ctx, 'producao', depois.viveiro_id)) return 'Você não tem permissão para semear e cuidar das mudas.';
+      if (!antes && !depois.lote_sementes_id) return 'Informe o lote de sementes da semeadura.';
     }
+  }
+  if (col.nome === 'movimento_estoque_mudas') {
+    // Cada movimento pede a permissão da tarefa que o gera.
+    const tarefa = !antes && depois.tipo === 'entrada' && depois.referencia === 'estoque inicial' ? 'estoque_inicial' : depois.tipo === 'saida_doacao' ? 'retirada' : depois.tipo === 'ajuste_inventario' ? 'inventario' : 'producao';
+    if (!temPermissao(ctx, tarefa, depois.viveiro_id) && !temPermissao(ctx, 'producao', depois.viveiro_id)) return 'Você não tem permissão para este movimento de mudas.';
+  }
+  if (col.nome === 'usuario_viveiro' && !ctx.gestorGeral) {
+    // Igual às rotas da equipe: só um gestor do viveiro dá ou tira o perfil de gestor.
+    const envolveGestor = depois.perfil === 'gestor' || antes?.perfil === 'gestor';
+    if (envolveGestor && !(ctx.perfisPorViveiro[String(depois.viveiro_id)] ?? []).includes('gestor')) return 'Só um gestor pode cadastrar ou tirar outro gestor.';
+    if (depois.usuario_id === ctx.id && (mudou(antes, depois, 'perfil') || !antes)) return 'Ninguém muda o próprio perfil.';
   }
   if (col.nome === 'parametro' && (depois.chave === 'permissoes' || antes?.chave === 'permissoes') && !ctx.gestorGeral) {
     return 'Só o administrador muda a tabela de permissões.';

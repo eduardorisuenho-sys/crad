@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "test": "vitest run",
+    "test": "TZ=America/Araguaina vitest run",
     "typecheck": "tsc -p ."
   },
   "devDependencies": {

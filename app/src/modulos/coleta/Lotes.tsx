@@ -12,7 +12,7 @@ import { coletasEmLote, nomesEspecies } from './dados';
 export const ROTULO_VALIDADE: Record<string, string> = { vencido: 'vencido', vence_logo: 'vence logo', ok: '', sem_validade: '' };
 
 export function ListaLotes() {
-  const { repo, db, viveiroId } = useApp();
+  const { repo, db, viveiroId, pode } = useApp();
   const lotes = useLiveQuery(async () => (await repo.listar('lote_sementes')).sort((a, b) => String(b.codigo).localeCompare(String(a.codigo))), [repo, viveiroId]) ?? [];
   const movs = useLiveQuery(() => repo.listar('movimento_sementes'), [repo]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
@@ -23,9 +23,11 @@ export function ListaLotes() {
 
   return (
     <Tela titulo="Lotes de sementes">
-      <Link to="/coleta/lotes/novo" className="botao-principal">
-        <Icone nome="mais" /> Formar lote
-      </Link>
+      {pode('lotes_sementes') && (
+        <Link to="/coleta/lotes/novo" className="botao-principal">
+          <Icone nome="mais" /> Formar lote
+        </Link>
+      )}
       <ul className="lista">
         {lotes.map((l) => {
           const saldo = saldoSementes(movs.filter((m) => m.lote_sementes_id === l.id) as never);

@@ -116,7 +116,7 @@ export function DetalheMatriz() {
         Imprimir plaqueta
       </button>
 
-      {podeColetar(m as MatrizResumo) && (
+      {podeColetar(m as MatrizResumo) && pode('registrar_coleta', m.viveiro_id) && (
         <Link to={`/coleta/nova?matriz=${m.id}`} className="botao-principal nao-imprimir">
           <Icone nome="semente" /> Registrar coleta
         </Link>

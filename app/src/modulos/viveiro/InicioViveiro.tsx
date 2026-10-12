@@ -34,12 +34,16 @@ export function InicioViveiro() {
   return (
     <Tela titulo="Viveiro">
       <div className="acoes">
-        <Link to="/viveiro/semeadura" className="botao-principal">
-          <Icone nome="muda" /> Nova semeadura
-        </Link>
-        <Link to="/viveiro/inventario" className="botao-secundario">
-          <Icone nome="catalogo" /> Inventário
-        </Link>
+        {pode('producao') && (
+          <Link to="/viveiro/semeadura" className="botao-principal">
+            <Icone nome="muda" /> Nova semeadura
+          </Link>
+        )}
+        {pode('inventario') && (
+          <Link to="/viveiro/inventario" className="botao-secundario">
+            <Icone nome="catalogo" /> Inventário
+          </Link>
+        )}
       </div>
       {pode('estoque_inicial') && (
         <Link to="/viveiro/estoque-inicial" className="botao-grande">

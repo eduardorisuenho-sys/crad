@@ -43,9 +43,11 @@ export function ListaMatrizes() {
   return (
     <Tela titulo="Matrizes">
       <div className="acoes">
-        <Link to="/matrizes/nova" className="botao-principal">
-          <Icone nome="mais" /> Cadastrar matriz
-        </Link>
+        {pode('cadastrar_matriz') && (
+          <Link to="/matrizes/nova" className="botao-principal">
+            <Icone nome="mais" /> Cadastrar matriz
+          </Link>
+        )}
         <Link to="/ler-qr" className="botao-secundario" aria-label="Ler QR code">
           <Icone nome="catalogo" /> Ler QR
         </Link>

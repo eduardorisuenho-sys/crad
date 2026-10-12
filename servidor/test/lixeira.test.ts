@@ -65,6 +65,12 @@ describe.skipIf(!temPocketBase)('lixeira e exclusão pelo administrador', () => 
     const ap = await chamar(s, admin.token, 'POST', `/api/crads/lixeira/matriz/${m}/apagar`);
     expect(ap.dados).toMatchObject({ ok: true, rotulo: expect.stringMatching(/^MT-/) });
     expect([await lerAdmin('matriz', m), await lerAdmin('fenologia', feno), await lerAdmin('foto', foto)]).toEqual([404, 404, 404]);
+
+    // os aparelhos recebem uma lápide e tiram o registro e os detalhes (mesmo quem só viu antes da exclusão)
+    const lido = async (desde: number) => (await chamar(s, gestor.token, 'GET', `/api/crads/sync/receber?desde=${desde}&limite=2000`)).dados;
+    const rec = await lido(0);
+    const lapides = rec.registros.filter((x: { registro: { id: string } }) => [m, feno, foto].includes(x.registro.id));
+    expect(lapides.map((x: { colecao: string; registro: { excluido: boolean } }) => [x.colecao, x.registro.excluido]).sort()).toEqual([['fenologia', true], ['foto', true], ['matriz', true]]);
   });
 
   it('não apaga de vez o que ainda tem registros ativos ligados (ex.: matriz com coleta)', async () => {
@@ -106,5 +112,12 @@ describe.skipIf(!temPocketBase)('lixeira e exclusão pelo administrador', () => 
     expect(await lerAdmin('users', x.id)).toBe(404);
     const eq = (await chamar(s, admin.token, 'GET', '/api/crads/equipe')).dados;
     expect(eq.pessoas.some((p: { usuario_id: string }) => p.usuario_id === x.id)).toBe(false);
+  });
+
+  it('freio contra robôs: cada endereço cria no máximo 10 contas por hora', async () => {
+    const st: number[] = [];
+    for (let i = 0; i < 11; i++) st.push((await chamar(s, '', 'POST', '/api/crads/conta', { nome: 'x' })).status);
+    expect(st.slice(0, 10).every((x) => x !== 429)).toBe(true);
+    expect(st[10]).toBe(429);
   });
 });

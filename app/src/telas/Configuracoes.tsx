@@ -11,6 +11,7 @@ import { espacoUsado, formatarBytes } from '../plataforma/armazenamento';
 export function Configuracoes() {
   const { pode, sessao, db, pendentes, ultimaSync, sincronizar, estadoSync, definirSessao, online } = useApp();
   const navegar = useNavigate();
+  const equipe = !!sessao && (sessao.gestorGeral || Object.values(sessao.perfisPorViveiro ?? {}).some((ps) => ps.length > 0));
   const [espaco, setEspaco] = useState<{ usado: number; total: number } | null>(null);
   const [msg, setMsg] = useState('');
   const faixas = useLiveQuery(() => db._faixas.toArray(), [db]) ?? [];
@@ -54,8 +55,12 @@ export function Configuracoes() {
         <dd>{ultimaSync ? new Date(ultimaSync).toLocaleString('pt-BR') : 'nunca'}</dd>
         <dt>Guardado no aparelho, sem enviar</dt>
         <dd data-testid="pendentes">{pendentes}</dd>
-        <dt>Códigos de matriz reservados</dt>
-        <dd>{codigosRestantes(faixas, 'MT', ano)}</dd>
+        {equipe && (
+          <>
+            <dt>Códigos de matriz reservados</dt>
+            <dd>{codigosRestantes(faixas, 'MT', ano)}</dd>
+          </>
+        )}
         {espaco && (
           <>
             <dt>Espaço usado</dt>
@@ -71,10 +76,12 @@ export function Configuracoes() {
           <Icone nome="sincronizar" tamanho={40} />
           <span>Sincronizar agora</span>
         </button>
-        <button className="botao-grande" onClick={() => void prepararCampo()} disabled={!online}>
+        {equipe && (
+          <button className="botao-grande" onClick={() => void prepararCampo()} disabled={!online}>
           <Icone nome="arvore" tamanho={40} />
           <span>Preparar para ir a campo</span>
         </button>
+        )}
         {pode('viveiros') && (
           <button className="botao-grande" onClick={() => navegar('/municipios')}>
             <Icone nome="viveiro" tamanho={40} />

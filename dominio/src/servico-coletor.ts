@@ -24,7 +24,14 @@ export interface ServicoColetor {
   totais: { matrizes: number; coletas: number; especies: number; quilos: number; outras_unidades: Record<string, number>; registros_flor_fruto: number; dias_de_campo: number };
 }
 
-const dia = (v: unknown) => String(v ?? '').slice(0, 10);
+/** Dia (AAAA-MM-DD) no fuso do aparelho: datas com hora vêm em UTC (toISOString). */
+const dia = (v: unknown) => {
+  const s = String(v ?? '');
+  if (s.length <= 10) return s;
+  const d = new Date(s.replace(' ', 'T'));
+  if (Number.isNaN(d.getTime())) return s.slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 const ORDEM_FOTO = ['arvore', 'tronco', 'folha', 'flor', 'fruto', 'semente', 'casca', 'ramo', 'outro'];
 
 /** É desta pessoa? (coletor informado no registro ou quem criou) */

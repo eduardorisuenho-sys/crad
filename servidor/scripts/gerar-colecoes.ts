@@ -96,6 +96,12 @@ const INTERNAS = [
   },
   { name: 'sync_contador', fields: [campoId, num('valor'), ...datas], indexes: [] },
   {
+    // Lápide do que o administrador apagou de vez: avisa os aparelhos para tirarem o registro.
+    name: 'apagado',
+    fields: [campoId, txt('colecao'), txt('registro_id'), num('seq'), ...datas],
+    indexes: ['CREATE INDEX idx_apagado_seq ON apagado (seq)'],
+  },
+  {
     name: 'sequencia_codigo',
     fields: [campoId, txt('tipo'), num('ano'), num('proximo'), ...datas],
     indexes: ['CREATE UNIQUE INDEX idx_sequencia ON sequencia_codigo (tipo, ano)'],

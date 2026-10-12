@@ -308,6 +308,14 @@ export function receber(app: App, auth: RecordPB, desde: number, limite = LIMITE
     const recs = app.findRecordsByFilter(col.nome, filtro, 'seq', lim + 1, 0, params);
     porColecao.push({ colecao: col, registros: recs.map((r: RecordPB) => paraObjeto(col, r)) });
   }
+  // Lápides do que foi apagado de vez: o aparelho tira o registro (se ainda tiver).
+  const lapides = new Map<string, Registro[]>();
+  for (const l of app.findRecordsByFilter('apagado', 'seq > {:desde}', 'seq', lim + 1, 0, { desde })) {
+    const nome = String(l.get('colecao'));
+    if (!existeColecao(nome)) continue;
+    (lapides.get(nome) ?? lapides.set(nome, []).get(nome)!).push({ id: String(l.get('registro_id')), versao: 0, seq: l.getInt('seq'), excluido: true } as Registro);
+  }
+  for (const [nome, registros] of lapides) porColecao.push({ colecao: colecao(nome), registros });
   if (dispositivo) registrarDispositivo(app, dispositivo, ctx.id, 'ultimo_recebimento');
   return montarRecebimento(porColecao, ctx, desde, lim);
 }
@@ -460,9 +468,10 @@ export function criarConta(app: App, corpo: { nome?: string; email?: string; sen
   const d = validarConta(corpo);
   const perfil = String(corpo.perfil ?? 'solicitante');
   if (!['solicitante', 'coletor', 'viveirista'].includes(perfil)) throw new Error('Perfil inválido.');
-  // Freio contra robôs: no máximo 30 contas novas por hora no servidor todo.
+  // Freio contra robôs: cada endereço de internet cria poucas contas por hora (limite
+  // do PocketBase, na migração) e o servidor todo no máximo 200 por hora.
   const umaHora = new Date(Date.now() - 3600_000).toISOString().replace('T', ' ');
-  if (app.findRecordsByFilter('users', 'created >= {:t}', '', 31, 0, { t: umaHora }).length > 30) throw new Error('Muitos cadastros agora. Tente de novo mais tarde.');
+  if (app.findRecordsByFilter('users', 'created >= {:t}', '', 201, 0, { t: umaHora }).length > 200) throw new Error('Muitos cadastros agora. Tente de novo mais tarde.');
   let pendente = false;
   app.runInTransaction((tx: App) => {
     if (usuarioPorEmail(tx, d.email)) throw new Error('Este e-mail já tem conta. Toque em Entrar.');
@@ -636,11 +645,22 @@ export function lixeiraRestaurar(app: App, auth: RecordPB, nome: string, id: str
   return { ok: true };
 }
 
+/** Apaga de vez e deixa uma lápide, para os aparelhos também tirarem o registro. */
+function apagarDeVez(tx: App, nome: string, rec: RecordPB) {
+  const l = new Record(tx.findCollectionByNameOrId('apagado'));
+  l.set('id', novoId());
+  l.set('colecao', nome);
+  l.set('registro_id', rec.id);
+  l.set('seq', proximoSeq(tx));
+  tx.save(l);
+  tx.delete(rec);
+}
+
 function apagarRegistro(tx: App, nome: string, id: string) {
   const rec = buscar(tx, nome, id);
-  if (rec) tx.delete(rec);
+  if (rec) apagarDeVez(tx, nome, rec);
   // Fotos ligadas pelo registro_id (matriz, plantio, acompanhamento…).
-  for (const f of tx.findRecordsByFilter('foto', 'registro_id = {:i}', '', 0, 0, { i: id })) tx.delete(f);
+  for (const f of tx.findRecordsByFilter('foto', 'registro_id = {:i}', '', 0, 0, { i: id })) apagarDeVez(tx, 'foto', f);
 }
 
 /**
@@ -663,7 +683,7 @@ export function lixeiraApagar(app: App, auth: RecordPB, nome: string, id: string
         for (const r of tx.findRecordsByFilter(c.nome, `${campo} = {:v}`, '', 0, 0, { v: id })) {
           filhos.push(r.id);
           // um nível abaixo (ex.: itens do acompanhamento do plantio)
-          for (const neto of APAGA_JUNTO[c.nome] ?? []) for (const ref of referenciasPara(c.nome).filter((x) => x.colecao.nome === neto)) for (const n of tx.findRecordsByFilter(neto, `${ref.campo} = {:v}`, '', 0, 0, { v: r.id })) tx.delete(n);
+          for (const neto of APAGA_JUNTO[c.nome] ?? []) for (const ref of referenciasPara(c.nome).filter((x) => x.colecao.nome === neto)) for (const n of tx.findRecordsByFilter(neto, `${ref.campo} = {:v}`, '', 0, 0, { v: r.id })) apagarDeVez(tx, neto, n);
           apagarRegistro(tx, c.nome, r.id);
         }
       }
@@ -693,9 +713,18 @@ export function apagarConta(app: App, auth: RecordPB, usuarioId: string) {
     if (u.getBool('gestor_geral')) throw new Error('Não é possível apagar a conta de outro administrador.');
     for (const nomeCol of ['usuario_viveiro', 'pedido_acesso']) {
       const col = colecao(nomeCol);
-      for (const r of tx.findRecordsByFilter(nomeCol, 'usuario_id = {:u} && excluido = false', '', 0, 0, { u: usuarioId })) {
+      for (const r of tx.findRecordsByFilter(nomeCol, 'usuario_id = {:u}', '', 0, 0, { u: usuarioId })) {
         const o = paraObjeto(col, r);
-        gravar(tx, col, { ...o, excluido: true, versao: Number(o.versao) + 1, atualizado_por: ctx.id });
+        // LGPD: o pedido de acesso não guarda mais nome e e-mail de quem saiu (nem no histórico).
+        const limpo = nomeCol === 'pedido_acesso' ? { nome: null, email: null } : {};
+        gravar(tx, col, { ...o, ...limpo, excluido: true, versao: Number(o.versao) + 1, atualizado_por: ctx.id });
+        if (nomeCol === 'pedido_acesso') {
+          for (const a of tx.findRecordsByFilter('auditoria', 'registro_id = {:r}', '', 0, 0, { r: r.id })) {
+            a.set('antes', null);
+            a.set('depois', null);
+            tx.save(a);
+          }
+        }
       }
     }
     tx.delete(u);

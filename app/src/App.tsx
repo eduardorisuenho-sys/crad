@@ -7,6 +7,7 @@ import { useApp } from './contexto';
 import { Avisos } from './telas/Avisos';
 import { Configuracoes } from './telas/Configuracoes';
 import { EmBreve } from './telas/EmBreve';
+import { Guarda } from './componentes/Guarda';
 import { Entrar } from './telas/Entrar';
 import { EscolherViveiro, useViveirosDoUsuario } from './telas/EscolherViveiro';
 import { BLOCOS, Inicio } from './telas/Inicio';
@@ -81,6 +82,7 @@ function Rotas() {
   const precisaEscolher = !viveiroId && (viveiros?.length ?? 0) > 1;
 
   return (
+    <Guarda>
     <Routes>
       {publicas}
       <Route path="/" element={precisaEscolher ? <Navigate to="/viveiro-atual" replace /> : <Inicio />} />
@@ -128,6 +130,7 @@ function Rotas() {
       ))}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Guarda>
   );
 }
 

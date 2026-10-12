@@ -44,6 +44,8 @@ export function podeLer(ctx: ContextoUsuario, col: Colecao, reg: Record<string, 
     // Solicitante só vê os registros dele nas coleções que têm dono.
     if (col.campoDono && perfis.size === 1 && perfis.has('solicitante')) return reg[col.campoDono] === ctx.id;
     if (col.porViveiro && !perfis.size) return false;
+    // Conta ainda sem perfil (pedido de acesso pendente): só os próprios registros nas coleções com dono.
+    if (col.campoDono && !perfis.size) return reg[col.campoDono] === ctx.id;
     return perfis.size > 0 || !col.porViveiro;
   }
   if (viaDono(col, perfis, col.leitura)) return reg[col.campoDono!] === ctx.id;
