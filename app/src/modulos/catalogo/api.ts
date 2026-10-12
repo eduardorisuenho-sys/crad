@@ -3,15 +3,11 @@
  * no aparelho para abrir sem internet.
  */
 import type { ItemCatalogo, RastreioPublico, Transparencia } from '@crads/dominio';
-import { SERVIDOR_PADRAO } from '../../dados/sessao';
+import { servidorGuardado } from '../../dados/sessao';
 
 export function servidorPublico(servidorDaSessao?: string): string {
   if (servidorDaSessao) return servidorDaSessao;
-  try {
-    return localStorage.getItem('crads_servidor') || SERVIDOR_PADRAO;
-  } catch {
-    return SERVIDOR_PADRAO;
-  }
+  return servidorGuardado();
 }
 
 export function urlFoto(servidor: string, foto: { id: string; arquivo: string; miniatura?: string }, grande = false): string {

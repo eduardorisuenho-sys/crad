@@ -1,13 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../contexto';
-import { entrar, SERVIDOR_PADRAO } from '../dados/sessao';
+import { entrar, guardarServidor, servidorGuardado } from '../dados/sessao';
 
 export function Entrar() {
   const { db, definirSessao } = useApp();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [servidor, setServidor] = useState(localStorage.getItem('crads_servidor') || SERVIDOR_PADRAO);
+  const [servidor, setServidor] = useState(servidorGuardado);
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
 
@@ -16,7 +16,7 @@ export function Entrar() {
     setErro('');
     setEnviando(true);
     try {
-      localStorage.setItem('crads_servidor', servidor);
+      guardarServidor(servidor);
       definirSessao(await entrar(db, servidor, email.trim(), senha));
     } catch (err) {
       setErro((err as Error).message);

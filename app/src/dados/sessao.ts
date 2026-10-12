@@ -18,6 +18,33 @@ export interface Sessao extends ContextoUsuario {
 export const SERVIDOR_PADRAO: string = import.meta.env?.VITE_SERVIDOR_URL || 'http://127.0.0.1:8090';
 const DIAS_PADRAO = 30;
 
+const ehLocal = (u: string) => /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:|\/|$)/.test(u);
+
+/**
+ * Servidor escolhido no aparelho (campo "Endereço do servidor"). Um endereço
+ * local guardado de antes não vale no app publicado: volta para o padrão.
+ */
+export function servidorGuardado(): string {
+  let s = '';
+  try {
+    s = localStorage.getItem('crads_servidor') ?? '';
+  } catch {
+    /* sem acesso ao armazenamento */
+  }
+  if (!s || (ehLocal(s) && !ehLocal(SERVIDOR_PADRAO) && typeof location !== 'undefined' && !ehLocal(location.hostname))) return SERVIDOR_PADRAO;
+  return s;
+}
+
+/** Guarda só quando a pessoa escolheu um endereço diferente do padrão. */
+export function guardarServidor(s: string) {
+  try {
+    if (s.trim() && s.trim() !== SERVIDOR_PADRAO) localStorage.setItem('crads_servidor', s.trim());
+    else localStorage.removeItem('crads_servidor');
+  } catch {
+    /* sem acesso ao armazenamento */
+  }
+}
+
 export async function idDispositivo(db: BancoCrads): Promise<string> {
   let id = await db.lerMeta<string | null>('dispositivo_id', null);
   if (!id) {
