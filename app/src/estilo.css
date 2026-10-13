@@ -322,3 +322,4 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .notificacao-corpo span { display: flex; flex-direction: column; }
 .notificacao-corpo small { color: var(--suave); }
 .notificacao-fechar { min-width: 48px; background: none; border: 0; font-size: 1.6rem; cursor: pointer; color: inherit; }
+.acoes-lote { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }

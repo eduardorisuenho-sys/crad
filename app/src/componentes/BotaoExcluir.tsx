@@ -8,7 +8,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dependentesAtivos, mensagemDependentes, referenciasPara, rotuloRegistro, type Registro } from '@crads/dominio';
 import { useApp } from '../contexto';
+import type { BancoCrads } from '../dados/db';
 import { Icone } from './Icone';
+
+/** Motivo para não excluir (algo ativo ligado no aparelho), ou null. */
+export async function bloqueioExclusao(db: BancoCrads, colecao: string, id: string): Promise<string | null> {
+  const ligados: Record<string, Registro[]> = {};
+  for (const nome of new Set(referenciasPara(colecao).map((r) => r.colecao.nome))) ligados[nome] = await db.colecao(nome).toArray();
+  const deps = dependentesAtivos(colecao, id, (c, campo, valor) => (ligados[c] ?? []).filter((r) => r[campo] === valor));
+  return deps.length ? mensagemDependentes(deps) : null;
+}
 
 export function BotaoExcluir({ colecao, registro, voltarPara }: { colecao: string; registro: Registro; voltarPara: string }) {
   const { db, repo, sessao } = useApp();
@@ -20,10 +29,8 @@ export function BotaoExcluir({ colecao, registro, voltarPara }: { colecao: strin
     setErro('');
     const rotulo = rotuloRegistro(colecao, registro);
     // O que está ligado a este cadastro (no aparelho) e ainda ativo?
-    const ligados: Record<string, Registro[]> = {};
-    for (const nome of new Set(referenciasPara(colecao).map((r) => r.colecao.nome))) ligados[nome] = await db.colecao(nome).toArray();
-    const deps = dependentesAtivos(colecao, registro.id, (c, campo, id) => (ligados[c] ?? []).filter((r) => r[campo] === id));
-    if (deps.length) return setErro(mensagemDependentes(deps));
+    const bloqueio = await bloqueioExclusao(db, colecao, registro.id);
+    if (bloqueio) return setErro(bloqueio);
     if (!confirm(`Excluir ${rotulo}? Ele vai para a lixeira.`)) return;
     try {
       await repo.excluir(colecao, registro.id);

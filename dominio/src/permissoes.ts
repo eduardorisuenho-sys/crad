@@ -29,7 +29,7 @@ export const GRUPOS_PERMISSAO = ['Matrizes', 'Coleta e sementes', 'Viveiro', 'Do
 export const FUNCIONALIDADES: Funcionalidade[] = [
   { chave: 'cadastrar_matriz', grupo: 'Matrizes', rotulo: 'Cadastrar matriz e rota de campo', padrao: ['coletor', 'gestor'], escrita: ['matriz', 'rota_campo'] },
   { chave: 'fenologia', grupo: 'Matrizes', rotulo: 'Registrar flor e fruto', padrao: ['coletor', 'viveirista', 'gestor'], escrita: ['fenologia'] },
-  { chave: 'validar_matriz', grupo: 'Matrizes', rotulo: 'Aprovar matriz para coleta', padrao: ['gestor'] },
+  { chave: 'validar_matriz', grupo: 'Matrizes', rotulo: 'Confirmar ou corrigir a espécie da matriz', padrao: ['gestor'] },
   { chave: 'registrar_coleta', grupo: 'Coleta e sementes', rotulo: 'Registrar coleta de sementes', padrao: ['coletor', 'viveirista', 'gestor'], escrita: ['coleta'] },
   { chave: 'lotes_sementes', grupo: 'Coleta e sementes', rotulo: 'Formar lotes e guardar sementes', padrao: ['viveirista', 'gestor'], escrita: ['lote_sementes', 'lote_sementes_coleta', 'movimento_sementes', 'endereco_armazenamento'] },
   { chave: 'producao', grupo: 'Viveiro', rotulo: 'Semear e cuidar das mudas', padrao: ['viveirista', 'gestor'], escrita: ['lote_mudas', 'evento_lote_mudas', 'movimento_estoque_mudas'] },

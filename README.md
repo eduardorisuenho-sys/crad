@@ -78,8 +78,6 @@ Avisos com som:
   - para quem aprova: **pedido de mudas novo**;
   - para quem pediu: **pedido aprovado**, recusado ou **retirada combinada**;
   - para quem entrega: **pedido aprovado** (combinar a retirada);
-  - para quem valida matrizes: **matriz nova**; para o coletor: **matriz
-    aprovada ou reprovada**;
   - para quem cuida da equipe: **pedido de acesso**.
 - Tocar no aviso abre a tela certa. Em Ajustes → Avisos com som: ligar ou
   desligar o som e **permitir notificações no aparelho**.
@@ -113,7 +111,7 @@ Relatório de serviço do coletor (Coleta e sementes → Relatório de serviço)
 - Comprova o trabalho de campo num período (este mês, mês passado, este ano
   ou outras datas):
   - dias de campo;
-  - matrizes cadastradas com fotos, espécie, data, certeza, validação e local;
+  - matrizes cadastradas com fotos, espécie, data, certeza e local;
   - coletas (data, matriz, espécie, quantidade);
   - registros de flor e fruto.
 - Gera um PDF com espaço para a assinatura do coletor e do gestor.
@@ -123,11 +121,13 @@ Relatório de serviço do coletor (Coleta e sementes → Relatório de serviço)
 
 Corrigir cadastros e lixeira (administrador, em Ajustes):
 
-- **Excluir um cadastro** preenchido errado (matriz, coleta, lote, doação,
-  plantio, espécie, pessoa, viveiro). Funciona sem internet. O cadastro vai
-  para a **lixeira** e some de todos os aparelhos.
-- **Matriz reprovada** pelo gestor vai sozinha para a lixeira.
-- Na lixeira (com internet), o administrador pode:
+- **Excluir cadastros** preenchidos errado (matriz, coleta, lote, doação,
+  plantio, espécie, pessoa, viveiro), **um por um ou vários de uma vez**
+  (marque as caixas ou "Selecionar todos"). Funciona sem internet. O cadastro
+  vai para a **lixeira** e some de todos os aparelhos. O que tem algo ativo
+  ligado fica, e o app diz o motivo.
+- Na lixeira (com internet), o administrador pode, também em vários de uma
+  vez:
   - **restaurar**;
   - **apagar de vez**. Leva junto os detalhes (fotos, flor e fruto, itens,
     movimentos). Não apaga se ainda houver algo ativo ligado, como uma coleta
@@ -173,7 +173,7 @@ O que o Módulo 7 entrega:
   já sincronizados, funciona sem internet:
   - filtros: período (este ano, ano passado, tudo), viveiro (todos somados ou
     um por um) e o recorte **Só Plantando Água**;
-  - números: matrizes (aprovadas, espécies), coletas (kg), sementes em
+  - números: matrizes (ativas, espécies), coletas (kg), sementes em
     estoque, mudas prontas e germinação, mudas doadas e pedidos em análise,
     doações do Plantando Água, mudas plantadas e sobrevivência;
   - barras de mudas por fase e tabela por viveiro.
@@ -307,9 +307,10 @@ O que o Módulo 2 entrega (tudo funciona sem internet):
   - a matriz vem pela plaqueta (QR), pela busca ou pela lista ordenada por distância do GPS;
   - quantidade em kg, g, litros ou frutos (aceita vírgula: "2,5");
   - frutos ou sementes, foto opcional e GPS da coleta.
-  - **Só matriz aprovada pelo gestor recebe coleta.**
+  - **a matriz recebe coleta assim que é cadastrada** (não precisa de
+    aprovação); só não recebe se estiver morta, inativa ou excluída.
 - **Rota de coleta:** mapa simples, sem mapa de fundo, com as matrizes
-  aprovadas, quem teve **fruto maduro** nos últimos 45 dias, a posição do
+  cadastradas, quem teve **fruto maduro** nos últimos 45 dias, a posição do
   coletor e a distância até cada matriz.
 - **Lotes de sementes** (viveirista e gestor):
   - para formar o lote, escolha a espécie e as coletas. Uma espécie por lote,
@@ -334,7 +335,9 @@ O que o Módulo 1 entrega (tudo funciona sem internet):
 - **Espécies:**
   - lista com busca tolerante (sem acento, variação regional, erro de digitação);
   - ficha editável pelo gestor;
-  - nomes populares;
+  - **vários nomes populares para o mesmo nome científico**, já na
+    **Nova espécie** (um de cada vez ou separados por vírgula; nomes
+    repetidos não entram de novo);
   - marcação **"revisar"** com o motivo.
 - **Importação de espécies** pela tela do gestor, sempre com prévia antes de gravar:
   - da planilha de controle atual (aba "Espécies") ou do modelo completo `dados/modelo-especies.xlsx`;
@@ -608,8 +611,9 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   mínima do GPS (30 m) são parâmetros do gestor.
 - O QR da plaqueta guarda só o código (ex.: `MT-0123`): qualquer leitor
   mostra o código, e o CRADS abre a ficha.
-- O gestor aprova uma matriz só com a espécie confirmada como "certo" e com
-  GPS válido. Só matriz aprovada poderá fornecer sementes (Módulo 2).
+- **Matriz e sementes não precisam de aprovação**: a matriz cadastrada já
+  pode receber coleta e formar lotes. O gestor pode confirmar ou corrigir a
+  espécie na ficha, e o que foi cadastrado errado é excluído (lixeira).
 - Municípios: os contornos do IBGE são simplificados (cerca de 50 m) para
   ficarem leves no celular. A espécie "registrada no município" vem das
   matrizes já identificadas com certeza ali. Não é usada nenhuma lista

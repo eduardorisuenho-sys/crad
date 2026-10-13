@@ -37,12 +37,10 @@ describe('notificações', () => {
     expect(n).toMatchObject({ titulo: 'Retirada combinada', texto: expect.stringContaining('01/12/2026') });
   });
 
-  it('matriz: quem valida é avisado da nova; o coletor, da aprovação ou reprovação', () => {
-    const m = { id: 'm1', codigo: 'MT-0001', viveiro_id: V, criado_por: 'c', atualizado_por: 'c', situacao_validacao: 'pendente' };
-    expect(notificacaoPara('matriz', undefined, m, gestor)?.titulo).toBe('Nova matriz para validar');
-    expect(notificacaoPara('matriz', undefined, m, viveirista)).toBeNull();
-    expect(notificacaoPara('matriz', m, { ...m, situacao_validacao: 'aprovada', atualizado_por: 'g' }, coletor)?.titulo).toBe('Matriz aprovada');
-    expect(notificacaoPara('matriz', m, { ...m, situacao_validacao: 'reprovada', excluido: true, atualizado_por: 'g' }, coletor)?.titulo).toBe('Matriz reprovada');
+  it('matriz não precisa de aprovação: não gera aviso', () => {
+    const m = { id: 'm1', codigo: 'MT-0001', viveiro_id: V, criado_por: 'c', atualizado_por: 'c' };
+    expect(notificacaoPara('matriz', undefined, m, gestor)).toBeNull();
+    expect(notificacaoPara('matriz', m, { ...m, especie_id: 'e', atualizado_por: 'g' }, coletor)).toBeNull();
   });
 
   it('pedido de acesso avisa quem cuida da equipe', () => {

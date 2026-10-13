@@ -66,7 +66,7 @@ export function indicadoresEmLinhas(r: Indicadores): unknown[][] {
   return [
     ['Indicador', 'Valor'],
     ['Matrizes cadastradas', r.matrizes.total],
-    ['Matrizes aprovadas', r.matrizes.aprovadas],
+    ['Matrizes ativas', r.matrizes.ativas],
     ['Espécies com matriz', r.matrizes.especies],
     ['Coletas', r.coletas.total],
     ['Coletado (kg)', r.coletas.kg],

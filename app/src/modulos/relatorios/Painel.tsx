@@ -61,7 +61,7 @@ export function PainelRelatorios() {
   }
 
   const cartoes: [string, string | number, string?][] = [
-    ['Matrizes', r.matrizes.total, `${r.matrizes.aprovadas} aprovadas · ${r.matrizes.especies} espécies`],
+    ['Matrizes', r.matrizes.total, `${r.matrizes.ativas} ativas · ${r.matrizes.especies} espécies`],
     ['Coletas', r.coletas.total, `${mostrarNumero(r.coletas.kg)} kg`],
     ['Sementes em estoque', `${mostrarNumero(Math.round(r.sementes.estoque_g) / 1000)} kg`, `${r.sementes.lotes} lotes`],
     ['Mudas prontas', r.mudas.prontas, `germinação ${r.mudas.taxa_germinacao == null ? '—' : mostrarNumero(r.mudas.taxa_germinacao) + '%'}${r.mudas.estoque_inicial ? ` · ${r.mudas.estoque_inicial} do estoque inicial` : ''}`],

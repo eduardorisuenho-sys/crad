@@ -77,8 +77,9 @@ export function bloqueioAprovacao(m: MatrizResumo): string | null {
 }
 
 /** Matriz pode fornecer sementes para lote (Módulo 2)? */
+/** A matriz recebe coleta assim que é cadastrada (não precisa de aprovação); só não se estiver morta, inativa ou excluída. */
 export function podeColetar(m: MatrizResumo): boolean {
-  return conta(m) && m.situacao_validacao === 'aprovada';
+  return conta(m);
 }
 
 /** Fotos obrigatórias que ainda faltam. */

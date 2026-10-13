@@ -1,8 +1,8 @@
-/** Ficha da matriz: plaqueta com QR, fotos, fenologia e validação do gestor. */
+/** Ficha da matriz: plaqueta com QR, fotos, fenologia e espécie (não precisa de aprovação). */
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { bloqueioAprovacao, FENOFASES, matrizesProximas, parametro, podeColetar, type MatrizResumo } from '@crads/dominio';
+import { FENOFASES, matrizesProximas, parametro, podeColetar, type MatrizResumo } from '@crads/dominio';
 import { CodigoQr } from '../../componentes/CodigoQr';
 import { Icone } from '../../componentes/Icone';
 import { Miniatura } from '../../componentes/Miniatura';
@@ -11,7 +11,7 @@ import { useApp } from '../../contexto';
 import { BotaoLens } from '../../componentes/BotaoLens';
 import { fotoGuardadaOuBaixada } from '../../dados/arquivos';
 import { EscolherEspecie } from '../especies/EscolherEspecie';
-import { ROTULO_CERTEZA, ROTULO_VALIDACAO } from './ListaMatrizes';
+import { ROTULO_CERTEZA } from './ListaMatrizes';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 
 const ROTULO_FASE: Record<string, string> = { folha: 'Só folhas', flor: 'Flor', fruto_verde: 'Fruto verde', fruto_maduro: 'Fruto maduro', sem_folha: 'Sem folhas' };
@@ -39,7 +39,6 @@ export function DetalheMatriz() {
   if (m === undefined) return <Tela titulo="Matriz">{null}</Tela>;
   const codigo = String(m.codigo);
   const proximas = matrizesProximas(m as MatrizResumo, todas as MatrizResumo[], parametro<number>(parametros, 'distancia_min_matrizes_m', viveiroId));
-  const bloqueio = bloqueioAprovacao(m as MatrizResumo);
 
   async function registrarFenologia() {
     await repo.salvar('fenologia', { matriz_id: id, data: new Date().toISOString().slice(0, 10), fases, viveiro_id: m!.viveiro_id });
@@ -47,25 +46,15 @@ export function DetalheMatriz() {
     setMensagem('Fenologia registrada.');
   }
 
-  async function validar(situacao: 'aprovada' | 'reprovada') {
-    let nota = '';
-    if (situacao === 'reprovada') {
-      nota = prompt('Por que a matriz foi reprovada?') ?? '';
-      if (!nota.trim()) return;
-    }
-    await repo.salvar('matriz', { situacao_validacao: situacao, validado_em: new Date().toISOString(), nota_validacao: nota || null }, id);
-    setMensagem(situacao === 'aprovada' ? 'Matriz aprovada: já pode ser usada para coleta.' : 'Matriz reprovada: vai para a lixeira ao sincronizar (o administrador pode restaurar).');
-  }
-
   if (escolhendoSugerida) {
     return (
       <Tela titulo={`Espécie de ${codigo}`}>
-        <p className="dica">Escolha a espécie que o Google Lens sugeriu (confira na ficha). Ela fica como “provável” até o gestor confirmar.</p>
+        <p className="dica">Escolha a espécie que o Google Lens sugeriu (confira na ficha). Ela fica como “provável” até alguém confirmar.</p>
         <EscolherEspecie
           aoEscolher={async (especieId) => {
             await repo.salvar('matriz', { especie_id: especieId, grau_certeza: 'provavel', metodo_identificacao: 'foto_lens' }, id);
             setEscolhendoSugerida(false);
-            setMensagem('Espécie sugerida registrada como provável. O gestor confirma na validação.');
+            setMensagem('Espécie sugerida registrada como provável.');
           }}
         />
         <button className="botao-secundario" onClick={() => setEscolhendoSugerida(false)}>
@@ -128,11 +117,6 @@ export function DetalheMatriz() {
         <dd>
           {ROTULO_CERTEZA[String(m.grau_certeza)]}
           {m.metodo_identificacao === 'assistente' ? ' · pelo assistente' : m.metodo_identificacao === 'foto_lens' ? ' · com ajuda do Google Lens' : ''}
-        </dd>
-        <dt>Validação</dt>
-        <dd>
-          {ROTULO_VALIDACAO[String(m.situacao_validacao ?? 'pendente')]}
-          {m.nota_validacao ? ` · ${String(m.nota_validacao)}` : ''}
         </dd>
         <dt>Local</dt>
         <dd>{typeof m.lat === 'number' ? `${m.lat.toFixed(5)}, ${(m.lon as number).toFixed(5)} (±${String(m.precisao_m ?? '?')} m)` : 'sem GPS'}</dd>
@@ -220,19 +204,10 @@ export function DetalheMatriz() {
 
       {gestor && (
         <section className="cartao nao-imprimir">
-          <h2>Validação do gestor</h2>
+          <h2>Espécie</h2>
           <button className="botao-secundario" onClick={() => setCorrigindo(true)}>
             {m.especie_id ? 'Confirmar ou corrigir a espécie' : 'Identificar a espécie'}
           </button>
-          {bloqueio && <p className="dica">{bloqueio}</p>}
-          <div className="acoes">
-            <button className="botao-secundario" onClick={() => void validar('reprovada')}>
-              Reprovar
-            </button>
-            <button className="botao-principal" disabled={!!bloqueio || m.situacao_validacao === 'aprovada'} onClick={() => void validar('aprovada')}>
-              <Icone nome="certo" /> Aprovar
-            </button>
-          </div>
         </section>
       )}
       <BotaoExcluir colecao="matriz" registro={m} voltarPara="/matrizes" />

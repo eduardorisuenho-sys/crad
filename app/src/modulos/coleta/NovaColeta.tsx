@@ -106,7 +106,7 @@ export function NovaColeta() {
           <input className="campo-busca" type="search" placeholder="Código ou espécie" value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar matriz" />
           {naoAprovadas.length > 0 && (
             <p className="mensagem alerta">
-              <Icone nome="aviso" tamanho={20} /> {naoAprovadas.map((m) => String(m.codigo)).join(', ')} ainda não foi aprovada pelo gestor e não pode receber coleta.
+              <Icone nome="aviso" tamanho={20} /> {naoAprovadas.map((m) => String(m.codigo)).join(', ')} está morta, inativa ou foi excluída e não pode receber coleta.
             </p>
           )}
           <ul className="lista">
@@ -128,7 +128,7 @@ export function NovaColeta() {
                 </button>
               </li>
             ))}
-            {!lista.length && <li className="vazio">Nenhuma matriz aprovada neste viveiro.</li>}
+            {!lista.length && <li className="vazio">Nenhuma matriz cadastrada neste viveiro.</li>}
           </ul>
           <button
             className="botao-grande"

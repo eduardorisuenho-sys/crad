@@ -22,7 +22,7 @@ export interface VerificacaoLote {
 
 /**
  * Confere a formação de um lote de sementes:
- * - só uma espécie; só matrizes aprovadas; cada coleta em um lote só;
+ * - só uma espécie; só matrizes ativas (não precisam de aprovação); cada coleta em um lote só;
  * - alerta de diversidade genética com poucas matrizes.
  */
 export function verificarLote(
@@ -51,7 +51,7 @@ export function verificarLote(
     if (!m) bloqueios.push(`A matriz ${nome} não está no aparelho.`);
     else {
       if (m.especie_id !== especieId) bloqueios.push(`A matriz ${nome} é de outra espécie: um lote tem uma espécie só.`);
-      if (!podeColetar(m)) bloqueios.push(`A matriz ${nome} ainda não foi aprovada pelo gestor.`);
+      if (!podeColetar(m)) bloqueios.push(`A matriz ${nome} está morta, inativa ou foi excluída.`);
     }
     if (coletasEmLote.has(c.id)) bloqueios.push(`A coleta da matriz ${nome} já está em outro lote.`);
     ids.add(c.matriz_id);

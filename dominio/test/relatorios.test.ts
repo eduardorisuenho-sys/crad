@@ -51,7 +51,7 @@ const d: DadosRelatorio = {
 describe('indicadores', () => {
   it('somando todos os viveiros', () => {
     const r = indicadores(d);
-    expect(r.matrizes).toEqual({ total: 3, aprovadas: 2, aguardando: 1, especies: 1 });
+    expect(r.matrizes).toEqual({ total: 3, ativas: 3, especies: 1 });
     expect(r.coletas).toEqual({ total: 3, kg: 2.5, matrizes: 2 });
     expect(r.sementes).toEqual({ lotes: 1, estoque_g: 700 });
     expect(r.mudas).toMatchObject({ semeadas: 200, germinadas: 150, taxa_germinacao: 75, perdas: 10, prontas: 100 });

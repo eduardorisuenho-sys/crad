@@ -50,6 +50,8 @@ test('coletor cadastra matriz em campo sem internet, com GPS, fotos, plaqueta e 
   const codigo = (await page.locator('.codigo-grande').innerText()).trim();
   expect(codigo).toMatch(/^MT-\d{4}$/);
   await expect(page.getByTestId('plaqueta').locator('svg')).toBeVisible();
+  // não precisa de aprovação: já pode receber coleta
+  await expect(page.getByRole('link', { name: 'Registrar coleta' })).toBeVisible();
 
   // Fenologia da visita
   await page.getByRole('button', { name: 'Flor', exact: true }).click();
@@ -78,7 +80,7 @@ test('coletor cadastra matriz em campo sem internet, com GPS, fotos, plaqueta e 
   await context.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
   const [m] = (await lerDoServidor('matriz')).filter((x) => x.codigo === codigo);
-  expect(m).toMatchObject({ grau_certeza: 'certo', metodo_identificacao: 'manual', altura_m: 14, dap_cm: 38, lat: ARVORE.latitude, situacao_validacao: 'pendente', autorizacao_proprietario: true });
+  expect(m).toMatchObject({ grau_certeza: 'certo', metodo_identificacao: 'manual', altura_m: 14, dap_cm: 38, lat: ARVORE.latitude, autorizacao_proprietario: true });
   const fotos = (await lerDoServidor('foto')).filter((f) => f.registro_id === m.id);
   expect(fotos.map((f) => f.parte).sort()).toEqual(['arvore', 'folha']);
   expect(fotos.every((f) => String(f.arquivo).endsWith('.jpg') && String(f.miniatura).endsWith('.jpg'))).toBe(true);

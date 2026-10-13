@@ -1,6 +1,6 @@
 /**
  * Notificações: quando chega do servidor uma novidade que interessa à pessoa
- * (pedido de mudas novo, aprovação, retirada combinada, matriz validada…),
+ * (pedido de mudas novo, aprovação, retirada combinada, pedido de acesso),
  * o app toca um som e mostra um aviso. Aqui só a regra de quem é avisado do quê.
  */
 import type { ContextoUsuario } from './acesso';
@@ -51,15 +51,5 @@ export function notificacaoPara(colecao: string, antes: Reg | undefined, depois:
     return { titulo: 'Novo pedido de acesso', texto: `${String(depois.nome ?? 'Alguém')} quer entrar na equipe como ${String(depois.perfil ?? '')}.`, rota: '/equipe' };
   }
 
-  if (colecao === 'matriz') {
-    const rota = `/matrizes/${id}`;
-    if (depois.criado_por === ctx.id && mudou(antes, depois, 'situacao_validacao')) {
-      if (depois.situacao_validacao === 'aprovada') return { titulo: 'Matriz aprovada', texto: `A matriz ${codigo} foi aprovada pelo gestor.`, rota };
-      if (depois.situacao_validacao === 'reprovada') return { titulo: 'Matriz reprovada', texto: `A matriz ${codigo} não foi aprovada pelo gestor.`, rota: '/matrizes' };
-    }
-    if (!antes && !depois.excluido && (depois.situacao_validacao ?? 'pendente') === 'pendente' && temPermissao(ctx, 'validar_matriz', depois.viveiro_id)) {
-      return { titulo: 'Nova matriz para validar', texto: `A matriz ${codigo} está aguardando sua validação.`, rota };
-    }
-  }
   return null;
 }

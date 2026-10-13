@@ -2,7 +2,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate, useParams } from 'react-router-dom';
-import { colecao, type Campo } from '@crads/dominio';
+import { colecao, normalizarBusca, type Campo } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -10,6 +10,18 @@ import { CaracteresAssistente } from './CaracteresAssistente';
 import { FotosEspecie } from './FotosEspecie';
 import { adicionarNomePopular, nomesPopularesDe } from './dados';
 import { GRUPOS_FICHA, NOMES_MESES, rotulo } from './rotulos';
+
+/** Junta os nomes já escolhidos com os digitados (separados por vírgula ou ;), sem repetir. */
+export function juntarNomes(atuais: string[], digitado: string): string[] {
+  const out = [...atuais];
+  const vistos = new Set(atuais.map((n) => normalizarBusca(n)));
+  for (const n of digitado.split(/[,;]/).map((x) => x.trim()).filter(Boolean)) {
+    if (vistos.has(normalizarBusca(n))) continue;
+    vistos.add(normalizarBusca(n));
+    out.push(n);
+  }
+  return out;
+}
 
 const CAMPOS = new Map<string, Campo>(colecao('especie').campos.map((c) => [c.nome, c]));
 
@@ -23,6 +35,8 @@ export function FichaEspecie() {
   const populares = useLiveQuery(() => (nova || !id ? [] : nomesPopularesDe(db, id)), [id]) ?? [];
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [novoNome, setNovoNome] = useState('');
+  // nomes populares de uma espécie nova: gravados junto com ela
+  const [nomesNovos, setNomesNovos] = useState<string[]>([]);
   const [salvo, setSalvo] = useState(false);
 
   useEffect(() => {
@@ -34,6 +48,8 @@ export function FichaEspecie() {
     const dados: Record<string, unknown> = {};
     for (const g of GRUPOS_FICHA) for (const c of g.campos) if (c in form) dados[c] = form[c];
     const r = await repo.salvar('especie', nova ? { fonte_cadastro: 'manual', ...dados } : dados, nova ? undefined : id);
+    if (nova) for (const n of juntarNomes(nomesNovos, novoNome)) await adicionarNomePopular(repo, r.id, n);
+    setNovoNome('');
     setSalvo(true);
     if (nova) navegar(`/especies/${r.id}`, { replace: true });
   }
@@ -112,36 +128,46 @@ export function FichaEspecie() {
           <Icone nome="aviso" tamanho={20} /> Revisar: {String(form.nota_revisao || 'sem nota')}
         </p>
       )}
-      {!nova && (
-        <section className="cartao">
-          <h2>Nomes populares</h2>
-          <ul className="chips">
-            {populares.map((p) => (
-              <li key={p.id} className="chip">
-                {String(p.nome)}
-                {gestor && (
-                  <button type="button" aria-label={`Remover ${String(p.nome)}`} onClick={() => void repo.excluir('nome_popular', p.id)}>
+      <section className="cartao" data-testid="nomes-populares">
+        <h2>Nomes populares</h2>
+        {gestor && <p className="dica">Uma espécie pode ter vários nomes populares. Escreva um de cada vez ou vários separados por vírgula.</p>}
+        <ul className="chips">
+          {nova
+            ? nomesNovos.map((n) => (
+                <li key={n} className="chip">
+                  {n}
+                  <button type="button" aria-label={`Remover ${n}`} onClick={() => setNomesNovos(nomesNovos.filter((x) => x !== n))}>
                     ×
                   </button>
-                )}
-              </li>
-            ))}
-          </ul>
-          {gestor && (
-            <form
-              className="linha-form"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (novoNome.trim()) await adicionarNomePopular(repo, id!, novoNome.trim());
-                setNovoNome('');
-              }}
-            >
-              <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Novo nome popular" aria-label="Novo nome popular" />
-              <button className="botao-secundario">Incluir</button>
-            </form>
-          )}
-        </section>
-      )}
+                </li>
+              ))
+            : populares.map((p) => (
+                <li key={p.id} className="chip">
+                  {String(p.nome)}
+                  {gestor && (
+                    <button type="button" aria-label={`Remover ${String(p.nome)}`} onClick={() => void repo.excluir('nome_popular', p.id)}>
+                      ×
+                    </button>
+                  )}
+                </li>
+              ))}
+          {!nova && !populares.length && <li className="dica">Nenhum nome popular ainda.</li>}
+        </ul>
+        {gestor && (
+          <form
+            className="linha-form"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (nova) setNomesNovos(juntarNomes(nomesNovos, novoNome));
+              else for (const n of juntarNomes(populares.map((p) => String(p.nome)), novoNome).slice(populares.length)) await adicionarNomePopular(repo, id!, n);
+              setNovoNome('');
+            }}
+          >
+            <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Ex.: Ipê-amarelo, Pau-d'arco" aria-label="Novo nome popular" />
+            <button className="botao-secundario">Incluir</button>
+          </form>
+        )}
+      </section>
       {!nova && id && <FotosEspecie especieId={id} editavel={gestor} />}
       {!nova && id && <CaracteresAssistente especieId={id} editavel={gestor} />}
       <form onSubmit={salvar} className="formulario">

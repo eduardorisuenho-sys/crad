@@ -55,7 +55,7 @@ const doViveiro = (r: Reg, f: FiltroRelatorio) => !f.viveiros || f.viveiros.incl
 const dataDe = (r: Reg, campo?: string) => (campo ? r[campo] : undefined) ?? r.criado_no_aparelho_em ?? r.created;
 
 export interface Indicadores {
-  matrizes: { total: number; aprovadas: number; aguardando: number; especies: number };
+  matrizes: { total: number; ativas: number; especies: number };
   coletas: { total: number; kg: number; matrizes: number };
   sementes: { lotes: number; estoque_g: number };
   mudas: { lotes: number; semeadas: number; germinadas: number; taxa_germinacao: number | null; perdas: number; por_fase: Record<string, number>; prontas: number; estoque_inicial: number };
@@ -125,8 +125,8 @@ export function indicadores(d: DadosRelatorio, f: FiltroRelatorio = {}, programa
   return {
     matrizes: {
       total: matrizes.length,
-      aprovadas: matrizes.filter((m) => podeColetar(m as MatrizResumo)).length,
-      aguardando: matrizes.filter((m) => !m.situacao_validacao || m.situacao_validacao === 'pendente').length,
+      // ativas = podem receber coleta (matriz não precisa de aprovação)
+      ativas: matrizes.filter((m) => podeColetar(m as MatrizResumo)).length,
       especies: new Set(matrizes.map((m) => m.especie_id).filter(Boolean)).size,
     },
     coletas: {

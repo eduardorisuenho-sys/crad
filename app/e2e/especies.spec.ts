@@ -29,3 +29,22 @@ test('gestora importa o modelo de planilha sem internet e as espécies sobem qua
   expect(especies).toEqual([expect.objectContaining({ nome_cientifico: 'Ficticia exemplaris Fulano', ficticia: true, publicada: false, meses_flor: [9, 10, 11] })]);
   expect((await lerDoServidor('nome_popular')).filter((n) => n.especie_id === especies[0].id).map((n) => n.nome)).toEqual(['Árvore-de-exemplo']);
 });
+
+test('nova espécie já com vários nomes populares', async ({ page }) => {
+  await entrarComoGestora(page);
+  await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
+  await page.goto('/especies/nova');
+  const nomes = page.getByTestId('nomes-populares');
+  await nomes.getByLabel('Novo nome popular').fill('Árvore-teste-um, Árvore-teste-dois');
+  await nomes.getByRole('button', { name: 'Incluir' }).click();
+  await nomes.getByLabel('Novo nome popular').fill('árvore-teste-um'); // repetido: não entra de novo
+  await nomes.getByRole('button', { name: 'Incluir' }).click();
+  await nomes.getByLabel('Novo nome popular').fill('Árvore-teste-três');
+  await page.getByLabel('Nome científico').fill('Testia multinomia');
+  await page.getByRole('button', { name: 'Salvar ficha' }).click();
+  await expect(page).toHaveURL(/\/especies\/[a-z0-9]{15}$/);
+  const chips = page.getByTestId('nomes-populares').locator('.chip');
+  await expect(chips).toHaveCount(3);
+  for (const n of ['Árvore-teste-um', 'Árvore-teste-dois', 'Árvore-teste-três']) await expect(chips.filter({ hasText: n })).toHaveCount(1);
+  await expect.poll(async () => (await lerDoServidor('nome_popular')).filter((n) => String(n.nome).startsWith('Árvore-teste-')).length, { timeout: 20_000 }).toBe(3);
+});

@@ -30,7 +30,6 @@ export interface DadosPdfServico {
 
 const dia = (v: unknown) => String(v ?? '').slice(0, 10).split('-').reverse().join('/');
 const CERTEZA: Record<string, string> = { certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' };
-const VALIDACAO: Record<string, string> = { pendente: 'aguardando gestor', aprovada: 'aprovada', reprovada: 'reprovada' };
 
 export async function pdfServicoColetor(d: DadosPdfServico): Promise<Blob> {
   const { jsPDF } = await import('jspdf');
@@ -123,7 +122,7 @@ export async function pdfServicoColetor(d: DadosPdfServico): Promise<Blob> {
     pdf.setFont('helvetica', 'normal');
     y += 5;
     const local = [d.municipio(m.municipio_id), typeof m.lat === 'number' ? `${(m.lat as number).toFixed(5)}, ${(m.lon as number).toFixed(5)}` : '', m.precisao_m ? `±${m.precisao_m} m` : ''].filter(Boolean).join(' · ');
-    pdf.text(`Cadastrada em ${dia(m.criado_no_aparelho_em ?? m.created)} · certeza: ${CERTEZA[String(m.grau_certeza)] ?? '—'} · ${VALIDACAO[String(m.situacao_validacao)] ?? '—'}`, 15, y);
+    pdf.text(`Cadastrada em ${dia(m.criado_no_aparelho_em ?? m.created)} · certeza: ${CERTEZA[String(m.grau_certeza)] ?? '—'}`, 15, y);
     y += 5;
     if (local) {
       pdf.text(`Local: ${local}`, 15, y);

@@ -155,7 +155,6 @@ export function NovaMatriz() {
         autorizacao_proprietario: r.autorizacao_proprietario ?? false,
         observacao: r.observacao ?? null,
         situacao: 'ativa',
-        situacao_validacao: 'pendente',
       });
       for (const f of fotos) await gravarFoto(db, repo, 'matriz', m.id, viveiroId, f);
       localStorage.removeItem(CHAVE_RASCUNHO);

@@ -1,6 +1,6 @@
 /**
  * Rota de coleta: mapa simples (sem internet e sem mapa de fundo) com as
- * matrizes aprovadas, a posição do coletor e quem está com fruto maduro.
+ * matrizes ativas, a posição do coletor e quem está com fruto maduro.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';

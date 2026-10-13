@@ -7,14 +7,12 @@ import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 
-type Filtro = 'todas' | 'validar' | 'minhas' | 'metas';
-export const ROTULO_VALIDACAO: Record<string, string> = { pendente: 'aguardando gestor', aprovada: 'aprovada', reprovada: 'reprovada' };
+type Filtro = 'todas' | 'minhas' | 'metas';
 export const ROTULO_CERTEZA: Record<string, string> = { certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' };
 
 export function ListaMatrizes() {
   const { db, repo, pode, sessao, viveiroId } = useApp();
-  const gestor = pode('validar_matriz');
-  const [filtro, setFiltro] = useState<Filtro>(gestor ? 'validar' : 'minhas');
+  const [filtro, setFiltro] = useState<Filtro>(pode('validar_matriz') ? 'todas' : 'minhas');
   const [busca, setBusca] = useState('');
   const matrizes = useLiveQuery(() => repo.listar('matriz'), [repo, viveiroId]) ?? [];
   const nomes = useLiveQuery(async () => {
@@ -25,12 +23,10 @@ export function ListaMatrizes() {
   }, [db]);
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [db]) ?? [];
   const meta = parametro<number>(parametros, 'meta_matrizes_por_especie', viveiroId);
-  const pendentesValidar = matrizes.filter((m) => m.situacao_validacao !== 'aprovada' && m.situacao_validacao !== 'reprovada').length;
 
   const nome = (id?: unknown) => (id ? nomes?.get(`p:${id}`) ?? nomes?.get(String(id)) ?? '' : '');
   const lista = useMemo(() => {
     let l = [...matrizes].sort((a, b) => String(b.codigo).localeCompare(String(a.codigo)));
-    if (filtro === 'validar') l = l.filter((m) => m.situacao_validacao !== 'aprovada' && m.situacao_validacao !== 'reprovada');
     if (filtro === 'minhas') l = l.filter((m) => m.criado_por === sessao?.id || m.versao === 0);
     if (busca) {
       const q = normalizarBusca(busca);
@@ -53,11 +49,6 @@ export function ListaMatrizes() {
         </Link>
       </div>
       <div className="filtros">
-        {gestor && (
-          <button className={`chip ${filtro === 'validar' ? 'ativo' : ''}`} onClick={() => setFiltro('validar')}>
-            Para validar ({pendentesValidar})
-          </button>
-        )}
         <button className={`chip ${filtro === 'minhas' ? 'ativo' : ''}`} onClick={() => setFiltro('minhas')}>
           Minhas
         </button>
@@ -98,7 +89,6 @@ export function ListaMatrizes() {
                     <small>{m.especie_id ? nome(m.especie_id) : 'a identificar'}</small>
                   </div>
                   {m.grau_certeza !== 'certo' && <span className="selo">{ROTULO_CERTEZA[String(m.grau_certeza)]}</span>}
-                  {m.situacao_validacao === 'aprovada' && <span className="selo ok">aprovada</span>}
                 </Link>
               </li>
             ))}

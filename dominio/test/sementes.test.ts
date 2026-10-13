@@ -4,7 +4,7 @@ import { bloqueioSaida, codigoEndereco, emGramas, saldoSementes, situacaoValidad
 const matrizes = new Map([
   ['m1', { id: 'm1', codigo: 'MT-0001', especie_id: 'ipe', situacao_validacao: 'aprovada' }],
   ['m2', { id: 'm2', codigo: 'MT-0002', especie_id: 'ipe', situacao_validacao: 'aprovada' }],
-  ['m3', { id: 'm3', codigo: 'MT-0003', especie_id: 'ipe', situacao_validacao: 'pendente' }],
+  ['m3', { id: 'm3', codigo: 'MT-0003', especie_id: 'ipe', situacao: 'morta' }],
   ['m4', { id: 'm4', codigo: 'MT-0004', especie_id: 'baru', situacao_validacao: 'aprovada' }],
 ]);
 
@@ -17,13 +17,18 @@ describe('formação do lote de sementes', () => {
     expect(verificarLote('ipe', [{ id: 'c1', matriz_id: 'm1' }, { id: 'c2', matriz_id: 'm2' }], matrizes, new Set(), 2).alertas).toEqual([]);
   });
 
-  it('bloqueia matriz não aprovada, outra espécie e coleta já usada', () => {
+  it('matriz pendente pode ser usada; bloqueia matriz morta, outra espécie e coleta já usada', () => {
     const v = verificarLote('ipe', [{ id: 'c3', matriz_id: 'm3' }, { id: 'c4', matriz_id: 'm4' }, { id: 'c1', matriz_id: 'm1' }], matrizes, new Set(['c1']), 1);
     expect(v.bloqueios).toEqual([
-      'A matriz MT-0003 ainda não foi aprovada pelo gestor.',
+      'A matriz MT-0003 está morta, inativa ou foi excluída.',
       'A matriz MT-0004 é de outra espécie: um lote tem uma espécie só.',
       'A coleta da matriz MT-0001 já está em outro lote.',
     ]);
+  });
+
+  it('matriz recém-cadastrada (sem aprovação) já entra no lote', () => {
+    const m = new Map([['m5', { id: 'm5', codigo: 'MT-0005', especie_id: 'ipe', situacao_validacao: 'pendente' }]]);
+    expect(verificarLote('ipe', [{ id: 'c5', matriz_id: 'm5' }], m, new Set(), 1).bloqueios).toEqual([]);
   });
 
   it('bloqueia lote vazio ou sem espécie', () => {
