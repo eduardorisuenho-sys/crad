@@ -29,6 +29,7 @@ export const BLOCOS: Bloco[] = [
   { rota: '/especies', rotulo: 'Espécies', icone: 'catalogo', perfis: ['coletor', 'viveirista', 'gestor'] },
   { rota: '/viveiros', rotulo: 'Viveiros', icone: 'viveiro', perfis: [], permissoes: ['viveiros'] },
   { rota: '/equipe', rotulo: 'Equipe', icone: 'pessoas', perfis: [], permissoes: ['equipe'] },
+  { rota: '/lixeira', rotulo: 'Lixeira', icone: 'lixo', perfis: [], permissoes: ['lixeira'] },
 ];
 
 export function Inicio() {

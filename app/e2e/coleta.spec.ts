@@ -80,7 +80,7 @@ test('coletor registra coleta sem internet; viveirista forma o lote, guarda no e
   await expect(page.getByText('Só há 780 g neste lote.')).toBeVisible();
 
   // rastreio: o lote volta à matriz de origem
-  await expect(page.locator('.cartao', { hasText: 'Matrizes de origem' })).toContainText('MT-9001');
+  await expect(page.locator('.cartao', { hasText: 'Origem das sementes' })).toContainText('MT-9001');
 
   await ctx.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });

@@ -167,10 +167,10 @@ export async function pdfServicoColetor(d: DadosPdfServico): Promise<Blob> {
         novaPagina();
         cab();
       }
-      const matriz = d.matriz(c.matriz_id);
+      const matriz = c.matriz_id ? d.matriz(c.matriz_id) : undefined;
       pdf.text(dia(c.data), 17, y);
-      pdf.text(String(matriz?.codigo ?? ''), 40, y);
-      pdf.text(pdf.splitTextToSize(d.nomeEspecie(matriz?.especie_id), 72)[0] ?? '', 70, y);
+      pdf.text(matriz ? String(matriz.codigo ?? '') : 'sem matriz', 40, y);
+      pdf.text(pdf.splitTextToSize(d.nomeEspecie(matriz?.especie_id ?? c.especie_id), 72)[0] ?? '', 70, y);
       pdf.text(String(c.material ?? ''), 145, y);
       pdf.text(c.quantidade ? `${mostrarNumero(c.quantidade)} ${c.unidade ?? ''}` : '—', 193, y, { align: 'right' });
       y += 6;

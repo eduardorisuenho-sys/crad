@@ -72,7 +72,7 @@ export function servicoColetor(d: { matrizes: Reg[]; coletas: Reg[]; fenologias:
     else if (c.quantidade) outras[String(c.unidade ?? 'unidades')] = (outras[String(c.unidade ?? 'unidades')] ?? 0) + Number(c.quantidade);
   }
   const dias = new Set([...matrizes.map((m) => dia(m.criado_no_aparelho_em ?? m.created)), ...coletas.map((c) => dia(c.data)), ...fenologias.map((x) => dia(x.data))]);
-  const especies = new Set([...matrizes.map((m) => m.especie_id), ...coletas.map((c) => d.matrizes.find((m) => m.id === c.matriz_id)?.especie_id)].filter(Boolean));
+  const especies = new Set([...matrizes.map((m) => m.especie_id), ...coletas.map((c) => (c.matriz_id ? d.matrizes.find((m) => m.id === c.matriz_id)?.especie_id : c.especie_id))].filter(Boolean));
 
   return {
     matrizes,

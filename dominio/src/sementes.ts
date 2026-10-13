@@ -4,7 +4,9 @@ import { normalizarBusca } from './especies/nomes';
 
 export interface ColetaResumo {
   id: string;
-  matriz_id: string;
+  /** vazio = árvore sem matriz cadastrada */
+  matriz_id?: string | null;
+  especie_id?: string | null;
   quantidade?: number | null;
   unidade?: string | null;
   excluido?: boolean;
@@ -35,7 +37,15 @@ export function verificarLote(
   if (!especieId) bloqueios.push('Escolha a espécie do lote.');
   if (!coletas.length) bloqueios.push('Escolha pelo menos uma coleta.');
   const ids = new Set<string>();
+  let semMatriz = 0;
   for (const c of coletas) {
+    if (!c.matriz_id) {
+      // Árvore sem matriz cadastrada: vale a espécie informada na coleta.
+      semMatriz++;
+      if (c.especie_id !== especieId) bloqueios.push('Uma das coletas sem matriz é de outra espécie: um lote tem uma espécie só.');
+      if (coletasEmLote.has(c.id)) bloqueios.push('Uma das coletas sem matriz já está em outro lote.');
+      continue;
+    }
     const m = matrizes.get(c.matriz_id);
     const nome = m?.codigo ?? c.matriz_id;
     if (!m) bloqueios.push(`A matriz ${nome} não está no aparelho.`);
@@ -46,8 +56,9 @@ export function verificarLote(
     if (coletasEmLote.has(c.id)) bloqueios.push(`A coleta da matriz ${nome} já está em outro lote.`);
     ids.add(c.matriz_id);
   }
+  if (semMatriz) alertas.push(`${semMatriz} coleta(s) de árvore sem matriz cadastrada: a origem fica registrada só pela espécie e pelo ponto do GPS.`);
   if (coletas.length && ids.size < minMatrizes) {
-    alertas.push(`Este lote tem sementes de ${ids.size} matriz(es). O recomendado é pelo menos ${minMatrizes}, para manter a diversidade genética.`);
+    alertas.push(`Este lote tem sementes de ${ids.size} matriz(es) cadastrada(s). O recomendado é pelo menos ${minMatrizes}, para manter a diversidade genética.`);
   }
   return { bloqueios: [...new Set(bloqueios)], alertas, matrizes: ids.size };
 }

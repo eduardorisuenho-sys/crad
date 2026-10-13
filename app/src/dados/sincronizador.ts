@@ -27,6 +27,9 @@ export interface ResumoSync {
 
 const LOTE_ENVIO = 50;
 
+/** Novidade vinda do servidor: como estava no aparelho (undefined = não tinha) e como ficou. */
+export type AoReceber = (colecao: string, antes: Registro | undefined, depois: Registro) => void;
+
 export class Sincronizador {
   private rodando: Promise<ResumoSync> | null = null;
 
@@ -34,6 +37,8 @@ export class Sincronizador {
     private db: BancoCrads,
     private transporte: Transporte,
     private dispositivoId: () => string,
+    /** chamado para cada registro recebido (não na primeira carga do aparelho) */
+    private aoReceber?: AoReceber,
   ) {}
 
   /** Executa uma rodada; chamadas simultâneas reaproveitam a mesma rodada. */
@@ -200,10 +205,22 @@ export class Sincronizador {
       const desde = await this.db.lerMeta<number>('cursor', 0);
       const r = await this.transporte.receber(desde, this.dispositivoId());
       const tabelas = [...new Set(r.registros.map((x) => x.colecao))].map((c) => this.db.colecao(c));
+      const novidades: [string, Registro | undefined, Registro][] = [];
       await this.db.transaction('rw', [...tabelas, this.db._fila, this.db._meta], async () => {
-        for (const { colecao, registro } of r.registros) await this.gravarDoServidor(colecao, registro);
+        for (const { colecao, registro } of r.registros) {
+          // Na primeira carga (cursor 0) tudo é "novo": não vira aviso.
+          if (this.aoReceber && desde > 0) novidades.push([colecao, await this.db.colecao(colecao).get(registro.id), registro]);
+          await this.gravarDoServidor(colecao, registro);
+        }
         await this.db.gravarMeta('cursor', r.cursor);
       });
+      for (const [c, antes, depois] of novidades) {
+        try {
+          this.aoReceber!(c, antes, depois);
+        } catch {
+          /* um aviso nunca derruba a sincronização */
+        }
+      }
       resumo.recebidos += r.registros.length;
       if (!r.mais || r.cursor === desde) return;
     }

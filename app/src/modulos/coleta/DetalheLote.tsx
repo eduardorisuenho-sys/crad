@@ -10,6 +10,7 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from './dados';
 import { ROTULO_VALIDADE } from './Lotes';
+import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 
 const TIPOS = [
   { valor: 'teste', rotulo: 'Teste de germinação', saida: true },
@@ -29,7 +30,8 @@ export function DetalheLote() {
   const origem = useLiveQuery(async () => {
     const ligs = (await db.colecao('lote_sementes_coleta').where('lote_sementes_id').equals(id!).toArray()).filter((l) => !l.excluido);
     const coletas = await db.colecao('coleta').bulkGet(ligs.map((l) => String(l.coleta_id)));
-    const matrizes = await db.colecao('matriz').bulkGet(coletas.map((c) => String(c?.matriz_id)));
+    const comMatriz = coletas.filter((c) => c && !c.excluido && c.matriz_id);
+    const matrizes = await db.colecao('matriz').bulkGet(comMatriz.map((c) => String(c!.matriz_id)));
     const unicas = new Map<string, { id: string; codigo: string; coletas: number }>();
     matrizes.forEach((m) => {
       if (!m) return;
@@ -37,7 +39,8 @@ export function DetalheLote() {
       u.coletas++;
       unicas.set(m.id, u);
     });
-    return [...unicas.values()];
+    const semMatriz = coletas.filter((c) => c && !c.excluido && !c.matriz_id).length;
+    return semMatriz ? [...unicas.values(), { id: '', codigo: 'Árvore sem matriz', coletas: semMatriz }] : [...unicas.values()];
   }, [id]);
   const enderecos = useLiveQuery(() => repo.listar('endereco_armazenamento', (e) => e.ativo !== false), [repo]) ?? [];
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [db]) ?? [];
@@ -97,7 +100,7 @@ export function DetalheLote() {
           <strong className="codigo-grande">{String(lote.codigo)}</strong>
           <span>{especie}</span>
           <small>Formado em {new Date(String(lote.data_formacao) + 'T12:00').toLocaleDateString('pt-BR')}</small>
-          <small>{origem?.length ?? 0} matriz(es)</small>
+          <small>{lote.origem === 'estoque_inicial' ? 'Sementes que já estavam no viveiro' : `${origem?.filter((m) => m.id).length ?? 0} matriz(es)`}</small>
           <small>{String(enderecoAtual?.codigo ?? 'sem endereço')}</small>
         </div>
       </section>
@@ -134,20 +137,31 @@ export function DetalheLote() {
         ) : null}
       </dl>
 
-      <section className="cartao nao-imprimir">
-        <h2>Matrizes de origem</h2>
+      <section className="cartao nao-imprimir" data-testid="origem-ls">
+        <h2>Origem das sementes</h2>
+        {lote.origem === 'estoque_inicial' && <p>{String(lote.observacao_origem || 'Sementes que já estavam no viveiro antes do app (matrizes não registradas).')}</p>}
         <ul className="lista">
-          {origem?.map((m) => (
-            <li key={m.id}>
-              <Link to={`/matrizes/${m.id}`} className="item-lista">
-                <Icone nome="arvore" />
+          {origem?.map((m) =>
+            m.id ? (
+              <li key={m.id}>
+                <Link to={`/matrizes/${m.id}`} className="item-lista">
+                  <Icone nome="arvore" />
+                  <div>
+                    <strong>{m.codigo}</strong>
+                    <small>{m.coletas} coleta(s)</small>
+                  </div>
+                </Link>
+              </li>
+            ) : (
+              <li key="sem-matriz" className="item-lista">
+                <Icone nome="semente" />
                 <div>
                   <strong>{m.codigo}</strong>
                   <small>{m.coletas} coleta(s)</small>
                 </div>
-              </Link>
-            </li>
-          ))}
+              </li>
+            ),
+          )}
         </ul>
       </section>
 
@@ -210,6 +224,7 @@ export function DetalheLote() {
           ))}
         </ul>
       </section>
+      <BotaoExcluir colecao="lote_sementes" registro={lote} voltarPara="/coleta/lotes" />
     </Tela>
   );
 }

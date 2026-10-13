@@ -12,6 +12,7 @@ import { BotaoLens } from '../../componentes/BotaoLens';
 import { fotoGuardadaOuBaixada } from '../../dados/arquivos';
 import { EscolherEspecie } from '../especies/EscolherEspecie';
 import { ROTULO_CERTEZA, ROTULO_VALIDACAO } from './ListaMatrizes';
+import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 
 const ROTULO_FASE: Record<string, string> = { folha: 'Só folhas', flor: 'Flor', fruto_verde: 'Fruto verde', fruto_maduro: 'Fruto maduro', sem_folha: 'Sem folhas' };
 
@@ -234,6 +235,7 @@ export function DetalheMatriz() {
           </div>
         </section>
       )}
+      <BotaoExcluir colecao="matriz" registro={m} voltarPara="/matrizes" />
     </Tela>
   );
 }

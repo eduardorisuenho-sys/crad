@@ -1,13 +1,14 @@
 /** Estado global do app: banco local, sessão, viveiro atual e sincronização. */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { matrizDe, temPermissao, type MatrizPermissoes, type Perfil } from '@crads/dominio';
+import { matrizDe, notificacaoPara, temPermissao, type MatrizPermissoes, type Notificacao, type Perfil } from '@crads/dominio';
 import { BancoCrads } from './dados/db';
 import { Repositorio } from './dados/repositorio';
 import { idDispositivo, perfisNoViveiro, renovar, sessaoSalva, type Sessao } from './dados/sessao';
 import { SemConexao, SessaoExpirada, Sincronizador } from './dados/sincronizador';
 import { TransporteHttp } from './dados/transporte-http';
 import { pedirArmazenamentoPersistente } from './plataforma/armazenamento';
+import { notificarNoAparelho, tocarSom } from './plataforma/notificar';
 
 export type EstadoSync = 'parado' | 'sincronizando' | 'sem_sinal' | 'entrar_de_novo' | 'erro';
 
@@ -31,6 +32,9 @@ interface ValorApp {
   avisosAbertos: number;
   ultimaSync: string | null;
   sincronizar(): Promise<void>;
+  /** avisos novos (pedido de mudas, aprovação…) ainda na tela */
+  notificacoes: (Notificacao & { id: number })[];
+  fecharNotificacao(id: number): void;
 }
 
 const Contexto = createContext<ValorApp | null>(null);
@@ -53,6 +57,8 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
   dispRef.current = dispositivo;
   const viveiroRef = useRef<string | undefined>(undefined);
   viveiroRef.current = viveiroId;
+  const [notificacoes, setNotificacoes] = useState<(Notificacao & { id: number })[]>([]);
+  const matrizRef = useRef<MatrizPermissoes | undefined>(undefined);
 
   const repo = useMemo(() => new Repositorio(db, () => ({ dispositivoId: dispRef.current, viveiroId: viveiroRef.current })), []);
   const sync = useMemo(
@@ -64,6 +70,16 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
           () => sessaoRef.current?.token ?? null,
         ),
         () => dispRef.current,
+        // Novidade que interessa à pessoa: som, aviso na tela e notificação do aparelho.
+        (colecao, antes, depois) => {
+          const s = sessaoRef.current;
+          if (!s) return;
+          const n = notificacaoPara(colecao, antes, depois, { ...s, permissoes: matrizRef.current });
+          if (!n) return;
+          setNotificacoes((l) => [...l.filter((x) => x.titulo !== n.titulo || x.texto !== n.texto), { ...n, id: Date.now() + Math.random() }].slice(-5));
+          tocarSom();
+          void notificarNoAparelho(n.titulo, n.texto);
+        },
       ),
     [],
   );
@@ -72,6 +88,7 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
   const avisosAbertos = useLiveQuery(() => db._avisos.filter((a) => !a.resolvido).count(), [], 0);
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [], []);
   const matriz = useMemo(() => matrizDe(parametros ?? []), [parametros]);
+  matrizRef.current = matriz;
   const ultimaSync = useLiveQuery(() => db.lerMeta<string | null>('ultima_sincronizacao', null), [], null);
 
   // Abre com a sessão guardada no aparelho (funciona sem internet).
@@ -156,6 +173,8 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
     avisosAbertos: avisosAbertos ?? 0,
     ultimaSync: ultimaSync ?? null,
     sincronizar,
+    notificacoes,
+    fecharNotificacao: (id) => setNotificacoes((l) => l.filter((n) => n.id !== id)),
   };
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

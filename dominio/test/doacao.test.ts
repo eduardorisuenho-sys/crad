@@ -19,11 +19,12 @@ describe('pedido', () => {
     ['ipe', 100],
     ['baru', 10],
   ]);
-  it('bloqueia acima do disponível e do limite por pedido', () => {
-    expect(bloqueiosPedido([{ especie_id: 'ipe', quantidade: 50 }], disp, 1000)).toEqual([]);
-    expect(bloqueiosPedido([{ especie_id: 'baru', quantidade: 20 }], disp, 1000, new Map([['baru', 'Baru']]))).toEqual(['Há 10 mudas de Baru disponíveis.']);
-    expect(bloqueiosPedido([{ especie_id: 'ipe', quantidade: 80 }, { especie_id: 'baru', quantidade: 10 }], disp, 60)).toEqual(['O limite é de 60 mudas por pedido (este tem 90).']);
-    expect(bloqueiosPedido([], disp, 60)).toEqual(['Escolha pelo menos uma espécie.']);
+  it('bloqueia acima do disponível e do limite por espécie; o total do pedido não tem limite', () => {
+    expect(bloqueiosPedido([{ especie_id: 'ipe', quantidade: 30 }], disp, 30)).toEqual([]);
+    expect(bloqueiosPedido([{ especie_id: 'baru', quantidade: 20 }], disp, 30, new Map([['baru', 'Baru']]))).toEqual(['Há 10 mudas de Baru disponíveis.']);
+    expect(bloqueiosPedido([{ especie_id: 'ipe', quantidade: 31 }], disp, 30, new Map([['ipe', 'Ipê']]))).toEqual(['Cada pedido pode ter até 30 mudas de Ipê.']);
+    expect(bloqueiosPedido([{ especie_id: 'ipe', quantidade: 30 }, { especie_id: 'baru', quantidade: 10 }], disp, 30)).toEqual([]);
+    expect(bloqueiosPedido([], disp, 30)).toEqual(['Escolha pelo menos uma espécie.']);
   });
 });
 

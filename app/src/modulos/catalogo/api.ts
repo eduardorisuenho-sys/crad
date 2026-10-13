@@ -10,8 +10,10 @@ export function servidorPublico(servidorDaSessao?: string): string {
   return servidorGuardado();
 }
 
-export function urlFoto(servidor: string, foto: { id: string; arquivo: string; miniatura?: string }, grande = false): string {
+export function urlFoto(servidor: string, foto: { id: string; arquivo: string; miniatura?: string; colecao?: string }, grande = false): string {
   const nome = !grande && foto.miniatura ? foto.miniatura : foto.arquivo;
+  // Foto das mudas tirada no viveiro: rota pública própria.
+  if (foto.colecao === 'foto') return `${servidor.replace(/\/$/, '')}/api/crads/publico/foto/${foto.id}/${nome}`;
   return `${servidor.replace(/\/$/, '')}/api/files/especie_foto/${foto.id}/${nome}`;
 }
 
@@ -53,7 +55,7 @@ export const lerCatalogo = (s: string) => lerComCopia<{ itens: ItemCatalogo[]; g
 export interface EspeciePublica {
   ficha: Record<string, unknown> & { id: string; nome_cientifico: string };
   nomes_populares: string[];
-  fotos: { id: string; parte: string; arquivo: string; miniatura: string; credito: string }[];
+  fotos: { id: string; parte: string; arquivo: string; miniatura: string; credito: string; colecao?: string }[];
   lotes: { disponivel: number; viveiro: string; rastreio: RastreioPublico }[];
 }
 export const lerEspecie = (s: string, id: string) => lerComCopia<EspeciePublica>(s, `/api/crads/publico/especie/${encodeURIComponent(id)}`);

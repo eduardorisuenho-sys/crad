@@ -57,7 +57,7 @@ export function InicioColeta() {
                   <Icone nome="semente" />
                   <div>
                     <strong>
-                      {String(m?.codigo ?? '')} · {nomes?.get(String(m?.especie_id)) ?? ''}
+                      {c.matriz_id ? String(m?.codigo ?? '') : 'Sem matriz'} · {nomes?.get(String(m?.especie_id ?? c.especie_id)) ?? ''}
                     </strong>
                     <small>
                       {new Date(String(c.data)).toLocaleDateString('pt-BR')} · {String(c.quantidade ?? '')} {String(c.unidade ?? '')}

@@ -13,8 +13,9 @@ import { CAMPO_DECIMAL, lerNumero } from '../../plataforma/numero';
 import { FiguraOpcao } from '../assistente/FiguraOpcao';
 import { gravarFoto, prepararFoto, type FotoPendente } from '../matrizes/fotos';
 import { nomesEspecies } from './dados';
+import { EscolherEspecie } from '../especies/EscolherEspecie';
 
-type Etapa = 'matriz' | 'quantidade' | 'material' | 'foto' | 'conferir';
+type Etapa = 'matriz' | 'especie' | 'quantidade' | 'material' | 'foto' | 'conferir';
 const UNIDADES = [
   { valor: 'kg', rotulo: 'Quilos (kg)' },
   { valor: 'g', rotulo: 'Gramas (g)' },
@@ -32,6 +33,8 @@ export function NovaColeta() {
   const [params] = useSearchParams();
   const [etapa, setEtapa] = useState<Etapa>(params.get('matriz') ? 'quantidade' : 'matriz');
   const [matrizId, setMatrizId] = useState<string | null>(params.get('matriz'));
+  // árvore sem matriz cadastrada: só a espécie
+  const [especieId, setEspecieId] = useState<string | null>(null);
   const [gps, setGps] = useState<PosicaoGps | null>(null);
   const [busca, setBusca] = useState('');
   const [aviso, setAviso] = useState('');
@@ -63,7 +66,8 @@ export function NovaColeta() {
   async function salvar() {
     setSalvando(true);
     const c = await repo.salvar('coleta', {
-      matriz_id: matrizId,
+      matriz_id: matrizId || null,
+      especie_id: matrizId ? (matriz?.especie_id ?? null) : especieId,
       data: new Date().toISOString(),
       coletor_id: sessao?.id ?? null,
       material,
@@ -82,11 +86,13 @@ export function NovaColeta() {
       <Icone nome="voltar" /> Voltar
     </button>
   );
-  const cabecalhoMatriz = matriz && (
+  const cabecalhoMatriz = matriz ? (
     <p className="contador">
       {String(matriz.codigo)} · {nomes?.get(String(matriz.especie_id)) ?? ''}
     </p>
-  );
+  ) : especieId ? (
+    <p className="contador">Árvore sem matriz · {nomes?.get(especieId) ?? ''}</p>
+  ) : null;
 
   return (
     <Tela titulo="Nova coleta">
@@ -124,6 +130,32 @@ export function NovaColeta() {
             ))}
             {!lista.length && <li className="vazio">Nenhuma matriz aprovada neste viveiro.</li>}
           </ul>
+          <button
+            className="botao-grande"
+            onClick={() => {
+              setMatrizId(null);
+              setEtapa('especie');
+            }}
+          >
+            <Icone nome="semente" tamanho={40} />
+            <span>
+              Árvore sem matriz cadastrada<small className="dica-botao">Escolher só a espécie</small>
+            </span>
+          </button>
+        </div>
+      )}
+
+      {etapa === 'especie' && (
+        <div className="assistente">
+          <h2 className="pergunta">De qual espécie é a árvore?</h2>
+          <p className="dica">Use quando a árvore não tem matriz cadastrada. O ponto do GPS fica guardado na coleta.</p>
+          <EscolherEspecie
+            aoEscolher={(id) => {
+              setEspecieId(id);
+              setEtapa('quantidade');
+            }}
+          />
+          {voltar('matriz')}
         </div>
       )}
 
@@ -146,7 +178,7 @@ export function NovaColeta() {
           <button className="botao-principal" disabled={!((lerNumero(quantidade) ?? 0) > 0)} onClick={() => setEtapa('material')}>
             Continuar
           </button>
-          {voltar('matriz')}
+          {voltar(matrizId ? 'matriz' : 'especie')}
         </div>
       )}
 
@@ -200,9 +232,7 @@ export function NovaColeta() {
           <h2 className="pergunta">Confira</h2>
           <dl className="ficha">
             <dt>Matriz</dt>
-            <dd>
-              {String(matriz?.codigo ?? '')} · {nomes?.get(String(matriz?.especie_id)) ?? ''}
-            </dd>
+            <dd>{matriz ? `${String(matriz.codigo)} · ${nomes?.get(String(matriz.especie_id)) ?? ''}` : `sem matriz cadastrada · ${nomes?.get(String(especieId)) ?? ''}`}</dd>
             <dt>Colhido</dt>
             <dd>
               {quantidade} {UNIDADES.find((u) => u.valor === unidade)?.rotulo.toLowerCase()} de {material === 'fruto' ? 'frutos' : 'sementes'}

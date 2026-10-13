@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { codigosRestantes } from '@crads/dominio';
+import { AjusteAvisos } from '../componentes/AjusteAvisos';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
@@ -70,6 +71,7 @@ export function Configuracoes() {
           </>
         )}
       </dl>
+      <AjusteAvisos />
       {msg && <p className="mensagem">{msg}</p>}
       <div className="lista-grande">
         <button className="botao-grande" onClick={() => void sincronizar()} disabled={!online || estadoSync === 'sincronizando'}>

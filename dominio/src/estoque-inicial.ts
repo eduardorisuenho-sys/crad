@@ -53,11 +53,11 @@ export function bloqueiosEstoqueInicial(itens: { quantidade: number; fase: strin
 }
 
 /** Cabeçalho do modelo de planilha. */
-export const COLUNAS_ESTOQUE_INICIAL = ['Espécie', 'Quantidade', 'Fase', 'Canteiro', 'Observação'];
+export const COLUNAS_ESTOQUE_INICIAL = ['Espécie', 'Quantidade', 'Canteiro', 'Observação'];
 
 /** Modelo para baixar e preencher (sem dados inventados: só o cabeçalho e um exemplo marcado). */
 export function modeloPlanilhaEstoque(): unknown[][] {
-  return [COLUNAS_ESTOQUE_INICIAL, ['(exemplo: apague esta linha) Nome popular ou científico', 120, 'Pronta', 'Canteiro 3', '']];
+  return [COLUNAS_ESTOQUE_INICIAL, ['(exemplo: apague esta linha) Nome popular ou científico', 120, 'Canteiro 3', '']];
 }
 
 /**
@@ -71,7 +71,6 @@ export function planejarEstoqueInicial(linhas: unknown[][], especies: Reg[], nom
   const col = (...nomes: string[]) => cab.findIndex((c) => nomes.some((n) => c.startsWith(n)));
   const cEsp = col('especie', 'nome');
   const cQtd = col('quantidade', 'qtd', 'total');
-  const cFase = col('fase');
   const cCant = col('canteiro', 'local');
   const cObs = col('observ');
   if (cEsp < 0 || cQtd < 0) return { itens, erros: ['A planilha precisa das colunas "Espécie" e "Quantidade".'] };
@@ -94,8 +93,8 @@ export function planejarEstoqueInicial(linhas: unknown[][], especies: Reg[], nom
     if (!especie) return void erros.push(`Linha ${linha}: espécie "${nome}" não encontrada. Cadastre a espécie antes ou corrija o nome.`);
     const quantidade = Number(qtdTexto.replace(/\./g, '').replace(',', '.'));
     if (!Number.isInteger(quantidade) || quantidade <= 0) return void erros.push(`Linha ${linha}: quantidade inválida (${qtdTexto || 'vazia'}).`);
-    const fase = lerFase(cFase >= 0 ? l[cFase] : '');
-    if (!fase) return void erros.push(`Linha ${linha}: fase "${String(l[cFase])}" desconhecida. Use: Pronta, Rustificação, Crescimento, Repicagem, Germinação ou Semeadura.`);
+    // As mudas que já estavam no viveiro entram prontas para doação (a coluna Fase, se houver, é ignorada).
+    const fase = 'pronta';
     const texto = (c: number) => (c >= 0 ? String(l[c] ?? '').trim() || undefined : undefined);
     itens.push({ especie_id: especie, quantidade, fase, canteiro: texto(cCant), observacao: texto(cObs), linha });
   });

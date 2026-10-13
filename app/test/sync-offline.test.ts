@@ -186,4 +186,18 @@ describe('fluxo sem internet', () => {
     expect(r.recebidos).toBe(8);
     expect(await b.db.colecao('matriz').count()).toBe(8);
   });
+
+  it('avisa as novidades recebidas (com o que o aparelho tinha antes), mas não na primeira carga', async () => {
+    const a = aparelho(servidor, coletor);
+    const m = await a.repo.salvar('matriz', matriz);
+    await a.sync.sincronizar();
+    const recebidas: [string, unknown, unknown][] = [];
+    const db = new BancoCrads(`teste-aviso-${++contador}`);
+    const b = new Sincronizador(db, servidor.transporte(gestor), () => 'aparelhoaviso01', (c, antes, depois) => recebidas.push([c, antes?.situacao_validacao, depois.situacao_validacao]));
+    await b.sincronizar(); // primeira carga: nada
+    expect(recebidas).toEqual([]);
+    servidor.alterarDireto('matriz', m.id, { situacao_validacao: 'aprovada' });
+    await b.sincronizar();
+    expect(recebidas).toEqual([['matriz', undefined, 'aprovada']]);
+  });
 });

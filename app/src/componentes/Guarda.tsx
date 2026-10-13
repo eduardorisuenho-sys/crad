@@ -23,7 +23,7 @@ export function bloqueioDaRota(caminho: string, equipe: boolean, administrador: 
   if (comeca('/viveiro/semeadura')) return algum('producao') ? null : 'Você não tem permissão para semear.';
   if (comeca('/viveiro/inventario')) return algum('inventario') ? null : 'Você não tem permissão para fazer inventário.';
   if (comeca('/viveiro/estoque-inicial')) return algum('estoque_inicial') ? null : 'Você não tem permissão para cadastrar o estoque inicial.';
-  if (comeca('/coleta/lotes/novo')) return algum('lotes_sementes') ? null : 'Você não tem permissão para formar lotes de sementes.';
+  if (comeca('/coleta/lotes/novo', '/coleta/lotes/sementes-iniciais')) return algum('lotes_sementes') ? null : 'Você não tem permissão para formar lotes de sementes.';
   if (comeca('/coleta/nova')) return algum('registrar_coleta') ? null : 'Você não tem permissão para registrar coletas.';
   if (comeca('/matrizes/nova')) return algum('cadastrar_matriz') ? null : 'Você não tem permissão para cadastrar matrizes.';
   if (comeca('/matrizes', '/coleta', '/viveiro', '/ler-qr', '/identificar', '/especies') && !caminho.startsWith('/viveiro-atual')) {

@@ -8,6 +8,7 @@ import { Avisos } from './telas/Avisos';
 import { Configuracoes } from './telas/Configuracoes';
 import { EmBreve } from './telas/EmBreve';
 import { Guarda } from './componentes/Guarda';
+import { Notificacoes } from './componentes/Notificacoes';
 import { Entrar } from './telas/Entrar';
 import { EscolherViveiro, useViveirosDoUsuario } from './telas/EscolherViveiro';
 import { BLOCOS, Inicio } from './telas/Inicio';
@@ -48,6 +49,7 @@ import { Equipe } from './modulos/equipe/Equipe';
 import { Permissoes } from './modulos/equipe/Permissoes';
 import { EstoqueInicial } from './modulos/viveiro/EstoqueInicial';
 import { Lixeira } from './modulos/lixeira/Lixeira';
+import { SementesIniciais } from './modulos/coleta/SementesIniciais';
 import { RelatorioServico } from './modulos/coleta/RelatorioServico';
 
 function Rotas() {
@@ -82,6 +84,8 @@ function Rotas() {
   const precisaEscolher = !viveiroId && (viveiros?.length ?? 0) > 1;
 
   return (
+    <>
+    <Notificacoes />
     <Guarda>
     <Routes>
       {publicas}
@@ -100,6 +104,7 @@ function Rotas() {
       <Route path="/coleta/rota" element={<RotaColeta />} />
       <Route path="/coleta/lotes" element={<ListaLotes />} />
       <Route path="/coleta/lotes/novo" element={<NovoLote />} />
+      <Route path="/coleta/lotes/sementes-iniciais" element={<SementesIniciais />} />
       <Route path="/coleta/lotes/:id" element={<DetalheLote />} />
       <Route path="/coleta/armazenamento" element={<Armazenamento />} />
       <Route path="/viveiro" element={<InicioViveiro />} />
@@ -125,12 +130,13 @@ function Rotas() {
       <Route path="/especies/:id" element={<FichaEspecie />} />
       <Route path="/avisos" element={<Avisos />} />
       <Route path="/configuracoes" element={<Configuracoes />} />
-      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo', '/doacao', '/pos-plantio', '/relatorios', '/equipe'].includes(b.rota)).map((b) => (
+      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo', '/doacao', '/pos-plantio', '/relatorios', '/equipe', '/lixeira'].includes(b.rota)).map((b) => (
         <Route key={b.rota} path={`${b.rota}/*`} element={<EmBreve titulo={b.rotulo} icone={b.icone} />} />
       ))}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Guarda>
+    </>
   );
 }
 

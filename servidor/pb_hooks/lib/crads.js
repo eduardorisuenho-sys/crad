@@ -45,6 +45,7 @@ __export(crads_exports, {
   arquivoParaLer: () => arquivoParaLer,
   auditarPainel: () => auditarPainel,
   catalogoPublico: () => catalogoPublico,
+  contatoDoacao: () => contatoDoacao,
   contextoDe: () => contextoDe,
   criarConta: () => criarConta,
   enviar: () => enviar,
@@ -55,6 +56,7 @@ __export(crads_exports, {
   especiePublica: () => especiePublica,
   eu: () => eu,
   expirarPrazos: () => expirarPrazos,
+  fotoMudaPublica: () => fotoMudaPublica,
   lixeira: () => lixeira,
   lixeiraApagar: () => lixeiraApagar,
   lixeiraRestaurar: () => lixeiraRestaurar,
@@ -121,7 +123,7 @@ var COLECOES = [
     nome: "viveiro",
     natureza: "cadastro",
     porViveiro: false,
-    campos: [t("sigla", true), t("nome", true), r("municipio_id", "municipio"), t("endereco"), b("ativo")],
+    campos: [t("sigla", true), t("nome", true), r("municipio_id", "municipio"), t("endereco"), t("telefone"), b("ativo")],
     indices: ["sigla"],
     leitura: "todos",
     escrita: SO_GESTOR
@@ -334,8 +336,9 @@ var COLECOES = [
     nome: "coleta",
     natureza: "cadastro",
     porViveiro: true,
-    campos: [r("matriz_id", "matriz", true), d("data", true), r("coletor_id", "users"), o("material", ["fruto", "semente"]), n("quantidade"), o("unidade", ["g", "kg", "litros", "frutos", "unidades"]), n("lat"), n("lon"), t("observacao")],
-    indices: ["matriz_id", "data"],
+    // matriz_id vazio = árvore sem matriz cadastrada (aí a espécie vem em especie_id)
+    campos: [r("matriz_id", "matriz"), r("especie_id", "especie"), d("data", true), r("coletor_id", "users"), o("material", ["fruto", "semente"]), n("quantidade"), o("unidade", ["g", "kg", "litros", "frutos", "unidades"]), n("lat"), n("lon"), t("observacao")],
+    indices: ["matriz_id", "especie_id", "data"],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: ["coletor", "viveirista", "gestor"]
   },
@@ -356,6 +359,9 @@ var COLECOES = [
     campos: [
       t("codigo", true),
       r("especie_id", "especie", true),
+      // estoque_inicial = sementes que já estavam no viveiro antes do app
+      o("origem", ["coleta", "estoque_inicial"]),
+      t("observacao_origem"),
       d("data_formacao"),
       n("peso_g"),
       n("sementes_estimadas"),
@@ -436,7 +442,10 @@ var COLECOES = [
       r("analisado_por", "users"),
       d("analisado_em"),
       t("justificativa"),
-      d("retirar_ate")
+      d("retirar_ate"),
+      // retirada combinada entre o viveiro e quem pediu
+      d("retirada_combinada"),
+      t("retirada_obs")
     ],
     indices: ["codigo", "situacao", "solicitante_usuario_id"],
     leitura: "todos",
@@ -486,7 +495,7 @@ var PARAMETROS_PADRAO = {
   min_matrizes_por_lote: { valor: 12, descricao: "M\xEDnimo de matrizes num lote de sementes antes do alerta de diversidade" },
   distancia_min_matrizes_m: { valor: 100, descricao: "Dist\xE2ncia m\xEDnima entre matrizes da mesma esp\xE9cie (metros)" },
   prazo_retirada_dias: { valor: 30, descricao: "Dias para retirar as mudas depois da aprova\xE7\xE3o" },
-  limite_mudas_por_pedido: { valor: 1e3, descricao: "M\xE1ximo de mudas num pedido" },
+  limite_mudas_por_especie: { valor: 30, descricao: "M\xE1ximo de mudas de cada esp\xE9cie num pedido (o total do pedido n\xE3o tem limite)" },
   perfis_aprovadores: { valor: ["gestor"], descricao: "Perfis que podem aprovar doa\xE7\xF5es" },
   dias_sessao_offline: { valor: 30, descricao: "Dias que o aparelho pode ficar sem entrar na internet antes de pedir login de novo" },
   fotos_obrigatorias_matriz: { valor: ["arvore", "folha"], descricao: "Fotos que o coletor precisa tirar para salvar a matriz" },
@@ -745,6 +754,7 @@ function violacaoRegra(col, antes, depois, ctx) {
       if (!antes && !depois.lote_sementes_id) return "Informe o lote de sementes da semeadura.";
     }
   }
+  if (col.nome === "coleta" && !depois.matriz_id && !depois.especie_id) return "Informe a matriz ou, se a \xE1rvore n\xE3o tem matriz cadastrada, a esp\xE9cie.";
   if (col.nome === "movimento_estoque_mudas") {
     const tarefa = !antes && depois.tipo === "entrada" && depois.referencia === "estoque inicial" ? "estoque_inicial" : depois.tipo === "saida_doacao" ? "retirada" : depois.tipo === "ajuste_inventario" ? "inventario" : "producao";
     if (!temPermissao(ctx, tarefa, depois.viveiro_id) && !temPermissao(ctx, "producao", depois.viveiro_id)) return "Voc\xEA n\xE3o tem permiss\xE3o para este movimento de mudas.";
@@ -1135,7 +1145,7 @@ function montarCatalogo(d2) {
         nomes_populares: ((_d = populares.get(e.id)) != null ? _d : []).map((n2) => String(n2.nome)),
         por_viveiro: [],
         total: 0,
-        foto: fs[0] ? { id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String((_e = fs[0].miniatura) != null ? _e : ""), parte: String(fs[0].parte) } : void 0
+        foto: fs[0] ? __spreadValues({ id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String((_e = fs[0].miniatura) != null ? _e : ""), parte: String(fs[0].parte) }, fs[0].colecao ? { colecao: String(fs[0].colecao) } : {}) : void 0
       };
       itens.set(e.id, item);
     }
@@ -1162,12 +1172,19 @@ function montarRastreio(lote, d2) {
   const ls = d2.lotesSementes.find((l) => l.id === lote.lote_sementes_id && !l.excluido);
   if (!ls) return r2;
   const coletaIds = new Set(ativos2(d2.ligacoes).filter((l) => l.lote_sementes_id === ls.id).map((l) => String(l.coleta_id)));
-  const matrizIds = new Set(ativos2(d2.coletas).filter((c) => coletaIds.has(c.id)).map((c) => String(c.matriz_id)));
+  const doLote = ativos2(d2.coletas).filter((c) => coletaIds.has(c.id));
+  const matrizIds = new Set(doLote.filter((c) => c.matriz_id).map((c) => String(c.matriz_id)));
+  const semMatriz = doLote.filter((c) => !c.matriz_id).length;
   const nomesMun = new Map(d2.municipios.map((m) => [m.id, String(m.nome)]));
   const municipios = /* @__PURE__ */ new Set();
   for (const m of d2.matrizes) if (matrizIds.has(m.id) && m.municipio_id) municipios.add((_d = nomesMun.get(String(m.municipio_id))) != null ? _d : "");
   municipios.delete("");
-  r2.lote_sementes = { codigo: String(ls.codigo), data_formacao: String((_e = ls.data_formacao) != null ? _e : ""), matrizes: matrizIds.size, municipios: [...municipios].sort() };
+  r2.lote_sementes = __spreadValues(__spreadValues({
+    codigo: String(ls.codigo),
+    data_formacao: String((_e = ls.data_formacao) != null ? _e : ""),
+    matrizes: matrizIds.size,
+    municipios: [...municipios].sort()
+  }, semMatriz ? { arvores_sem_matriz: semMatriz } : {}), ls.origem === "estoque_inicial" ? { estoque_inicial: true } : {});
   return r2;
 }
 var CAMPOS_FICHA_PUBLICA = [
@@ -1990,6 +2007,20 @@ function apagarConta(app, auth, usuarioId) {
   });
   return { ok: true };
 }
+function contatoDoacao(app, auth, id) {
+  var _a, _b, _c;
+  const ctx = contextoDe(app, auth);
+  const rec = buscar(app, "doacao", id);
+  if (!rec || rec.getBool("excluido")) throw new Error("Pedido n\xE3o encontrado.");
+  const doacao = paraObjeto(colecao("doacao"), rec);
+  if (!temPermissao(ctx, "retirada", doacao.viveiro_id)) throw new Error("Voc\xEA n\xE3o tem permiss\xE3o para ver o contato de quem pediu.");
+  if (!SITUACOES_APROVADAS.includes(String(doacao.situacao))) throw new Error("O contato aparece depois que o pedido \xE9 aprovado.");
+  const pessoa = buscar(app, "pessoa", String((_a = doacao.solicitante_pessoa_id) != null ? _a : ""));
+  const dados = pessoa ? app.findRecordsByFilter("dados_pessoais", "pessoa_id = {:p} && excluido = false", "-created", 1, 0, { p: pessoa.id })[0] : null;
+  const telefone = dados ? String((_b = dados.get("telefone")) != null ? _b : "") : "";
+  auditar(app, { colecao: "doacao", registro_id: id, acao: "ver_contato", antes: null, depois: null, usuario_id: ctx.id });
+  return { nome: pessoa ? String((_c = pessoa.get("nome")) != null ? _c : "") : "", telefone };
+}
 var hojeISO = () => (/* @__PURE__ */ new Date()).toISOString();
 function lerParametro(app, chave, viveiroId) {
   return parametro(todos(app, "parametro"), chave, viveiroId);
@@ -2011,6 +2042,8 @@ function analisarDoacao(app, auth, id, corpo) {
       const item = itens.find((i) => i.id === itemId);
       if (!item) throw new Error("Item do pedido n\xE3o encontrado.");
       if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error("Quantidade aprovada inv\xE1lida.");
+      const limite = lerParametro(tx, "limite_mudas_por_especie", viveiroId);
+      if (q > limite) throw new Error(`Cada pedido pode ter at\xE9 ${limite} mudas de cada esp\xE9cie.`);
     }
     const aprovados = itens.map((i) => {
       var _a2;
@@ -2074,8 +2107,24 @@ function dadosCatalogo(app) {
     lotesMudas: todos(app, "lote_mudas"),
     movimentos: todos(app, "movimento_estoque_mudas"),
     reservas: todos(app, "reserva"),
-    fotos: todos(app, "especie_foto")
+    fotos: [...fotosDasMudas(app), ...todos(app, "especie_foto")]
   };
+}
+function fotosDasMudas(app) {
+  const lotes = new Map(todos(app, "lote_mudas").map((l) => [l.id, l]));
+  return todos(app, "foto").filter((f) => f.entidade === "lote_mudas" && f.arquivo && lotes.has(String(f.registro_id))).sort((a, b2) => {
+    var _a, _b, _c, _d;
+    return String((_b = (_a = b2.tirada_em) != null ? _a : b2.criado_no_aparelho_em) != null ? _b : "").localeCompare(String((_d = (_c = a.tirada_em) != null ? _c : a.criado_no_aparelho_em) != null ? _d : ""));
+  }).map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id)).especie_id, parte: "muda", arquivo: f.arquivo, miniatura: f.miniatura, credito: "Viveiro", colecao: "foto" }));
+}
+function fotoMudaPublica(app, id, arquivo) {
+  const f = buscar(app, "foto", id);
+  if (!f || f.getBool("excluido") || f.getString("entidade") !== "lote_mudas") throw new Error("foto n\xE3o encontrada");
+  if (![f.getString("arquivo"), f.getString("miniatura")].includes(arquivo) || !arquivo) throw new Error("foto n\xE3o encontrada");
+  const lote = buscar(app, "lote_mudas", f.getString("registro_id"));
+  const especie = lote && !lote.getBool("excluido") ? buscar(app, "especie", lote.getString("especie_id")) : null;
+  if (!especie || !especie.getBool("publicada") || especie.getBool("ficticia") || especie.getBool("excluido")) throw new Error("foto n\xE3o encontrada");
+  return { chave: `${f.baseFilesPath()}/${arquivo}`, nome: arquivo };
 }
 function catalogoPublico(app) {
   return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: (/* @__PURE__ */ new Date()).toISOString() };
@@ -2113,7 +2162,7 @@ function especiePublica(app, id) {
     nomes_populares: d2.nomesPopulares.filter((n2) => n2.especie_id === id).map((n2) => String(n2.nome)),
     fotos: d2.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => {
       var _a;
-      return { id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: (_a = f.credito) != null ? _a : "" };
+      return __spreadValues({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: (_a = f.credito) != null ? _a : "" }, f.colecao ? { colecao: f.colecao } : {});
     }),
     lotes
   };

@@ -38,6 +38,7 @@ export function violacaoRegra(col: Colecao, antes: Reg | null, depois: Reg, ctx:
       if (!antes && !depois.lote_sementes_id) return 'Informe o lote de sementes da semeadura.';
     }
   }
+  if (col.nome === 'coleta' && !depois.matriz_id && !depois.especie_id) return 'Informe a matriz ou, se a árvore não tem matriz cadastrada, a espécie.';
   if (col.nome === 'movimento_estoque_mudas') {
     // Cada movimento pede a permissão da tarefa que o gera.
     const tarefa = !antes && depois.tipo === 'entrada' && depois.referencia === 'estoque inicial' ? 'estoque_inicial' : depois.tipo === 'saida_doacao' ? 'retirada' : depois.tipo === 'ajuste_inventario' ? 'inventario' : 'producao';

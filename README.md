@@ -29,16 +29,15 @@ Mudas que já estavam no viveiro (estoque inicial), em Viveiro → "Mudas que
 já estavam aqui":
 
 - Três formas, todas sem internet:
-  - **uma espécie por vez**: espécie → quantidade → fase (já vem "Pronta") →
-    canteiro opcional;
+  - **uma espécie por vez**: espécie → quantidade → foto das mudas
+    (opcional) → canteiro opcional;
   - **várias de uma vez**: lista de espécies com a quantidade ao lado;
   - **planilha** (.xlsx ou .csv), com as colunas Espécie (nome popular ou
-    científico), Quantidade, Fase, Canteiro e Observação. Há um botão para
+    científico), Quantidade, Canteiro e Observação. Há um botão para
     baixar o modelo, e a prévia mostra as linhas com problema antes de gravar.
 - Cada espécie vira um lote **LM-AAAA-I-NNN** (I de inicial), com plaqueta e
   QR. O código definitivo vem do servidor na sincronização.
-- As que estão na fase **Pronta** ficam disponíveis para doação (catálogo,
-  pedidos, reservas e retirada). Como são as mais antigas, saem primeiro nas
+- Entram **prontas para doação** (catálogo, pedidos, reservas e retirada). Como são as mais antigas, saem primeiro nas
   reservas.
 - Espécie que ainda não está no catálogo (as importadas da planilha entram
   assim) não aparece para quem pede mudas. O app avisa no Viveiro, em
@@ -50,6 +49,51 @@ já estavam aqui":
   relatórios mostram o total separado.
 - Quem pode, por padrão: gestor e viveirista (linha própria na tabela de
   permissões).
+
+Sementes sem matriz cadastrada:
+
+- **Coleta em árvore sem matriz**: em Registrar coleta, o botão "Árvore sem
+  matriz cadastrada" pede só a espécie (o ponto do GPS fica guardado). A
+  coleta entra no lote da mesma espécie com um alerta e não conta como
+  matriz na diversidade.
+- **Sementes que já estavam aqui** (Lotes de sementes): espécie, peso e, se
+  souber, de onde vieram. Vira um lote de sementes normal (pode semear). O
+  rastreio público diz que as árvores de origem não foram registradas.
+
+Doação: combinar a retirada e baixa no estoque:
+
+- Depois da aprovação, o pedido mostra **Combinar a retirada**:
+  - quem entrega as mudas (viveirista ou gestor) toca em **Ver telefone de
+    quem pediu** (com internet), liga ou chama no WhatsApp e marca o **dia
+    combinado** com uma observação. Cada vez que alguém vê o telefone, isso
+    fica registrado na auditoria (LGPD);
+  - quem pediu vê o dia combinado, o telefone e o endereço do viveiro
+    (cadastre em Viveiros → tocar no viveiro).
+- Na retirada, cada muda entregue **sai do estoque do lote** (baixa), a
+  reserva é consumida e o catálogo é atualizado.
+
+Avisos com som:
+
+- O app toca um som, vibra e mostra um aviso quando chega:
+  - para quem aprova: **pedido de mudas novo**;
+  - para quem pediu: **pedido aprovado**, recusado ou **retirada combinada**;
+  - para quem entrega: **pedido aprovado** (combinar a retirada);
+  - para quem valida matrizes: **matriz nova**; para o coletor: **matriz
+    aprovada ou reprovada**;
+  - para quem cuida da equipe: **pedido de acesso**.
+- Tocar no aviso abre a tela certa. Em Ajustes → Avisos com som: ligar ou
+  desligar o som e **permitir notificações no aparelho**.
+- O app confere as novidades a cada minuto **enquanto está aberto** (também
+  em segundo plano). Com o app totalmente fechado, o aviso aparece na
+  próxima vez que ele for aberto.
+
+Excluir o que foi preenchido errado:
+
+- Nas fichas de matriz, lote de sementes e lote de mudas: **Excluir
+  (preenchido errado)**, para o administrador e para quem fez o cadastro.
+  Vai para a lixeira. Não exclui se houver algo ativo ligado (ex.: lote com
+  mudas já entregues numa doação) e diz o motivo.
+- A **Lixeira** aparece na tela inicial do administrador.
 
 Identificar com ajuda do Google Lens (com internet):
 
@@ -179,8 +223,12 @@ O que o Módulo 5 entrega:
     pedido do balcão;
   - o pedido traz espécies e quantidades, finalidade, município, local (com
     ponto do GPS), área, dados do solicitante e ofício anexado (PDF ou foto);
-  - **o que passa do disponível ou do limite por pedido é bloqueado**;
-  - CPF, CNPJ e telefone ficam na tabela que só o gestor lê.
+  - **até 30 mudas de cada espécie por pedido** (parâmetro
+    `limite_mudas_por_especie`); o total do pedido não tem limite. O que
+    passa do disponível também é bloqueado;
+  - CPF, CNPJ e telefone ficam na tabela que só o gestor lê. A exceção é o
+    telefone, que quem entrega as mudas vê depois da aprovação para combinar a
+    retirada (fica registrado na auditoria).
 - **Relatório do pedido em PDF**, gerado no aparelho, para anexar ao ofício.
 - **Análise** (aprovar tudo, em parte ou recusar com motivo):
   - **precisa de internet**: o servidor reserva as mudas dos **lotes prontos
@@ -241,12 +289,13 @@ O que o Módulo 3 entrega (tudo funciona sem internet):
   - só a diferença para a contagem anterior entra no estoque;
   - contagem menor que a anterior é recusada (para mudas mortas, use "Perda").
 - **Perdas**, com causa. **Perda maior que o saldo é bloqueada.**
-- **Fases** (semeadura → germinação → repicagem → crescimento → rustificação → pronta):
-  - só avançam e podem pular etapas;
-  - mostram a previsão de ficar pronta (pelo tempo médio da espécie) e o aviso de atraso.
-- **Medição** (altura média) e **repicagem** (novo recipiente e canteiro), no histórico do lote.
+- **Sem fases intermediárias**: o lote está **em formação** ou **pronto para
+  doação**. O botão "Marcar como pronta" libera as mudas para doação.
+- **Fotos das mudas** em cada lote. A mais recente aparece no catálogo
+  (quando a espécie não tem foto própria, e sempre na ficha).
+- **Medição** (altura média), no histórico do lote.
 - **Inventário:** contagem por lote; as diferenças viram ajustes no estoque.
-- **Lista do viveiro** por fase, com saldo, germinação, atraso e mudas prontas por espécie.
+- **Lista do viveiro**: prontas para doação ou em formação, com saldo e mudas prontas por espécie.
 - **Rastreio:** o lote de mudas leva ao lote de sementes, que leva às matrizes.
 
 O que o Módulo 2 entrega (tudo funciona sem internet):

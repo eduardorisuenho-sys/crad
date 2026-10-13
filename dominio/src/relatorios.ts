@@ -132,7 +132,7 @@ export function indicadores(d: DadosRelatorio, f: FiltroRelatorio = {}, programa
     coletas: {
       total: coletas.length,
       kg: Math.round(coletas.reduce((s, c) => s + (emGramas(c.quantidade as number, c.unidade as string) ?? 0), 0) / 10) / 100,
-      matrizes: new Set(coletas.map((c) => c.matriz_id)).size,
+      matrizes: new Set(coletas.filter((c) => c.matriz_id).map((c) => c.matriz_id)).size,
     },
     sementes: { lotes: lotesS.length, estoque_g: Math.round(estoque_g * 100) / 100 },
     mudas: { lotes: lotesM.length, semeadas, germinadas, taxa_germinacao: taxaGerminacao(semeadas, germinadas), perdas, por_fase, prontas: por_fase.pronta ?? 0, estoque_inicial },

@@ -47,6 +47,8 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
       op({ colecao: 'viveiro', registro_id: VIV, tipo: 'criar', dados: { sigla: 'DOA', nome: 'Viveiro Doação', ativo: true } }),
       op({ colecao: 'usuario_viveiro', tipo: 'criar', dados: { usuario_id: viveirista.id, perfil: 'viveirista', viveiro_id: VIV } }),
       op({ colecao: 'especie', registro_id: especie, tipo: 'criar', dados: { nome_cientifico: 'Doacia teste', publicada: true } }),
+      // estes testes usam pedidos grandes: o limite por espécie (padrão 30) fica alto aqui
+      op({ colecao: 'parametro', tipo: 'criar', dados: { chave: 'limite_mudas_por_especie', valor: 1000 } }),
       op({ colecao: 'lote_mudas', registro_id: loteNovo, tipo: 'criar', dados: { codigo: 'LM-2026-002-A', lote_sementes_id: 'x', especie_id: especie, data_semeadura: '2026-05-01', fase_atual: 'pronta', viveiro_id: VIV } }),
       op({ colecao: 'lote_mudas', registro_id: loteVelho, tipo: 'criar', dados: { codigo: 'LM-2026-001-A', lote_sementes_id: 'x', especie_id: especie, data_semeadura: '2026-01-01', fase_atual: 'pronta', viveiro_id: VIV } }),
       op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: loteVelho, tipo: 'entrada', quantidade: 30, data: '2026-03-01', viveiro_id: VIV } }),

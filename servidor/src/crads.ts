@@ -733,6 +733,25 @@ export function apagarConta(app: App, auth: RecordPB, usuarioId: string) {
   return { ok: true };
 }
 
+/**
+ * GET /api/crads/doacao/{id}/contato — telefone de quem pediu, para o viveiro
+ * combinar a retirada. Só com o pedido aprovado e para quem entrega mudas
+ * naquele viveiro (LGPD: o acesso fica registrado na auditoria).
+ */
+export function contatoDoacao(app: App, auth: RecordPB, id: string) {
+  const ctx = contextoDe(app, auth);
+  const rec = buscar(app, 'doacao', id);
+  if (!rec || rec.getBool('excluido')) throw new Error('Pedido não encontrado.');
+  const doacao = paraObjeto(colecao('doacao'), rec);
+  if (!temPermissao(ctx, 'retirada', doacao.viveiro_id)) throw new Error('Você não tem permissão para ver o contato de quem pediu.');
+  if (!SITUACOES_APROVADAS.includes(String(doacao.situacao))) throw new Error('O contato aparece depois que o pedido é aprovado.');
+  const pessoa = buscar(app, 'pessoa', String(doacao.solicitante_pessoa_id ?? ''));
+  const dados = pessoa ? app.findRecordsByFilter('dados_pessoais', 'pessoa_id = {:p} && excluido = false', '-created', 1, 0, { p: pessoa.id })[0] : null;
+  const telefone = dados ? String(dados.get('telefone') ?? '') : '';
+  auditar(app, { colecao: 'doacao', registro_id: id, acao: 'ver_contato', antes: null, depois: null, usuario_id: ctx.id });
+  return { nome: pessoa ? String(pessoa.get('nome') ?? '') : '', telefone };
+}
+
 // ---------------------------------------------------------------------------
 // doação: análise com reservas (só com internet) e expiração dos prazos
 
@@ -764,6 +783,8 @@ export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { it
       const item = itens.find((i: Registro) => i.id === itemId);
       if (!item) throw new Error('Item do pedido não encontrado.');
       if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error('Quantidade aprovada inválida.');
+      const limite = lerParametro<number>(tx, 'limite_mudas_por_especie', viveiroId);
+      if (q > limite) throw new Error(`Cada pedido pode ter até ${limite} mudas de cada espécie.`);
     }
     const aprovados = itens.map((i: Registro) => ({ item: i, qtd: pedidoAprovado.get(i.id) ?? 0 }));
     const situacao = situacaoAposAnalise(aprovados.map((a: { item: Registro; qtd: number }) => ({ qtd_pedida: Number(a.item.qtd_pedida), qtd_aprovada: a.qtd })));
@@ -831,8 +852,31 @@ function dadosCatalogo(app: App): DadosCatalogo {
     lotesMudas: todos(app, 'lote_mudas'),
     movimentos: todos(app, 'movimento_estoque_mudas'),
     reservas: todos(app, 'reserva'),
-    fotos: todos(app, 'especie_foto'),
+    fotos: [...fotosDasMudas(app), ...todos(app, 'especie_foto')],
   };
+}
+
+/**
+ * Fotos das mudas tiradas no viveiro, no formato das fotos da espécie (as
+ * mais recentes primeiro). Vão para o catálogo pela rota pública de fotos.
+ */
+function fotosDasMudas(app: App): Livre[] {
+  const lotes = new Map(todos(app, 'lote_mudas').map((l) => [l.id, l]));
+  return todos(app, 'foto')
+    .filter((f) => f.entidade === 'lote_mudas' && f.arquivo && lotes.has(String(f.registro_id)))
+    .sort((a, b) => String(b.tirada_em ?? b.criado_no_aparelho_em ?? '').localeCompare(String(a.tirada_em ?? a.criado_no_aparelho_em ?? '')))
+    .map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id))!.especie_id, parte: 'muda', arquivo: f.arquivo, miniatura: f.miniatura, credito: 'Viveiro', colecao: 'foto' }));
+}
+
+/** GET /api/crads/publico/foto/{id}/{arquivo} — foto das mudas de um lote de espécie publicada. */
+export function fotoMudaPublica(app: App, id: string, arquivo: string): { chave: string; nome: string } {
+  const f = buscar(app, 'foto', id);
+  if (!f || f.getBool('excluido') || f.getString('entidade') !== 'lote_mudas') throw new Error('foto não encontrada');
+  if (![f.getString('arquivo'), f.getString('miniatura')].includes(arquivo) || !arquivo) throw new Error('foto não encontrada');
+  const lote = buscar(app, 'lote_mudas', f.getString('registro_id'));
+  const especie = lote && !lote.getBool('excluido') ? buscar(app, 'especie', lote.getString('especie_id')) : null;
+  if (!especie || !especie.getBool('publicada') || especie.getBool('ficticia') || especie.getBool('excluido')) throw new Error('foto não encontrada');
+  return { chave: `${f.baseFilesPath()}/${arquivo}`, nome: arquivo };
 }
 
 /** GET /api/crads/publico/catalogo */
@@ -868,7 +912,7 @@ export function especiePublica(app: App, id: string) {
   return {
     ficha: fichaPublica(e),
     nomes_populares: d.nomesPopulares.filter((n) => n.especie_id === id).map((n) => String(n.nome)),
-    fotos: d.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => ({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: f.credito ?? '' })),
+    fotos: d.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => ({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: f.credito ?? '', ...(f.colecao ? { colecao: f.colecao } : {}) })),
     lotes,
   };
 }

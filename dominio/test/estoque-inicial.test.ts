@@ -23,28 +23,26 @@ describe('estoque inicial (mudas que já estavam no viveiro)', () => {
     expect(proximoCodigoLoteMudas('LS-2026-001', ['LM-2026-I-001', 'LM-2026-001-A'])).toBe('LM-2026-001-B');
   });
 
-  it('lê a planilha: nome científico ou popular, fase por extenso, linha de exemplo ignorada', () => {
+  it('lê a planilha: nome científico ou popular, linha de exemplo ignorada, tudo entra pronto para doação', () => {
     const linhas = [
-      ['Espécie', 'Quantidade', 'Fase', 'Canteiro', 'Observação'],
+      ['Espécie', 'Quantidade', 'Canteiro', 'Observação'],
       ...modeloPlanilhaEstoque().slice(1),
-      ['arvore alfa', '1.200', 'Pronta p/ doação', 'C3', ''],
-      ['FICTICIA BETA', 40, 'Rustificação', '', 'sacos grandes'],
-      ['Ficticia beta', 10, '', '', ''],
-      ['Desconhecida', 5, 'Pronta', '', ''],
-      ['Ficticia alfa', 'muitas', 'Pronta', '', ''],
-      ['Ficticia alfa', 3, 'Florindo', '', ''],
-      ['', '', '', '', ''],
+      ['arvore alfa', '1.200', 'C3', ''],
+      ['FICTICIA BETA', 40, '', 'sacos grandes'],
+      ['Desconhecida', 5, '', ''],
+      ['Ficticia alfa', 'muitas', '', ''],
+      ['', '', '', ''],
     ];
     const r = planejarEstoqueInicial(linhas, especies, populares);
     expect(r.itens).toEqual([
       { especie_id: 'e1', quantidade: 1200, fase: 'pronta', canteiro: 'C3', observacao: undefined, linha: 3 },
-      { especie_id: 'e2', quantidade: 40, fase: 'rustificacao', canteiro: undefined, observacao: 'sacos grandes', linha: 4 },
-      { especie_id: 'e2', quantidade: 10, fase: 'pronta', canteiro: undefined, observacao: undefined, linha: 5 },
+      { especie_id: 'e2', quantidade: 40, fase: 'pronta', canteiro: undefined, observacao: 'sacos grandes', linha: 4 },
     ]);
-    expect(r.erros).toHaveLength(3);
-    expect(r.erros[0]).toMatch(/Linha 6: espécie "Desconhecida" não encontrada/);
-    expect(r.erros[1]).toMatch(/Linha 7: quantidade inválida/);
-    expect(r.erros[2]).toMatch(/Linha 8: fase "Florindo"/);
+    expect(r.erros).toHaveLength(2);
+    expect(r.erros[0]).toMatch(/Linha 5: espécie "Desconhecida" não encontrada/);
+    expect(r.erros[1]).toMatch(/Linha 6: quantidade inválida/);
+    // planilha antiga com a coluna Fase: a coluna é ignorada
+    expect(planejarEstoqueInicial([['Espécie', 'Quantidade', 'Fase'], ['Ficticia alfa', 3, 'Crescimento']], especies, []).itens[0].fase).toBe('pronta');
     expect(planejarEstoqueInicial([['Nome', 'Qtd']], especies, []).erros).toEqual([]);
     expect(planejarEstoqueInicial([['A', 'B']], especies, []).erros[0]).toMatch(/colunas/);
   });

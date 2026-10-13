@@ -8,6 +8,7 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
 import { BotaoPlantandoAgua } from './BotaoPlantandoAgua';
+import { CombinarRetirada } from './CombinarRetirada';
 import { disponivelLocal, doacoesNoPrograma, itensDoPedido, ROTULO_SITUACAO } from './dados';
 import { abrirPdf, relatorioPedido, termoDoacao, type DadosPdf } from './pdf';
 
@@ -183,6 +184,8 @@ export function DetalhePedido() {
           </div>
         </section>
       )}
+
+      {SITUACOES_APROVADAS.includes(situacao) && doacao.versao !== 0 && <CombinarRetirada doacao={doacao} viveiro={viveiro} />}
 
       {pode('retirada', doacao.viveiro_id) && SITUACOES_APROVADAS.includes(situacao) && (
         <>

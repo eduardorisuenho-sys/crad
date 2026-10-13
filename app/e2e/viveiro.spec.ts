@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { abrirModulo, entrarComoViveirista, lerDoServidor } from './apoio';
 
-test('viveirista semeia, conta germinação, registra perda, muda de fase e faz inventário sem internet', async ({ page, context }) => {
+test('viveirista semeia, conta germinação, registra perda, marca como pronta e faz inventário sem internet', async ({ page, context }) => {
   await entrarComoViveirista(page);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await context.setOffline(true);
@@ -72,13 +72,12 @@ test('viveirista semeia, conta germinação, registra perda, muda de fase e faz 
   await registrar('Registrar');
   await expect(page.getByTestId('saldo-mudas')).toHaveText('140');
 
-  // Fase: só avança
-  await registrar('Mudar de fase');
-  await page.getByRole('button', { name: 'Rustificação' }).click();
+  // Sem fases intermediárias: em formação → pronta para doação
+  await expect(page.getByTestId('resumo-lm')).toContainText('Em formação');
+  await registrar('Marcar como pronta');
   await registrar('Registrar');
-  await expect(page.getByTestId('resumo-lm')).toContainText('Rustificação');
-  await registrar('Mudar de fase');
-  await expect(page.locator('.cartao', { hasText: 'Registrar' }).getByRole('button', { name: 'Crescimento' })).toHaveCount(0);
+  await expect(page.getByTestId('resumo-lm')).toContainText('Pronta para doação');
+  await expect(page.getByRole('button', { name: 'Marcar como pronta', exact: true })).toHaveCount(0);
 
   // Inventário: contou 137 → ajuste de −3
   await page.goto('/');
@@ -92,7 +91,7 @@ test('viveirista semeia, conta germinação, registra perda, muda de fase e faz 
   await context.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
   const [lm] = (await lerDoServidor('lote_mudas')).filter((l) => l.sementes_semeadas === 200);
-  expect(lm).toMatchObject({ fase_atual: 'rustificacao', recipiente: 'tubete', canteiro: 'C3' });
+  expect(lm).toMatchObject({ fase_atual: 'pronta', recipiente: 'tubete', canteiro: 'C3' });
   // No servidor, o LM ganha o código definitivo derivado do LS definitivo.
   const ls = (await lerDoServidor('lote_sementes')).find((l) => l.id === lm.lote_sementes_id)!;
   expect(String(ls.codigo)).toMatch(/^LS-\d{4}-\d{3}$/);

@@ -18,8 +18,15 @@ export function CadeiaLote({ r }: { r: RastreioPublico }) {
         <li>
           <Icone nome="arvore" tamanho={28} />
           <span>
-            Sementes de <b>{r.lote_sementes.matrizes} árvore(s) matriz(es)</b>
-            {r.lote_sementes.municipios.length ? ` em ${r.lote_sementes.municipios.join(', ')}` : ''}
+            {r.lote_sementes.estoque_inicial ? (
+              <>Sementes que já estavam no viveiro antes do sistema: as árvores de origem não foram registradas</>
+            ) : (
+              <>
+                Sementes de <b>{r.lote_sementes.matrizes} árvore(s) matriz(es)</b>
+                {r.lote_sementes.arvores_sem_matriz ? ` e de ${r.lote_sementes.arvores_sem_matriz} coleta(s) em árvore sem matriz cadastrada` : ''}
+                {r.lote_sementes.municipios.length ? ` em ${r.lote_sementes.municipios.join(', ')}` : ''}
+              </>
+            )}
           </span>
         </li>
       )}

@@ -25,7 +25,8 @@ export interface ItemCatalogo {
   /** mudas prontas disponíveis (já sem as reservas), por viveiro */
   por_viveiro: { viveiro_id: string; viveiro: string; disponivel: number }[];
   total: number;
-  foto?: { id: string; arquivo: string; miniatura: string; parte: string };
+  /** colecao = 'foto' quando é foto das mudas de um lote (servida por outra rota) */
+  foto?: { id: string; arquivo: string; miniatura: string; parte: string; colecao?: string };
 }
 
 const ativos = (rs: Reg[]) => rs.filter((r) => !r.excluido);
@@ -99,7 +100,7 @@ export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
         nomes_populares: (populares.get(e.id) ?? []).map((n) => String(n.nome)),
         por_viveiro: [],
         total: 0,
-        foto: fs[0] ? { id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String(fs[0].miniatura ?? ''), parte: String(fs[0].parte) } : undefined,
+        foto: fs[0] ? { id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String(fs[0].miniatura ?? ''), parte: String(fs[0].parte), ...(fs[0].colecao ? { colecao: String(fs[0].colecao) } : {}) } : undefined,
       };
       itens.set(e.id, item);
     }
@@ -117,7 +118,7 @@ export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
 
 export interface RastreioPublico {
   lote_mudas: { codigo: string; viveiro: string; data_semeadura: string; fase: string; estoque_inicial?: boolean };
-  lote_sementes?: { codigo: string; data_formacao: string; matrizes: number; municipios: string[] };
+  lote_sementes?: { codigo: string; data_formacao: string; matrizes: number; municipios: string[]; arvores_sem_matriz?: number; estoque_inicial?: boolean };
 }
 
 /**
@@ -135,12 +136,21 @@ export function montarRastreio(
   const ls = d.lotesSementes.find((l) => l.id === lote.lote_sementes_id && !l.excluido);
   if (!ls) return r;
   const coletaIds = new Set(ativos(d.ligacoes).filter((l) => l.lote_sementes_id === ls.id).map((l) => String(l.coleta_id)));
-  const matrizIds = new Set(ativos(d.coletas).filter((c) => coletaIds.has(c.id)).map((c) => String(c.matriz_id)));
+  const doLote = ativos(d.coletas).filter((c) => coletaIds.has(c.id));
+  const matrizIds = new Set(doLote.filter((c) => c.matriz_id).map((c) => String(c.matriz_id)));
+  const semMatriz = doLote.filter((c) => !c.matriz_id).length;
   const nomesMun = new Map(d.municipios.map((m) => [m.id, String(m.nome)]));
   const municipios = new Set<string>();
   for (const m of d.matrizes) if (matrizIds.has(m.id) && m.municipio_id) municipios.add(nomesMun.get(String(m.municipio_id)) ?? '');
   municipios.delete('');
-  r.lote_sementes = { codigo: String(ls.codigo), data_formacao: String(ls.data_formacao ?? ''), matrizes: matrizIds.size, municipios: [...municipios].sort() };
+  r.lote_sementes = {
+    codigo: String(ls.codigo),
+    data_formacao: String(ls.data_formacao ?? ''),
+    matrizes: matrizIds.size,
+    municipios: [...municipios].sort(),
+    ...(semMatriz ? { arvores_sem_matriz: semMatriz } : {}),
+    ...(ls.origem === 'estoque_inicial' ? { estoque_inicial: true } : {}),
+  };
   return r;
 }
 

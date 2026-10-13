@@ -17,8 +17,8 @@ export interface ItemPedido {
   quantidade: number;
 }
 
-/** Bloqueios do pedido: quantidade válida, dentro do disponível e do limite por pedido. */
-export function bloqueiosPedido(itens: ItemPedido[], disponivelPorEspecie: Map<string, number>, limitePorPedido: number, nomes?: Map<string, string>): string[] {
+/** Bloqueios do pedido: quantidade válida, dentro do disponível e do limite por espécie (o total não tem limite). */
+export function bloqueiosPedido(itens: ItemPedido[], disponivelPorEspecie: Map<string, number>, limitePorEspecie: number, nomes?: Map<string, string>): string[] {
   const b: string[] = [];
   const validos = itens.filter((i) => i.quantidade > 0);
   if (!validos.length) b.push('Escolha pelo menos uma espécie.');
@@ -27,9 +27,8 @@ export function bloqueiosPedido(itens: ItemPedido[], disponivelPorEspecie: Map<s
     if (!Number.isInteger(i.quantidade)) b.push(`Quantidade de ${nome} deve ser um número inteiro.`);
     const disp = disponivelPorEspecie.get(i.especie_id) ?? 0;
     if (i.quantidade > disp) b.push(`Há ${disp} mudas de ${nome} disponíveis.`);
+    if (i.quantidade > limitePorEspecie) b.push(`Cada pedido pode ter até ${limitePorEspecie} mudas de ${nome}.`);
   }
-  const total = validos.reduce((s, i) => s + i.quantidade, 0);
-  if (total > limitePorPedido) b.push(`O limite é de ${limitePorPedido} mudas por pedido (este tem ${total}).`);
   return b;
 }
 

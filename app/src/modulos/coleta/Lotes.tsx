@@ -24,9 +24,17 @@ export function ListaLotes() {
   return (
     <Tela titulo="Lotes de sementes">
       {pode('lotes_sementes') && (
-        <Link to="/coleta/lotes/novo" className="botao-principal">
-          <Icone nome="mais" /> Formar lote
-        </Link>
+        <>
+          <Link to="/coleta/lotes/novo" className="botao-principal">
+            <Icone nome="mais" /> Formar lote
+          </Link>
+          <Link to="/coleta/lotes/sementes-iniciais" className="botao-grande">
+            <Icone nome="semente" tamanho={36} />
+            <span>
+              Sementes que já estavam aqui<small className="dica-botao">Sementes guardadas antes do app, sem matriz</small>
+            </span>
+          </Link>
+        </>
       )}
       <ul className="lista">
         {lotes.map((l) => {
@@ -79,7 +87,7 @@ export function NovoLote() {
   const porEspecie = useMemo(() => {
     const m = new Map<string, Registro[]>();
     for (const c of livres) {
-      const e = String(matrizes?.get(String(c.matriz_id))?.especie_id ?? '');
+      const e = String((c.matriz_id ? matrizes?.get(String(c.matriz_id))?.especie_id : c.especie_id) ?? '');
       if (!e) continue;
       (m.get(e) ?? m.set(e, []).get(e)!).push(c);
     }
@@ -151,7 +159,7 @@ export function NovoLote() {
                 <li key={c.id} className="item-lista candidata">
                   <input
                     type="checkbox"
-                    aria-label={`Coleta da matriz ${m?.codigo}`}
+                    aria-label={m ? `Coleta da matriz ${m.codigo}` : 'Coleta de árvore sem matriz'}
                     checked={marcadas.has(c.id)}
                     onChange={() => {
                       const n = new Set(marcadas);
@@ -161,7 +169,7 @@ export function NovoLote() {
                     }}
                   />
                   <div>
-                    <strong>{String(m?.codigo ?? '')}</strong>
+                    <strong>{m ? String(m.codigo) : 'Árvore sem matriz'}</strong>
                     <small>
                       {new Date(String(c.data)).toLocaleDateString('pt-BR')} · {String(c.quantidade ?? '')} {String(c.unidade ?? '')}
                     </small>

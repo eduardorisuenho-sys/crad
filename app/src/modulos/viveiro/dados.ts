@@ -2,13 +2,14 @@
 import { saldoMudas, saldoSementes, type Registro } from '@crads/dominio';
 import type { Repositorio } from '../../dados/repositorio';
 
+/** O viveiro só distingue duas situações: em formação ou pronta para doação. */
 export const ROTULO_FASE: Record<string, string> = {
-  semeadura: 'Semeadura',
-  germinacao: 'Germinação',
-  repicagem: 'Repicagem',
-  crescimento: 'Crescimento',
-  rustificacao: 'Rustificação',
-  pronta: 'Pronta',
+  semeadura: 'Em formação',
+  germinacao: 'Em formação',
+  repicagem: 'Em formação',
+  crescimento: 'Em formação',
+  rustificacao: 'Em formação',
+  pronta: 'Pronta para doação',
 };
 export const RECIPIENTES = [
   { valor: 'tubete', rotulo: 'Tubete' },

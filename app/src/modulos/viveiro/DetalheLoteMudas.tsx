@@ -2,15 +2,17 @@
 import { useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { atrasado, bloqueioMudancaFase, bloqueioSaidaMudas, dataPrevistaPronta, entradaPorContagem, proximasFases, saldoMudas, taxaGerminacao } from '@crads/dominio';
+import { atrasado, bloqueioSaidaMudas, dataPrevistaPronta, entradaPorContagem, saldoMudas, taxaGerminacao } from '@crads/dominio';
 import { CodigoQr } from '../../componentes/CodigoQr';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { CAMPO_DECIMAL, lerNumero, mostrarNumero } from '../../plataforma/numero';
 import { nomesEspecies } from '../coleta/dados';
 import { RECIPIENTES, ROTULO_FASE } from './dados';
+import { BotaoExcluir } from '../../componentes/BotaoExcluir';
+import { FotosLote } from './FotosLote';
 
-type Acao = '' | 'contagem' | 'perda' | 'fase' | 'medicao' | 'repicagem';
+type Acao = '' | 'contagem' | 'perda' | 'pronta' | 'medicao';
 const CAUSAS = ['Seca', 'Praga ou formiga', 'Doença', 'Descarte', 'Outra'];
 const ROTULO_EVENTO: Record<string, string> = {
   semeadura: 'Semeadura',
@@ -36,9 +38,6 @@ export function DetalheLoteMudas() {
   const [acao, setAcao] = useState<Acao>('');
   const [valor, setValor] = useState('');
   const [causa, setCausa] = useState(CAUSAS[0]);
-  const [fase, setFase] = useState('');
-  const [recipiente, setRecipiente] = useState('tubete');
-  const [canteiro, setCanteiro] = useState('');
   const [erro, setErro] = useState('');
   const [msg, setMsg] = useState('');
 
@@ -67,18 +66,13 @@ export function DetalheLoteMudas() {
       if (b) return setErro(b);
       await repo.salvar('evento_lote_mudas', { ...base, tipo: 'perda', quantidade: q, causa });
       await repo.salvar('movimento_estoque_mudas', { ...base, tipo: 'perda', quantidade: q, referencia: causa });
-    } else if (acao === 'fase') {
-      const b = bloqueioMudancaFase(faseAtual, fase);
-      if (b) return setErro(b);
-      await repo.salvar('evento_lote_mudas', { ...base, tipo: 'mudanca_fase', fase_nova: fase, quantidade: saldo });
-      await repo.salvar('lote_mudas', { fase_atual: fase }, id);
+    } else if (acao === 'pronta') {
+      await repo.salvar('evento_lote_mudas', { ...base, tipo: 'mudanca_fase', fase_nova: 'pronta', quantidade: saldo });
+      await repo.salvar('lote_mudas', { fase_atual: 'pronta' }, id);
     } else if (acao === 'medicao') {
       const cm = lerNumero(valor);
       if (!cm || cm <= 0) return setErro('Informe a altura média em centímetros.');
       await repo.salvar('evento_lote_mudas', { ...base, tipo: 'medicao', altura_media_cm: cm });
-    } else if (acao === 'repicagem') {
-      await repo.salvar('evento_lote_mudas', { ...base, tipo: 'repicagem', quantidade: saldo, observacao: `${recipiente}${canteiro ? `, canteiro ${canteiro}` : ''}` });
-      await repo.salvar('lote_mudas', { recipiente, canteiro: canteiro || lote!.canteiro || null, ...(faseAtual === 'semeadura' || faseAtual === 'germinacao' ? { fase_atual: 'repicagem' } : {}) }, id);
     }
     setAcao('');
     setValor('');
@@ -86,11 +80,10 @@ export function DetalheLoteMudas() {
   }
 
   const ACOES: { id: Acao; rotulo: string }[] = [
-    { id: 'contagem', rotulo: 'Contar germinação' },
+    ...(faseAtual !== 'pronta' ? [{ id: 'pronta' as Acao, rotulo: 'Marcar como pronta' }] : []),
+    ...(!inicial && faseAtual !== 'pronta' ? [{ id: 'contagem' as Acao, rotulo: 'Contar germinação' }] : []),
     { id: 'perda', rotulo: 'Perda' },
-    { id: 'fase', rotulo: 'Mudar de fase' },
     { id: 'medicao', rotulo: 'Medir' },
-    { id: 'repicagem', rotulo: 'Repicagem' },
   ];
 
   return (
@@ -137,6 +130,8 @@ export function DetalheLoteMudas() {
         <dd data-testid="origem-lm">{inicial ? String(lote.observacao_origem || 'Estoque inicial: origem das sementes não registrada.') : ls ? <Link to={`/coleta/lotes/${ls.id}`}>{String(ls.codigo)}</Link> : '—'}</dd>
       </dl>
 
+      <FotosLote loteId={lote.id} viveiroId={String(lote.viveiro_id ?? '')} />
+
       <section className="cartao nao-imprimir">
         <h2>Registrar</h2>
         <div className="meses">
@@ -169,35 +164,12 @@ export function DetalheLoteMudas() {
                 </div>
               </>
             )}
-            {acao === 'fase' && (
-              <div className="meses">
-                {proximasFases(faseAtual).map((f) => (
-                  <button key={f} type="button" className={`chip ${fase === f ? 'ativo' : ''}`} onClick={() => setFase(f)}>
-                    {ROTULO_FASE[f]}
-                  </button>
-                ))}
-              </div>
-            )}
+            {acao === 'pronta' && <p>As {saldo} mudas deste lote vão ficar disponíveis para doação.</p>}
             {acao === 'medicao' && (
               <label>
                 Altura média (cm)
                 <input {...CAMPO_DECIMAL} value={valor} onChange={(e) => setValor(e.target.value)} />
               </label>
-            )}
-            {acao === 'repicagem' && (
-              <>
-                <div className="meses">
-                  {RECIPIENTES.map((r) => (
-                    <button key={r.valor} type="button" className={`chip ${recipiente === r.valor ? 'ativo' : ''}`} onClick={() => setRecipiente(r.valor)}>
-                      {r.rotulo}
-                    </button>
-                  ))}
-                </div>
-                <label>
-                  Novo canteiro (opcional)
-                  <input value={canteiro} onChange={(e) => setCanteiro(e.target.value)} />
-                </label>
-              </>
             )}
             {erro && <p className="erro">{erro}</p>}
             <button className="botao-principal">Registrar</button>
@@ -219,6 +191,7 @@ export function DetalheLoteMudas() {
           ))}
         </ul>
       </section>
+      <BotaoExcluir colecao="lote_mudas" registro={lote} voltarPara="/viveiro" />
     </Tela>
   );
 }

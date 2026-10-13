@@ -218,3 +218,28 @@ routerAdd("GET", "/api/crads/arquivo/{colecao}/{id}/{campo}", (e) => {
     fsys.close();
   }
 }, $apis.requireAuth("users"));
+
+routerAdd("GET", "/api/crads/doacao/{id}/contato", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.contatoDoacao($app, e.auth, e.request.pathValue("id")));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("GET", "/api/crads/publico/foto/{id}/{arquivo}", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  let alvo;
+  try {
+    alvo = crads.fotoMudaPublica($app, e.request.pathValue("id"), e.request.pathValue("arquivo"));
+  } catch (err) {
+    throw new NotFoundError(String(err).replace(/^Error: /, ""));
+  }
+  const fsys = $app.newFilesystem();
+  try {
+    fsys.serve(e.response, e.request, alvo.chave, alvo.nome);
+  } finally {
+    fsys.close();
+  }
+});

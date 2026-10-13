@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
-import { bloqueiosEstoqueInicial, escreverXlsx, FASES_MUDA, lerCsv, lerXlsx, modeloPlanilhaEstoque, normalizarBusca, planejarEstoqueInicial, type ItemEstoqueInicial } from '@crads/dominio';
+import { bloqueiosEstoqueInicial, escreverXlsx, lerCsv, lerXlsx, modeloPlanilhaEstoque, normalizarBusca, planejarEstoqueInicial, type ItemEstoqueInicial } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -13,26 +13,18 @@ import { nomesEspecies } from '../coleta/dados';
 import { EscolherEspecie } from '../especies/EscolherEspecie';
 import { baixar } from '../relatorios/dados';
 import { cadastrarEstoqueInicial } from './estoque';
-import { ROTULO_FASE } from './dados';
+import { BotaoFoto } from '../../componentes/BotaoFoto';
+import { MiniaturaBlob } from '../../componentes/Miniatura';
+import { gravarFoto, prepararFoto, type FotoPendente } from '../matrizes/fotos';
 import { ForaDoCatalogo } from '../doacao/ForaDoCatalogo';
 
 type Modo = 'escolher' | 'uma' | 'lista' | 'planilha';
-const FASES = [...FASES_MUDA].reverse(); // Pronta primeiro
-
-function EscolherFase({ fase, aoMudar }: { fase: string; aoMudar: (f: string) => void }) {
-  return (
-    <div className="filtros" role="group" aria-label="Fase">
-      {FASES.map((f) => (
-        <button type="button" key={f} className={`chip ${fase === f ? 'ativo' : ''}`} onClick={() => aoMudar(f)}>
-          {ROTULO_FASE[f]}
-        </button>
-      ))}
-    </div>
-  );
-}
+// As mudas que já estavam no viveiro entram prontas para doação.
+const fase = 'pronta';
 
 export function EstoqueInicial() {
   const { db, repo, pode, viveiroId } = useApp();
+  const [foto, setFoto] = useState<FotoPendente | null>(null);
   const navegar = useNavigate();
   const [modo, setModo] = useState<Modo>('escolher');
   const [msg, setMsg] = useState('');
@@ -42,7 +34,6 @@ export function EstoqueInicial() {
   // ---- uma espécie por vez
   const [especie, setEspecie] = useState('');
   const [qtd, setQtd] = useState('');
-  const [fase, setFase] = useState('pronta');
   const [canteiro, setCanteiro] = useState('');
 
   // ---- lista
@@ -118,7 +109,7 @@ export function EstoqueInicial() {
           <button className="botao-grande" onClick={() => setModo('planilha')}>
             <Icone nome="relatorio" tamanho={40} />
             <span>
-              Importar planilha<small className="dica-botao">Excel ou CSV: Espécie, Quantidade, Fase</small>
+              Importar planilha<small className="dica-botao">Excel ou CSV: Espécie e Quantidade</small>
             </span>
           </button>
         </div>
@@ -136,7 +127,9 @@ export function EstoqueInicial() {
           onSubmit={async (e) => {
             e.preventDefault();
             const ok = await gravar([{ especie_id: especie, quantidade: Number(qtd), fase, canteiro }], '');
+            if (ok && foto) await gravarFoto(db, repo, 'lote_mudas', ok[0], viveiroId ?? undefined, foto);
             if (ok) {
+              setFoto(null);
               setEspecie('');
               setQtd('');
               setCanteiro('');
@@ -148,8 +141,12 @@ export function EstoqueInicial() {
             Quantas mudas?
             <input className="campo-grande" inputMode="numeric" pattern="[0-9]*" value={qtd} onChange={(e) => setQtd(e.target.value.replace(/\D/g, ''))} required autoFocus />
           </label>
-          <span className="rotulo">Em que fase?</span>
-          <EscolherFase fase={fase} aoMudar={setFase} />
+          <div className="linha-foto">
+            {foto && <MiniaturaBlob blob={foto.miniatura} alt="Foto das mudas" tamanho={72} />}
+            <BotaoFoto aoEscolher={async (f) => setFoto(await prepararFoto(f, 'muda', null))} className="botao-secundario">
+              <Icone nome="camera" /> {foto ? 'Trocar a foto' : 'Tirar foto das mudas (opcional)'}
+            </BotaoFoto>
+          </div>
           <label>
             Onde estão? (opcional)
             <input value={canteiro} onChange={(e) => setCanteiro(e.target.value)} placeholder="Ex.: canteiro 3" />
@@ -166,8 +163,6 @@ export function EstoqueInicial() {
       {modo === 'lista' && (
         <>
           <p className="dica">Escreva a quantidade só nas espécies que existem no viveiro.</p>
-          <span className="rotulo">Fase de todas</span>
-          <EscolherFase fase={fase} aoMudar={setFase} />
           <input className="campo-busca" type="search" placeholder="Procurar espécie" value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Procurar espécie" />
           <ul className="lista" data-testid="lista-estoque">
             {especies
@@ -208,7 +203,7 @@ export function EstoqueInicial() {
         <>
           <section className="cartao">
             <h2>1. Baixe o modelo</h2>
-            <p>Colunas: Espécie (nome popular ou científico), Quantidade, Fase (se vazia, vale “Pronta”), Canteiro e Observação.</p>
+            <p>Colunas: Espécie (nome popular ou científico), Quantidade, Canteiro e Observação.</p>
             <button
               className="botao-secundario"
               onClick={() => baixar(new Blob([escreverXlsx([{ nome: 'Estoque inicial', linhas: modeloPlanilhaEstoque() }]) as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'modelo-estoque-inicial.xlsx')}
@@ -234,7 +229,7 @@ export function EstoqueInicial() {
           <ul className="historico">
             {plano.itens.map((i) => (
               <li key={i.linha}>
-                {nomes?.get(i.especie_id)}: {i.quantidade} · {ROTULO_FASE[i.fase]}
+                {nomes?.get(i.especie_id)}: {i.quantidade}
                 {i.canteiro ? ` · ${i.canteiro}` : ''}
               </li>
             ))}
