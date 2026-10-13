@@ -222,14 +222,17 @@ O que o Módulo 5 entrega:
   - o solicitante pede pelo app, a partir do catálogo; a equipe registra o
     pedido do balcão;
   - o pedido traz espécies e quantidades, finalidade, município, local (com
-    ponto do GPS), área, dados do solicitante e ofício anexado (PDF ou foto);
+    ponto do GPS), área e dados do solicitante. **Não precisa de ofício**;
   - **até 30 mudas de cada espécie por pedido** (parâmetro
     `limite_mudas_por_especie`); o total do pedido não tem limite. O que
     passa do disponível também é bloqueado;
   - CPF, CNPJ e telefone ficam na tabela que só o gestor lê. A exceção é o
     telefone, que quem entrega as mudas vê depois da aprovação para combinar a
     retirada (fica registrado na auditoria).
-- **Relatório do pedido em PDF**, gerado no aparelho, para anexar ao ofício.
+- **Solicitação de mudas em PDF**, gerada no aparelho (também sem internet):
+  é o documento do pedido, com dados, mudas, texto de compromisso e linha
+  para assinatura. O botão **Baixar a solicitação em PDF** aparece logo
+  depois de enviar e fica na ficha do pedido.
 - **Análise** (aprovar tudo, em parte ou recusar com motivo):
   - **precisa de internet**: o servidor reserva as mudas dos **lotes prontos
     mais antigos primeiro**, numa transação, e duas pessoas nunca reservam a

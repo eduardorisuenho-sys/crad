@@ -22,6 +22,7 @@ export function DetalhePedido() {
   const itens = useLiveQuery(() => itensDoPedido(db, id!), [id]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const pessoa = useLiveQuery(() => (doacao ? db.colecao('pessoa').get(String(doacao.solicitante_pessoa_id)) : undefined), [doacao?.solicitante_pessoa_id]);
+  const municipio = useLiveQuery(() => (doacao?.municipio_plantio_id ? db.colecao('municipio').get(String(doacao.municipio_plantio_id)) : undefined), [doacao?.municipio_plantio_id]);
   const viveiro = useLiveQuery(() => (doacao ? db.colecao('viveiro').get(String(doacao.viveiro_id)) : undefined), [doacao?.viveiro_id]);
   const disp = useLiveQuery(() => (doacao ? disponivelLocal(db, String(doacao.viveiro_id)) : undefined), [doacao?.viveiro_id]);
   const instalacao = useLiveQuery(async () => (await db.colecao('instalacao').toArray())[0], [db]);
@@ -50,6 +51,8 @@ export function DetalhePedido() {
       instituicao: String(doacao!.instituicao ?? ''),
       finalidade: String(doacao!.finalidade ?? ''),
       local: String(doacao!.local_plantio ?? ''),
+      // o local já costuma trazer o município digitado: não repete
+      municipio: municipio && !String(doacao!.local_plantio ?? '').includes(String(municipio.nome)) ? String(municipio.nome) : '',
       area_ha: (doacao!.area_ha as number) || null,
       data: new Date().toLocaleDateString('pt-BR'),
       programa: noPrograma?.has(doacao!.id) ? 'Plantando Água' : undefined,
@@ -91,7 +94,15 @@ export function DetalhePedido() {
 
   return (
     <Tela titulo={`Pedido ${String(doacao.codigo)}`}>
-      {params.get('novo') && <p className="mensagem">Pedido registrado.{doacao.versao === 0 ? ' Ele vai para análise quando houver sinal.' : ''}</p>}
+      {params.get('novo') && (
+        <section className="cartao" data-testid="pedido-registrado">
+          <p className="mensagem">Pedido registrado.{doacao.versao === 0 ? ' Ele vai para análise quando houver sinal.' : ''}</p>
+          <p className="dica">Não precisa de ofício: baixe a solicitação, que já é o documento do pedido.</p>
+          <button className="botao-principal" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
+            <Icone nome="baixar" /> Baixar a solicitação em PDF
+          </button>
+        </section>
+      )}
       {msg && <p className="mensagem">{msg}</p>}
       <dl className="ficha" data-testid="resumo-pedido">
         <dt>Situação</dt>
@@ -200,8 +211,8 @@ export function DetalhePedido() {
       )}
 
       <div className="acoes">
-        <button className="botao-secundario" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `pedido-${String(doacao.codigo)}.pdf`)}>
-          Relatório do pedido (PDF)
+        <button className="botao-secundario" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
+          <Icone nome="baixar" /> Solicitação de mudas (PDF)
         </button>
         {situacao === 'retirada' && (
           <button

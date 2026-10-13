@@ -28,7 +28,6 @@ export function NovoPedido() {
   const [quantidades, setQuantidades] = useState<Record<string, string>>({});
   const [plantio, setPlantio] = useState({ finalidade: '', municipio: '', local: '', area: '', lat: null as number | null, lon: null as number | null });
   const [pessoa, setPessoa] = useState({ nome: equipe ? '' : sessao?.nome ?? '', instituicao: '', tipo: 'fisica', documento: '', telefone: '' });
-  const [oficio, setOficio] = useState<File | null>(null);
   const [programa, setPrograma] = useState(false);
   const [erros, setErros] = useState<string[]>([]);
   const [salvando, setSalvando] = useState(false);
@@ -87,7 +86,6 @@ export function NovoPedido() {
       situacao: 'enviada',
     });
     for (const i of itens) await repo.salvar('doacao_item', { doacao_id: doacao.id, especie_id: i.especie_id, qtd_pedida: i.quantidade, viveiro_id: viveiro, ...(equipe ? {} : { solicitante_usuario_id: sessao?.id }) });
-    if (oficio) await repo.anexarArquivo('doacao', doacao.id, 'oficio', oficio, oficio.name);
     if (programa) await marcarPrograma(db, repo, doacao, true, sessao?.nome ?? '');
     navegar(`/doacao/${doacao.id}?novo=1`, { replace: true });
   }
@@ -249,10 +247,6 @@ export function NovoPedido() {
             <input type="tel" inputMode="tel" value={pessoa.telefone} onChange={(e) => setPessoa({ ...pessoa, telefone: e.target.value })} />
           </label>
           <p className="dica">CPF, CNPJ e telefone só são vistos pelo gestor.</p>
-          <label>
-            Ofício de solicitação (PDF ou foto, opcional)
-            <input type="file" accept="application/pdf,image/*" onChange={(e) => setOficio(e.target.files?.[0] ?? null)} />
-          </label>
           <button className="botao-principal">Continuar</button>
           {voltar('plantio')}
         </form>

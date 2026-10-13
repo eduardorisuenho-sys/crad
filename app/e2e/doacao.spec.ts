@@ -5,7 +5,7 @@ const ESPECIE = 'Árvore-da-doação';
 
 test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada sem internet com assinatura e termo', async ({ browser }) => {
   // ---- 1. solicitante pede mudas
-  const cs = await browser.newContext();
+  const cs = await browser.newContext({ acceptDownloads: true });
   const s = await cs.newPage();
   await entrarComoSolicitante(s);
   await abrirModulo(s, 'Doação de mudas');
@@ -21,9 +21,14 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await s.getByRole('button', { name: 'Continuar' }).click();
   await s.getByLabel('CPF').fill('000.000.000-00');
   await s.getByLabel('Telefone').fill('63 90000-0003');
+  await expect(s.getByText(/Ofício/)).toHaveCount(0); // não precisa anexar ofício
   await s.getByRole('button', { name: 'Continuar' }).click();
   await s.getByRole('button', { name: 'Enviar pedido' }).click();
   await expect(s.getByText('Pedido registrado')).toBeVisible();
+  // o próprio app gera a solicitação em PDF
+  const pdfSolicitacao = s.waitForEvent('download');
+  await s.getByRole('button', { name: 'Baixar a solicitação em PDF' }).click();
+  expect((await pdfSolicitacao).suggestedFilename()).toMatch(/^solicitacao-DO-.*\.pdf$/);
   await expect(s.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   const codigo = (await s.getByRole('heading', { level: 1 }).innerText()).replace('Pedido ', '').trim();
   expect(codigo).toMatch(/^DO-\d{4}-\d{3}$/);

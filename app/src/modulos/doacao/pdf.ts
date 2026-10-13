@@ -1,6 +1,7 @@
 /**
  * PDFs do Módulo 5, gerados no próprio aparelho (funcionam sem internet):
- * relatório do pedido (para anexar ao ofício) e termo de doação (na retirada).
+ * solicitação de mudas (o próprio documento do pedido, não precisa de ofício)
+ * e termo de doação (na retirada).
  * O texto do termo vem da configuração da instalação; o modelo oficial da
  * secretaria entra aí quando for enviado.
  */
@@ -20,6 +21,7 @@ export interface DadosPdf {
   documento?: string;
   finalidade?: string;
   local?: string;
+  municipio?: string;
   area_ha?: number | null;
   data: string;
   itens: LinhaPdf[];
@@ -90,6 +92,7 @@ async function documento(titulo: string, d: DadosPdf) {
   linha('Instituição', d.instituicao);
   linha('Documento', d.documento);
   linha('Finalidade', d.finalidade);
+  linha('Município', d.municipio);
   linha('Local do plantio', d.local);
   linha('Área (ha)', d.area_ha);
   linha('Programa', d.programa);
@@ -122,11 +125,33 @@ async function documento(titulo: string, d: DadosPdf) {
   return { pdf, y: y + 10 };
 }
 
-/** Relatório do pedido: o solicitante anexa ao ofício. */
+/** Texto da solicitação (vale como o pedido formal; não precisa de ofício). */
+export function textoSolicitacao(d: Pick<DadosPdf, 'solicitante' | 'instituicao' | 'finalidade' | 'municipio' | 'local' | 'viveiro'>): string {
+  const quem = d.instituicao ? `${d.solicitante}, representando ${d.instituicao},` : `${d.solicitante}`;
+  const onde = [d.local, d.municipio].filter(Boolean).join(', ');
+  return (
+    `Eu, ${quem} solicito ao Centro de Recuperação de Áreas Degradadas (CRAD)${d.viveiro ? `, ${d.viveiro},` : ''} a doação das mudas nativas relacionadas acima` +
+    `${d.finalidade ? `, para ${d.finalidade.toLowerCase()}` : ''}${onde ? `, no local: ${onde}` : ''}. ` +
+    'Comprometo-me a plantar e cuidar das mudas no local informado e a informar o plantio e o acompanhamento quando solicitado. ' +
+    'Declaro estar ciente de que a quantidade doada depende da análise do órgão ambiental e do estoque disponível no momento da aprovação.'
+  );
+}
+
+/** Solicitação de mudas em PDF: gerada pelo app, substitui o ofício. */
 export async function relatorioPedido(d: DadosPdf): Promise<Blob> {
-  const { pdf, y } = await documento('Pedido de mudas', d);
-  pdf.setFontSize(9);
-  pdf.text(pdf.splitTextToSize('Documento gerado pelo app do CRAD para anexar ao ofício de solicitação de mudas. A quantidade depende da análise do órgão ambiental e do estoque no momento da aprovação.', 180), 15, y);
+  const { pdf, y: y0 } = await documento('Solicitação de mudas nativas', d);
+  let y = y0;
+  pdf.setFontSize(10);
+  const texto = pdf.splitTextToSize(textoSolicitacao(d), 180);
+  pdf.text(texto, 15, y);
+  y += 5 * texto.length + 22;
+  pdf.text(`Local e data: ______________________________, ${d.data}`, 15, y);
+  y += 22;
+  pdf.line(15, y, 105, y);
+  pdf.text(d.solicitante || 'Solicitante', 15, y + 5);
+  pdf.setFontSize(8);
+  pdf.text('Assinatura do solicitante', 15, y + 10);
+  pdf.text(`Pedido ${d.codigo} registrado pelo app do CRAD. Acompanhe a análise pelo app.`, 15, 285);
   return pdf.output('blob');
 }
 
