@@ -91,7 +91,7 @@ export function RotaColeta() {
           </text>
         </svg>
       ) : (
-        <p className="vazio">Nenhuma matriz aprovada com GPS neste viveiro.</p>
+        <p className="vazio">Nenhuma matriz ativa com GPS neste viveiro.</p>
       )}
       <p className="dica">
         <span className="ponto verde" /> fruto maduro nos últimos {DIAS_FRUTO} dias · <span className="ponto azul" /> outras matrizes · <span className="ponto escuro" /> você

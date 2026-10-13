@@ -60,7 +60,7 @@ export function RegistrarPlantio() {
   }
 
   return (
-    <Tela titulo={`Plantio ${String(doacao.codigo)}`}>
+    <Tela titulo={`Registrar plantio ${String(doacao.codigo)}`}>
       {etapa === 'quantidades' && (
         <div className="assistente">
           <h2 className="pergunta">Quantas mudas foram plantadas?</h2>

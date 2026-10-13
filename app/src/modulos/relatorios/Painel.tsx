@@ -7,7 +7,6 @@ import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { mostrarNumero } from '../../plataforma/numero';
-import { ROTULO_FASE } from '../viveiro/dados';
 import { baixar, carregarDadosRelatorio } from './dados';
 import { csvIndicadores, kml, pdfIndicadores, planilha, tabelas } from './exportacoes';
 import { Barras } from './Graficos';
@@ -47,7 +46,7 @@ export function PainelRelatorios() {
   async function exportar(tipo: 'pdf' | 'xlsx' | 'csv' | 'kml') {
     setGerando(tipo);
     try {
-      if (tipo === 'pdf') baixar(await pdfIndicadores('Relatório do CRAD', recorte, r!, 'Secretaria de Meio Ambiente e Recursos Hídricos do Tocantins'), `crad-relatorio-${sufixo}.pdf`);
+      if (tipo === 'pdf') baixar(await pdfIndicadores('Relatório do CRAD', recorte, r!, 'Secretaria do Meio Ambiente e Recursos Hídricos do Tocantins'), `crad-relatorio-${sufixo}.pdf`);
       if (tipo === 'xlsx') baixar(planilha(dados!, filtro, r!, programa), `crad-relatorio-${sufixo}.xlsx`);
       if (tipo === 'csv') {
         const [, , , doacoes] = tabelas(dados!, filtro, programa);
@@ -112,7 +111,13 @@ export function PainelRelatorios() {
       </ul>
 
       <section className="cartao">
-        <Barras titulo="Mudas no viveiro, por fase (agora)" itens={Object.keys(ROTULO_FASE).filter((f) => r.mudas.por_fase[f]).map((f) => ({ rotulo: ROTULO_FASE[f], valor: r.mudas.por_fase[f] }))} />
+        <Barras
+          titulo="Mudas no viveiro (agora)"
+          itens={[
+            { rotulo: 'Prontas para doação', valor: r.mudas.por_fase.pronta ?? 0 },
+            { rotulo: 'Em formação', valor: Object.entries(r.mudas.por_fase).reduce((s, [f, n]) => s + (f === 'pronta' ? 0 : n), 0) },
+          ].filter((i) => i.valor)}
+        />
       </section>
 
       {porViveiro.length > 1 && (
@@ -162,7 +167,7 @@ export function PainelRelatorios() {
           <Icone nome="lupa" /> Rastrear um código
         </Link>
         <Link to="/transparencia" className="botao-grande">
-          <Icone nome="compartilhar" /> Ver o portal público
+          <Icone nome="compartilhar" /> Resultados das doações (transparência)
         </Link>
       </div>
     </Tela>

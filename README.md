@@ -40,8 +40,8 @@ já estavam aqui":
 - Entram **prontas para doação** (catálogo, pedidos, reservas e retirada). Como são as mais antigas, saem primeiro nas
   reservas.
 - Espécie que ainda não está no catálogo (as importadas da planilha entram
-  assim) não aparece para quem pede mudas. O app avisa no Viveiro, em
-  Doação e logo depois do cadastro: "X mudas prontas ainda não aparecem para
+  assim) não aparece para quem pede mudas. O app avisa no Viveiro e logo
+  depois do cadastro: "X mudas prontas ainda não aparecem para
   doação". O gestor toca em **Liberar para doação** e pronto. O viveirista vê
   o aviso e pede ao gestor.
 - **Nada é inventado**: o rastreio público diz que a origem das sementes não
@@ -91,7 +91,6 @@ Excluir o que foi preenchido errado:
   (preenchido errado)**, para o administrador e para quem fez o cadastro.
   Vai para a lixeira. Não exclui se houver algo ativo ligado (ex.: lote com
   mudas já entregues numa doação) e diz o motivo.
-- A **Lixeira** aparece na tela inicial do administrador.
 
 Identificar com ajuda do Google Lens (com internet):
 
@@ -119,7 +118,7 @@ Relatório de serviço do coletor (Coleta e sementes → Relatório de serviço)
   tiradas em outro aparelho são baixadas do servidor.
 - O gestor escolhe de qual coletor quer o relatório.
 
-Corrigir cadastros e lixeira (administrador, em Ajustes):
+Corrigir cadastros e lixeira (administrador, bloco **Lixeira** na tela inicial):
 
 - **Excluir cadastros** preenchidos errado (matriz, coleta, lote, doação,
   plantio, espécie, pessoa, viveiro), **um por um ou vários de uma vez**
@@ -157,7 +156,7 @@ Contas, equipe e permissões:
   - tirar o acesso de alguém.
 
   Só um gestor dá o perfil de gestor, e ninguém tira o próprio acesso.
-- **Permissões** (Ajustes → Permissões): uma tabela com o que cada perfil
+- **Permissões** (Equipe → O que cada perfil pode fazer): uma tabela com o que cada perfil
   pode fazer (administrador, grupo gestor, viveirista, coletor, solicitante).
   - Só o administrador (gestor geral) muda a tabela.
   - Algumas caixas são fixas: CPF e telefone (LGPD) continuam só com o

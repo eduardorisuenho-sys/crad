@@ -18,6 +18,7 @@ import { Assistente, type GrauCerteza } from '../assistente/Assistente';
 import { FiguraOpcao } from '../assistente/FiguraOpcao';
 import { EscolherEspecie } from '../especies/EscolherEspecie';
 import { gravarFoto, prepararFoto, type FotoPendente } from './fotos';
+import { ROTULO_CERTEZA } from './ListaMatrizes';
 
 type Etapa = 'gps' | 'especie' | 'assistente' | 'busca' | 'certeza' | 'proximas' | 'fotos' | 'arvore' | 'proprietario' | 'conferir';
 const ORDEM: Etapa[] = ['gps', 'especie', 'fotos', 'arvore', 'proprietario', 'conferir'];
@@ -420,7 +421,7 @@ export function NovaMatriz() {
             <dt>Espécie</dt>
             <dd>{r.especie_id ? `${nomePopular ?? ''} (${String(especie?.nome_cientifico ?? '')})` : 'a identificar'}</dd>
             <dt>Certeza</dt>
-            <dd>{{ certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' }[r.grau_certeza ?? 'a_identificar']}</dd>
+            <dd>{ROTULO_CERTEZA[r.grau_certeza ?? 'a_identificar']}</dd>
             <dt>Local</dt>
             <dd>{r.gps ? `${r.gps.lat.toFixed(5)}, ${r.gps.lon.toFixed(5)} (±${r.gps.precisao_m} m)` : 'sem GPS'}</dd>
             {municipio && (

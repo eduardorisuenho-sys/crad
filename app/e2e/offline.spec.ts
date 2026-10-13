@@ -12,7 +12,7 @@ test('o app abre e grava sem internet, e envia quando o sinal volta', async ({ p
   await expect(page.getByRole('heading', { name: 'Olá, Gestora' })).toBeVisible();
   await expect(page.getByTestId('barra-sync')).toContainText('Sem sinal');
 
-  await page.getByRole('link', { name: 'Viveiros' }).click();
+  await page.getByRole('link', { name: 'Cadastrar viveiros' }).click();
   await page.getByRole('button', { name: 'Novo viveiro' }).click();
   await page.getByLabel('Nome').fill('Viveiro de Palmas');
   await page.getByLabel('Sigla').fill('pal');

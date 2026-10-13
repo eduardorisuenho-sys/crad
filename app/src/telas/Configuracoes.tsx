@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { codigosRestantes } from '@crads/dominio';
 import { AjusteAvisos } from '../componentes/AjusteAvisos';
+import { useInstalacao } from '../plataforma/instalacao';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
@@ -12,6 +13,7 @@ import { espacoUsado, formatarBytes } from '../plataforma/armazenamento';
 export function Configuracoes() {
   const { pode, sessao, db, pendentes, ultimaSync, sincronizar, estadoSync, definirSessao, online } = useApp();
   const navegar = useNavigate();
+  const instalacao = useInstalacao();
   const equipe = !!sessao && (sessao.gestorGeral || Object.values(sessao.perfisPorViveiro ?? {}).some((ps) => ps.length > 0));
   const [espaco, setEspaco] = useState<{ usado: number; total: number } | null>(null);
   const [msg, setMsg] = useState('');
@@ -90,22 +92,12 @@ export function Configuracoes() {
             <span>Municípios (IBGE)</span>
           </button>
         )}
-        {sessao?.gestorGeral && (
-          <button className="botao-grande" onClick={() => navegar('/lixeira')}>
-            <Icone nome="lixo" tamanho={40} />
-            <span>Corrigir cadastros e lixeira</span>
+        {!instalacao.instalado && (
+          <button className="botao-grande" onClick={() => navegar('/instalar')}>
+            <Icone nome="baixar" tamanho={40} />
+            <span>Baixar o app</span>
           </button>
         )}
-        {(sessao?.gestorGeral || pode('equipe')) && (
-          <button className="botao-grande" onClick={() => navegar('/permissoes')}>
-            <Icone nome="cadeado" tamanho={40} />
-            <span>Permissões</span>
-          </button>
-        )}
-        <button className="botao-grande" onClick={() => navegar('/instalar')}>
-          <Icone nome="compartilhar" tamanho={40} />
-          <span>Instalar no aparelho</span>
-        </button>
         <button className="botao-grande perigo" onClick={() => void aoSair()}>
           <Icone nome="sair" tamanho={40} />
           <span>Sair</span>

@@ -25,6 +25,7 @@ export function bloqueioDaRota(caminho: string, equipe: boolean, administrador: 
   if (comeca('/viveiro/estoque-inicial')) return algum('estoque_inicial') ? null : 'Você não tem permissão para cadastrar o estoque inicial.';
   if (comeca('/coleta/lotes/novo', '/coleta/lotes/sementes-iniciais')) return algum('lotes_sementes') ? null : 'Você não tem permissão para formar lotes de sementes.';
   if (comeca('/coleta/nova')) return algum('registrar_coleta') ? null : 'Você não tem permissão para registrar coletas.';
+  if (comeca('/especies/nova', '/especies/importar')) return algum('especies') ? null : 'Só quem cuida das espécies cadastra e importa espécies.';
   if (comeca('/matrizes/nova')) return algum('cadastrar_matriz') ? null : 'Você não tem permissão para cadastrar matrizes.';
   if (comeca('/matrizes', '/coleta', '/viveiro', '/ler-qr', '/identificar', '/especies') && !caminho.startsWith('/viveiro-atual')) {
     return equipe ? null : 'Esta parte é da equipe do viveiro (coletores, viveiristas e gestores).';

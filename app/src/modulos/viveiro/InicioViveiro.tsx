@@ -54,7 +54,7 @@ export function InicioViveiro() {
           </span>
         </Link>
       )}
-      <div className="filtros" role="group" aria-label="Fases">
+      <div className="filtros" role="group" aria-label="Situação">
         <button className={`chip ${!fase ? 'ativo' : ''}`} onClick={() => setFase('')}>
           Todas
         </button>
@@ -80,7 +80,7 @@ export function InicioViveiro() {
                     {String(lote.codigo)} · {nomes?.get(String(lote.especie_id)) ?? ''}
                   </strong>
                   <small>
-                    {lote.fase_atual === 'pronta' ? 'Pronta' : 'Em formação'} · {saldo} mudas{taxa !== null ? ` · germinação ${mostrarNumero(taxa)}%` : ''}
+                    {lote.fase_atual === 'pronta' ? 'Pronta para doação' : 'Em formação'} · {saldo} mudas{taxa !== null ? ` · germinação ${mostrarNumero(taxa)}%` : ''}
                   </small>
                 </div>
                 {atrasado(previsao, lote.fase_atual as string, hoje) && <span className="selo">atrasado</span>}

@@ -23,7 +23,7 @@ const ROTULO_MOV: Record<string, string> = { entrada: 'Entrada', semeadura: 'Sem
 export function DetalheLote() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const { db, repo, viveiroId } = useApp();
+  const { db, repo, viveiroId, pode } = useApp();
   const lote = useLiveQuery(() => db.colecao('lote_sementes').get(id!), [id]);
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const movs = useLiveQuery(async () => (await db.colecao('movimento_sementes').where('lote_sementes_id').equals(id!).toArray()).sort((a, b) => String(b.data).localeCompare(String(a.data))), [id]) ?? [];
@@ -91,7 +91,7 @@ export function DetalheLote() {
   }
 
   return (
-    <Tela titulo={`Lote ${String(lote.codigo)}`}>
+    <Tela titulo={`Lote de sementes ${String(lote.codigo)}`}>
       {params.get('novo') && <p className="mensagem">Lote {String(lote.codigo)} criado. Imprima a etiqueta para o saco ou pote.</p>}
       {msg && <p className="mensagem">{msg}</p>}
       <section className="plaqueta" data-testid="etiqueta">
@@ -108,7 +108,7 @@ export function DetalheLote() {
         Imprimir etiqueta
       </button>
 
-      {saldo.g > 0 && (
+      {saldo.g > 0 && pode('producao', lote.viveiro_id) && (
         <Link to={`/viveiro/semeadura?ls=${id}`} className="botao-principal nao-imprimir">
           <Icone nome="muda" /> Semear deste lote
         </Link>
@@ -165,6 +165,7 @@ export function DetalheLote() {
         </ul>
       </section>
 
+      {pode('lotes_sementes', lote.viveiro_id) && (
       <section className="cartao nao-imprimir">
         <h2>Registrar</h2>
         <div className="meses">
@@ -211,6 +212,7 @@ export function DetalheLote() {
           </form>
         )}
       </section>
+      )}
 
       <section className="cartao nao-imprimir">
         <h2>Histórico</h2>

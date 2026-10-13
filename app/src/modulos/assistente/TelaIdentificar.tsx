@@ -7,8 +7,8 @@ import { useApp } from '../../contexto';
 import { Assistente, type ResultadoIdentificacao } from './Assistente';
 import { BotaoLens } from '../../componentes/BotaoLens';
 import { comprimirFoto } from '../../plataforma/imagem';
+import { ROTULO_CERTEZA as GRAU } from '../matrizes/ListaMatrizes';
 
-const GRAU: Record<string, string> = { certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' };
 
 export function TelaIdentificar() {
   const { db } = useApp();

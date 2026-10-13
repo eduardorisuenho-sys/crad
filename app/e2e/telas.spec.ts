@@ -79,7 +79,7 @@ test('quem não tem a permissão vê "Sem acesso" ao digitar o endereço', async
 
 test('coletor não abre telas de viveiro nem de gestão', async ({ page }) => {
   await entrarComoColetor(page);
-  for (const rota of ['/viveiro/semeadura', '/viveiro/estoque-inicial', '/equipe', '/lixeira']) {
+  for (const rota of ['/viveiro/semeadura', '/viveiro/estoque-inicial', '/equipe', '/lixeira', '/especies/nova', '/especies/importar']) {
     await page.goto(rota);
     await expect(page.getByTestId('sem-acesso'), rota).toBeVisible();
   }

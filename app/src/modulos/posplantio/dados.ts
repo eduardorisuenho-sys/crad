@@ -5,10 +5,6 @@ import type { BancoCrads } from '../../dados/db';
 const ativos = (rs: Registro[]) => rs.filter((r) => !r.excluido);
 const de = async (db: BancoCrads, colecao: string, campo: string, valor: string) => ativos(await db.colecao(colecao).where(campo).equals(valor).toArray());
 
-export async function plantiosDaDoacao(db: BancoCrads, doacaoId: string) {
-  return de(db, 'plantio', 'doacao_id', doacaoId);
-}
-
 /** Tudo de um plantio: itens, acompanhamentos e a sobrevivência atual. */
 export async function resumoPlantio(db: BancoCrads, plantioId: string) {
   const itens = await de(db, 'plantio_item', 'plantio_id', plantioId);

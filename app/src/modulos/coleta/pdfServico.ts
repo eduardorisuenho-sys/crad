@@ -1,6 +1,7 @@
 /** PDF do relatório de serviço do coletor (gerado no aparelho, funciona sem internet). */
 import type { ServicoColetor } from '@crads/dominio';
 import { mostrarNumero } from '../../plataforma/numero';
+import { ROTULO_CERTEZA as CERTEZA } from '../matrizes/ListaMatrizes';
 
 const AZUL_ESCURO: [number, number, number] = [51, 97, 141];
 const VERDE: [number, number, number] = [72, 103, 47];
@@ -29,7 +30,6 @@ export interface DadosPdfServico {
 }
 
 const dia = (v: unknown) => String(v ?? '').slice(0, 10).split('-').reverse().join('/');
-const CERTEZA: Record<string, string> = { certo: 'certo', provavel: 'provável', a_identificar: 'a identificar' };
 
 export async function pdfServicoColetor(d: DadosPdfServico): Promise<Blob> {
   const { jsPDF } = await import('jspdf');

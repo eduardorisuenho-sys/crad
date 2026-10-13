@@ -1,20 +1,18 @@
 /** Módulo 5: pedidos de mudas (solicitante vê os seus; equipe vê os do viveiro). */
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { SITUACOES_APROVADAS, SITUACOES_EM_ANALISE } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { IconeAgua } from './BotaoPlantandoAgua';
 import { doacoesNoPrograma, ROTULO_SITUACAO } from './dados';
-import { ForaDoCatalogo } from './ForaDoCatalogo';
 
 type Filtro = 'analisar' | 'retirar' | 'retirados' | 'todos' | 'programa';
 
 export function InicioDoacao() {
   const { db, perfis, sessao, viveiroId } = useApp();
-  const [params] = useSearchParams();
   const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
   const [filtro, setFiltro] = useState<Filtro>(equipe ? 'analisar' : 'todos');
   const pedidos = useLiveQuery(async () => {
@@ -46,11 +44,9 @@ export function InicioDoacao() {
 
   return (
     <Tela titulo={equipe ? 'Doação de mudas' : 'Meus pedidos de mudas'}>
-      {params.get('enviado') && <p className="mensagem">Pedido registrado. Ele vai para análise quando houver sinal.</p>}
       <Link to="/doacao/novo" className="botao-principal">
         <Icone nome="doacao" /> {equipe ? 'Registrar pedido no balcão' : 'Pedir mudas'}
       </Link>
-      {equipe && <ForaDoCatalogo />}
       {equipe && (
         <div className="filtros" role="group" aria-label="Situação">
           {(

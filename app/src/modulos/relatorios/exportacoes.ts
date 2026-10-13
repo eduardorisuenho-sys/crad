@@ -22,10 +22,10 @@ export function tabelas(d: DadosRelatorio, f: FiltroRelatorio, programa?: Set<st
     {
       nome: 'Matrizes',
       linhas: [
-        ['Código', 'Espécie', 'Certeza', 'Validação', 'Viveiro', 'Latitude', 'Longitude', 'Altura (m)', 'DAP (cm)', 'Cadastrada em'],
+        ['Código', 'Espécie', 'Certeza', 'Viveiro', 'Latitude', 'Longitude', 'Altura (m)', 'DAP (cm)', 'Cadastrada em'],
         ...d.matrizes
           .filter((m) => doViveiro(m, f) && noPeriodo(m.criado_no_aparelho_em, f))
-          .map((m) => [m.codigo, especie(m.especie_id), m.grau_certeza, m.situacao_validacao, viveiros.get(String(m.viveiro_id)), m.lat, m.lon, m.altura_m || null, m.dap_cm || null, dia(m.criado_no_aparelho_em)]),
+          .map((m) => [m.codigo, especie(m.especie_id), m.grau_certeza, viveiros.get(String(m.viveiro_id)), m.lat, m.lon, m.altura_m || null, m.dap_cm || null, dia(m.criado_no_aparelho_em)]),
       ],
     },
     {
@@ -75,7 +75,8 @@ export function indicadoresEmLinhas(r: Indicadores): unknown[][] {
     ['Taxa de germinação (%)', r.mudas.taxa_germinacao],
     ['Perdas no viveiro', r.mudas.perdas],
     ['Mudas do estoque inicial (sem semeadura registrada)', r.mudas.estoque_inicial],
-    ...Object.entries(r.mudas.por_fase).map(([f, n]) => [`Mudas em ${ROTULO_FASE[f] ?? f}`, n]),
+    ['Mudas prontas para doação', r.mudas.por_fase.pronta ?? 0],
+    ['Mudas em formação', Object.entries(r.mudas.por_fase).reduce((s, [f, n]) => s + (f === 'pronta' ? 0 : n), 0)],
     ['Pedidos de doação', r.doacoes.pedidos],
     ['Mudas entregues', r.doacoes.mudas_entregues],
     ['Doações do Plantando Água', r.doacoes.programa],
@@ -98,7 +99,7 @@ export function kml(d: DadosRelatorio, f: FiltroRelatorio, programa?: Set<string
         ? []
         : d.matrizes
             .filter((m) => doViveiro(m, f) && ok(m.lat, m.lon))
-            .map((m) => ({ nome: String(m.codigo), lat: m.lat as number, lon: m.lon as number, descricao: { especie: especie(m.especie_id), certeza: m.grau_certeza, validacao: m.situacao_validacao } })),
+            .map((m) => ({ nome: String(m.codigo), lat: m.lat as number, lon: m.lon as number, descricao: { especie: especie(m.especie_id), certeza: m.grau_certeza } })),
     },
     {
       nome: 'Coletas',

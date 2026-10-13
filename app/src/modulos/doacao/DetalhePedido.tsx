@@ -29,6 +29,7 @@ export function DetalhePedido() {
   const noPrograma = useLiveQuery(() => doacoesNoPrograma(db), [db]);
   const retirada = useLiveQuery(async () => (doacao ? (await db.colecao('retirada').where('doacao_id').equals(doacao.id).toArray()).find((r) => !r.excluido) : undefined), [doacao?.id]);
 
+  const plantio = useLiveQuery(async () => (doacao ? (await db.colecao('plantio').toArray()).find((p) => p.doacao_id === doacao.id && !p.excluido) : undefined), [doacao?.id]);
   const [analisando, setAnalisando] = useState(false);
   const [aprovadas, setAprovadas] = useState<Record<string, string>>({});
   const [justificativa, setJustificativa] = useState('');
@@ -97,12 +98,13 @@ export function DetalhePedido() {
       {params.get('novo') && (
         <section className="cartao" data-testid="pedido-registrado">
           <p className="mensagem">Pedido registrado.{doacao.versao === 0 ? ' Ele vai para análise quando houver sinal.' : ''}</p>
-          <p className="dica">Não precisa de ofício: baixe a solicitação, que já é o documento do pedido.</p>
+          <p className="dica">Baixe a solicitação: ela já é o documento do pedido.</p>
           <button className="botao-principal" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
             <Icone nome="baixar" /> Baixar a solicitação em PDF
           </button>
         </section>
       )}
+      {params.get('retirado') && <p className="mensagem">Retirada registrada: as mudas saíram do estoque e o termo foi gerado.</p>}
       {msg && <p className="mensagem">{msg}</p>}
       <dl className="ficha" data-testid="resumo-pedido">
         <dt>Situação</dt>
@@ -211,9 +213,11 @@ export function DetalhePedido() {
       )}
 
       <div className="acoes">
-        <button className="botao-secundario" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
-          <Icone nome="baixar" /> Solicitação de mudas (PDF)
-        </button>
+        {!params.get('novo') && (
+          <button className="botao-secundario" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
+            <Icone nome="baixar" /> Solicitação de mudas (PDF)
+          </button>
+        )}
         {situacao === 'retirada' && (
           <button
             className="botao-secundario"
@@ -228,7 +232,7 @@ export function DetalhePedido() {
       </div>
 
       {situacao === 'retirada' && (
-        <Link to="/pos-plantio" className="botao-secundario">
+        <Link to={plantio ? `/pos-plantio/${plantio.id}` : `/pos-plantio/novo/${doacao.id}`} className="botao-secundario">
           <Icone nome="plantio" /> Pós-plantio
         </Link>
       )}

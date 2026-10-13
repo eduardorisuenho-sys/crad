@@ -93,7 +93,7 @@ export function EstoqueInicial() {
 
       {modo === 'escolher' && (
         <div className="lista-grande">
-          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. As que estiverem prontas ficam disponíveis para doação. A origem das sementes fica como “não registrada”.</p>
+          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. Elas entram como prontas para doação. A origem das sementes fica como “não registrada”.</p>
           <button className="botao-grande" onClick={() => setModo('uma')}>
             <Icone nome="muda" tamanho={40} />
             <span>

@@ -88,7 +88,7 @@ export function RelatorioServico() {
       const muni = new Map(dados.municipios.map((m) => [m.id, String(m.nome)]));
       const porId = new Map(dados.matrizes.map((m) => [m.id, m]));
       const blob = await pdfServicoColetor({
-        orgao: 'Secretaria de Meio Ambiente e Recursos Hídricos do Tocantins',
+        orgao: 'Secretaria do Meio Ambiente e Recursos Hídricos do Tocantins',
         coletor: nomeColetor,
         periodo: periodoTexto,
         viveiro: String(dados.viveiro?.nome ?? 'todos os viveiros'),

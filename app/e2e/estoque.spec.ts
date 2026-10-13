@@ -84,12 +84,12 @@ test('mudas que já estavam no viveiro: foto, liberar para doação, limite por 
   await expect.poll(async () => (await lerDoServidor('lote_mudas')).some((l) => l.especie_id === esp.id), { timeout: 20_000 }).toBe(true);
   expect(await noCatalogo('Árvore-do-estoque')).toBe(0);
 
-  // 2) gestora vê o aviso em Doação e libera
+  // 2) gestora vê o aviso no Viveiro e libera
   const cg = await browser.newContext();
   const g = await cg.newPage();
   await entrarComoGestora(g);
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
-  await g.goto('/doacao');
+  await g.goto('/viveiro');
   await expect(g.getByTestId('fora-do-catalogo')).toContainText('40 mudas prontas');
   await g.getByRole('button', { name: 'Liberar para doação' }).click();
   await expect(g.getByTestId('liberadas')).toBeVisible();
@@ -183,7 +183,7 @@ test('mudas que já estavam no viveiro: foto, liberar para doação, limite por 
   await expect(v.getByTestId('resumo-pedido')).toContainText('retirado');
   await expect.poll(async () => (await lerDoServidor('movimento_estoque_mudas')).filter((m) => m.lote_mudas_id === lotes[0].id && m.tipo === 'saida_doacao').map((m) => m.quantidade), { timeout: 20_000 }).toEqual([10]);
   await v.goto('/viveiro');
-  await expect(v.locator('.item-lista', { hasText: 'Árvore-do-estoque' })).toContainText('Pronta · 30 mudas');
+  await expect(v.locator('.item-lista', { hasText: 'Árvore-do-estoque' })).toContainText('Pronta para doação · 30 mudas');
   expect(await noCatalogo('Árvore-do-estoque')).toBe(30);
   await cv.close();
 });

@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { bloqueioRetirada, planejarRetirada } from '@crads/dominio';
 import { Assinatura } from '../../componentes/Assinatura';
 import { Icone } from '../../componentes/Icone';
@@ -73,6 +73,7 @@ export function Retirada() {
       instituicao: String(doacao!.instituicao ?? ''),
       finalidade: String(doacao!.finalidade ?? ''),
       local: String(doacao!.local_plantio ?? ''),
+      area_ha: (doacao!.area_ha as number) || null,
       data: new Date().toLocaleDateString('pt-BR'),
       programa: programa ? 'Plantando Água' : undefined,
       textoTermo: instalacao?.texto_termo_doacao ? String(instalacao.texto_termo_doacao) : undefined,
@@ -92,6 +93,9 @@ export function Retirada() {
     return (
       <Tela titulo="Retirada">
         <p className="mensagem alerta">{bloqueio}</p>
+        <Link to={`/doacao/${id}`} className="botao-secundario">
+          <Icone nome="voltar" /> Voltar ao pedido
+        </Link>
       </Tela>
     );
   }

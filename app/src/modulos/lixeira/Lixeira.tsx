@@ -133,7 +133,7 @@ export function Lixeira() {
 
       {aba === 'excluir' && (
         <>
-          <p className="dica">O que for excluído vai para a lixeira: some de todos os aparelhos e pode voltar. Matrizes reprovadas já vão para a lixeira sozinhas.</p>
+          <p className="dica">O que for excluído vai para a lixeira: some de todos os aparelhos e pode voltar.</p>
           <div className="filtros" role="group" aria-label="Tipo de cadastro">
             {COLECOES_LIXEIRA.map((c) => (
               <button key={c.nome} className={`chip ${tipo === c.nome ? 'ativo' : ''}`} onClick={() => setTipo(c.nome)}>

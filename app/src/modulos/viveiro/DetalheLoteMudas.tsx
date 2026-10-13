@@ -18,7 +18,7 @@ const ROTULO_EVENTO: Record<string, string> = {
   semeadura: 'Semeadura',
   contagem_germinacao: 'Contagem de germinação',
   repicagem: 'Repicagem',
-  mudanca_fase: 'Mudança de fase',
+  mudanca_fase: 'Ficou pronta para doação',
   medicao: 'Medição',
   perda: 'Perda',
   transferencia: 'Transferência',
@@ -27,7 +27,7 @@ const ROTULO_EVENTO: Record<string, string> = {
 export function DetalheLoteMudas() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const { db, repo } = useApp();
+  const { db, repo, pode } = useApp();
   const lote = useLiveQuery(() => db.colecao('lote_mudas').get(id!), [id]);
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const especie = useLiveQuery(() => (lote ? db.colecao('especie').get(String(lote.especie_id)) : undefined), [lote?.especie_id]);
@@ -48,6 +48,7 @@ export function DetalheLoteMudas() {
   const previsao = dataPrevistaPronta(lote.data_semeadura as string, especie?.meses_ate_pronta as number);
   const faseAtual = String(lote.fase_atual ?? 'semeadura');
   const inicial = lote.origem === 'estoque_inicial';
+  const podeCuidar = pode('producao', lote.viveiro_id);
   const hoje = new Date().toISOString().slice(0, 10);
   const base = { lote_mudas_id: id, data: hoje, viveiro_id: lote.viveiro_id };
 
@@ -87,7 +88,7 @@ export function DetalheLoteMudas() {
   ];
 
   return (
-    <Tela titulo={`Lote ${String(lote.codigo)}`}>
+    <Tela titulo={`Lote de mudas ${String(lote.codigo)}`}>
       {params.get('novo') && <p className="mensagem">Lote de mudas {String(lote.codigo)} criado.</p>}
       {msg && <p className="mensagem">{msg}</p>}
       <section className="plaqueta" data-testid="etiqueta-lm">
@@ -99,7 +100,7 @@ export function DetalheLoteMudas() {
         </div>
       </section>
       <dl className="ficha" data-testid="resumo-lm">
-        <dt>Fase</dt>
+        <dt>Situação</dt>
         <dd>
           {ROTULO_FASE[faseAtual]}
           {atrasado(previsao, faseAtual, hoje) ? ' (atrasado)' : ''}
@@ -130,8 +131,9 @@ export function DetalheLoteMudas() {
         <dd data-testid="origem-lm">{inicial ? String(lote.observacao_origem || 'Estoque inicial: origem das sementes não registrada.') : ls ? <Link to={`/coleta/lotes/${ls.id}`}>{String(ls.codigo)}</Link> : '—'}</dd>
       </dl>
 
-      <FotosLote loteId={lote.id} viveiroId={String(lote.viveiro_id ?? '')} />
+      {podeCuidar && <FotosLote loteId={lote.id} viveiroId={String(lote.viveiro_id ?? '')} />}
 
+      {podeCuidar && (
       <section className="cartao nao-imprimir">
         <h2>Registrar</h2>
         <div className="meses">
@@ -176,6 +178,7 @@ export function DetalheLoteMudas() {
           </form>
         )}
       </section>
+      )}
 
       <section className="cartao">
         <h2>Histórico</h2>
@@ -185,7 +188,7 @@ export function DetalheLoteMudas() {
               {new Date(String(e.data) + 'T12:00').toLocaleDateString('pt-BR')}: {ROTULO_EVENTO[String(e.tipo)] ?? String(e.tipo)}
               {e.quantidade ? ` · ${String(e.quantidade)}` : ''}
               {e.causa ? ` · ${String(e.causa)}` : ''}
-              {e.fase_nova ? ` → ${ROTULO_FASE[String(e.fase_nova)]}` : ''}
+              {e.fase_nova && e.fase_nova !== 'pronta' ? ` → ${ROTULO_FASE[String(e.fase_nova)]}` : ''}
               {e.altura_media_cm ? ` · ${String(e.altura_media_cm).replace('.', ',')} cm` : ''}
             </li>
           ))}

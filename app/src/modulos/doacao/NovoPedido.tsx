@@ -192,6 +192,8 @@ export function NovoPedido() {
             Endereço ou como chegar
             <input value={plantio.local} onChange={(e) => setPlantio({ ...plantio, local: e.target.value })} />
           </label>
+          {/* no balcão a pessoa está no viveiro: o GPS marcaria o viveiro, não o local do plantio */}
+          {!equipe && (
           <button
             type="button"
             className="botao-secundario"
@@ -204,6 +206,7 @@ export function NovoPedido() {
           >
             <Icone nome="plantio" /> {plantio.lat !== null ? `Ponto marcado (${plantio.lat.toFixed(4)}, ${plantio.lon!.toFixed(4)})` : 'Estou no local: marcar o ponto'}
           </button>
+          )}
           <label>
             Área aproximada (hectares, opcional)
             <input {...CAMPO_DECIMAL} value={plantio.area} onChange={(e) => setPlantio({ ...plantio, area: e.target.value })} />

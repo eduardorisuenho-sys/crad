@@ -6,12 +6,11 @@ import { RastreioLote } from './modulos/catalogo/Rastreio';
 import { useApp } from './contexto';
 import { Avisos } from './telas/Avisos';
 import { Configuracoes } from './telas/Configuracoes';
-import { EmBreve } from './telas/EmBreve';
 import { Guarda } from './componentes/Guarda';
 import { Notificacoes } from './componentes/Notificacoes';
 import { Entrar } from './telas/Entrar';
 import { EscolherViveiro, useViveirosDoUsuario } from './telas/EscolherViveiro';
-import { BLOCOS, Inicio } from './telas/Inicio';
+import { Inicio } from './telas/Inicio';
 import { Instalar } from './telas/Instalar';
 import { Viveiros } from './telas/Viveiros';
 import { FichaEspecie } from './modulos/especies/FichaEspecie';
@@ -130,9 +129,6 @@ function Rotas() {
       <Route path="/especies/:id" element={<FichaEspecie />} />
       <Route path="/avisos" element={<Avisos />} />
       <Route path="/configuracoes" element={<Configuracoes />} />
-      {BLOCOS.filter((b) => !['/viveiros', '/especies', '/identificar', '/matrizes', '/coleta', '/viveiro', '/catalogo', '/doacao', '/pos-plantio', '/relatorios', '/equipe', '/lixeira'].includes(b.rota)).map((b) => (
-        <Route key={b.rota} path={`${b.rota}/*`} element={<EmBreve titulo={b.rotulo} icone={b.icone} />} />
-      ))}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Guarda>

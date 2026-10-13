@@ -20,6 +20,7 @@ const CAMINHOS: Record<string, string> = {
   lixo: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6',
   sair: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
   certo: 'M5 13l4 4 10-10',
+  folha: 'M5 19c0-8 6-14 15-14 0 9-6 15-14 15M5 19l7-7',
   camera: 'M4 8h4l2-3h4l2 3h4v12H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
   compartilhar: 'M12 3v12M7 8l5-5 5 5M5 13v8h14v-8',
   lupa: 'M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM14.5 14.5L21 21',

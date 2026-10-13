@@ -29,7 +29,7 @@ export function Avisos() {
   }
 
   return (
-    <Tela titulo="Avisos">
+    <Tela titulo="Problemas no envio">
       {!avisos.length && (
         <div className="vazio">
           <Icone nome="certo" tamanho={72} />

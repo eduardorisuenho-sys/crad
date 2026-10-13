@@ -9,7 +9,7 @@ export function AjusteAvisos() {
   return (
     <section className="cartao" data-testid="ajuste-avisos">
       <h2>Avisos com som</h2>
-      <p className="dica">O app toca um som e mostra um aviso quando chega um pedido de mudas, uma aprovação, uma retirada combinada ou uma matriz para validar.</p>
+      <p className="dica">O app toca um som e mostra um aviso quando chega um pedido de mudas, uma aprovação, uma retirada combinada ou um pedido de acesso.</p>
       <label className="linha-check">
         <input
           type="checkbox"

@@ -11,8 +11,7 @@ test('administradora exclui um cadastro errado, vê na lixeira e apaga de vez', 
   const { id } = await r.json();
   page.on('dialog', (d) => void d.accept());
   await entrarComoGestora(page);
-  await page.goto('/configuracoes');
-  await page.getByRole('button', { name: 'Corrigir cadastros e lixeira' }).click();
+  await page.getByRole('link', { name: 'Lixeira', exact: true }).click(); // bloco da tela inicial do administrador
   await page.getByLabel('Procurar cadastro').fill('9777');
   await page.getByTestId('cadastros').locator('li', { hasText: 'MT-9777' }).getByRole('button', { name: 'Excluir' }).click();
   await expect(page.getByText('MT-9777 foi para a lixeira.')).toBeVisible();
