@@ -68,8 +68,28 @@ Doação: combinar a retirada e baixa no estoque:
     fica registrado na auditoria (LGPD);
   - quem pediu vê o dia combinado, o telefone e o endereço do viveiro
     (cadastre em Viveiros → tocar no viveiro).
-- Na retirada, cada muda entregue **sai do estoque do lote** (baixa), a
+- Na retirada, quem entrega toca em **As mudas saíram (dar baixa)**, confere
+  as quantidades, colhe a assinatura e toca em **Confirmar: as mudas saíram
+  do viveiro**. Cada muda entregue **sai do estoque do lote** (baixa), a
   reserva é consumida e o catálogo é atualizado.
+
+Imprimir (PDF gerado no próprio aparelho):
+
+- **Catálogo com fotos**: no catálogo, **Imprimir o catálogo com fotos**
+  gera as fichas das espécies da lista (respeita a busca e o viveiro
+  escolhido), duas por folha A4: foto, nomes populares, nome científico,
+  família, mudas prontas, como reconhecer, época de flores e frutos, onde
+  tem mudas e referência. Só entra o que está cadastrado na espécie.
+- **Fichas das espécies do pedido**: no pedido (ex.: 20 espécies),
+  **Fichas das espécies com fotos (PDF)**, com as quantidades pedidas,
+  aprovadas e entregues de cada uma. Sem internet, sai a ficha guardada; sem
+  ficha guardada, saem só os nomes.
+- **Etiquetas com QR para as mudas**: na ficha do lote de mudas, **Imprimir
+  etiquetas (PDF)**: 24 etiquetas por folha A4 para recortar e fixar nas
+  mudas, com nome popular, nome científico, código do lote, viveiro e data
+  da semeadura. O QR abre a origem do lote (rastreio público) em qualquer
+  celular, e o leitor de QR do app abre a ficha do lote.
+- Solicitação de mudas e termo de doação, como antes.
 
 Avisos com som:
 

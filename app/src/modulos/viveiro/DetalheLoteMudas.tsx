@@ -11,6 +11,9 @@ import { nomesEspecies } from '../coleta/dados';
 import { RECIPIENTES, ROTULO_FASE } from './dados';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 import { FotosLote } from './FotosLote';
+import { BotaoPdf } from '../../componentes/BotaoPdf';
+import { etiquetasPdf } from '../../plataforma/pdfFichas';
+import { linkRastreio } from '../../plataforma/rastreio';
 
 type Acao = '' | 'contagem' | 'perda' | 'pronta' | 'medicao';
 const CAUSAS = ['Seca', 'Praga ou formiga', 'Doença', 'Descarte', 'Outra'];
@@ -40,6 +43,7 @@ export function DetalheLoteMudas() {
   const [causa, setCausa] = useState(CAUSAS[0]);
   const [erro, setErro] = useState('');
   const [msg, setMsg] = useState('');
+  const [copias, setCopias] = useState('');
 
   if (!lote) return <Tela titulo="Lote de mudas">{null}</Tela>;
   const saldo = saldoMudas(movs as never);
@@ -98,6 +102,34 @@ export function DetalheLoteMudas() {
           <span>{nomes?.get(String(lote.especie_id)) ?? ''}</span>
           {inicial ? <small>Estoque inicial (já estava no viveiro)</small> : <small>Semeado em {new Date(String(lote.data_semeadura) + 'T12:00').toLocaleDateString('pt-BR')}</small>}
         </div>
+      </section>
+      <section className="cartao formulario nao-imprimir" data-testid="etiquetas-lm">
+        <h2>Etiquetas com QR para as mudas</h2>
+        <p className="dica">Folha A4 com 24 etiquetas para recortar e fixar nas mudas. O QR abre a origem do lote em qualquer celular.</p>
+        <label>
+          Quantas etiquetas?
+          <input type="number" inputMode="numeric" min="1" max="1000" value={copias} placeholder={String(Math.max(1, saldo))} onChange={(e) => setCopias(e.target.value)} />
+        </label>
+        <BotaoPdf
+          className="botao-principal"
+          rotulo="Imprimir etiquetas (PDF)"
+          nome={`etiquetas-${String(lote.codigo)}.pdf`}
+          gerar={async () => {
+            const n = Math.min(1000, Math.max(1, Math.round(Number(copias) || saldo || 1)));
+            const v = await db.colecao('viveiro').get(String(lote.viveiro_id));
+            const nomesPop = (await db.colecao('nome_popular').where('especie_id').equals(String(lote.especie_id)).toArray()).filter((x) => !x.excluido);
+            const etiqueta = {
+              codigo: String(lote.codigo),
+              nome: String(nomesPop[0]?.nome ?? especie?.nome_cientifico ?? ''),
+              cientifico: String(especie?.nome_cientifico ?? ''),
+              viveiro: v ? String(v.nome) : undefined,
+              data: inicial ? 'Estoque inicial' : lote.data_semeadura ? `Semeado em ${new Date(String(lote.data_semeadura) + 'T12:00').toLocaleDateString('pt-BR')}` : undefined,
+              qr: linkRastreio(String(lote.codigo)),
+              ficticia: !!especie?.ficticia,
+            };
+            return etiquetasPdf(Array.from({ length: n }, () => etiqueta));
+          }}
+        />
       </section>
       <dl className="ficha" data-testid="resumo-lm">
         <dt>Situação</dt>

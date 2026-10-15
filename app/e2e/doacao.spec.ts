@@ -61,7 +61,7 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await v.getByRole('button', { name: 'Aguardando retirada' }).click();
   await v.locator('.item-lista', { hasText: codigo }).click();
   await expect(v.getByTestId('plantando-agua')).toHaveAttribute('aria-pressed', 'true');
-  await v.getByRole('link', { name: 'Registrar retirada' }).click();
+  await v.getByRole('link', { name: 'As mudas saíram (dar baixa)' }).click();
   await v.getByLabel(`Entregues de ${ESPECIE}`).fill('30');
   await v.getByLabel('Nome').fill('Recebedor Teste');
   // assina com o "dedo"
@@ -73,11 +73,11 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   for (const [x, y] of [[60, 70], [120, 40], [170, 90], [220, 120]]) await toque('pointermove', x, y);
   await toque('pointerup', 220, 120);
   await expect(v.getByText('Assinado')).toBeVisible();
-  await v.getByRole('button', { name: 'Confirmar retirada' }).click();
+  await v.getByRole('button', { name: 'Confirmar: as mudas saíram do viveiro' }).click();
   await expect(v.getByText(/reservadas 25 mudas.*não dá para entregar 30/)).toBeVisible();
   await v.getByLabel(`Entregues de ${ESPECIE}`).fill('20');
   const download = v.waitForEvent('download');
-  await v.getByRole('button', { name: 'Confirmar retirada' }).click();
+  await v.getByRole('button', { name: 'Confirmar: as mudas saíram do viveiro' }).click();
   expect((await download).suggestedFilename()).toBe(`termo-${codigo}.pdf`);
   if (process.env.CRADS_SALVAR_TERMO) await (await download).saveAs(process.env.CRADS_SALVAR_TERMO);
   await expect(v.getByTestId('resumo-pedido')).toContainText('retirado');

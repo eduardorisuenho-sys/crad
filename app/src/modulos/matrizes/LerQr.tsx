@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { lerCodigo } from '@crads/dominio';
+import { codigoDoQr } from '../../plataforma/rastreio';
 import { BotaoFoto } from '../../componentes/BotaoFoto';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
@@ -26,7 +27,8 @@ export function LerQr() {
   const [digitado, setDigitado] = useState('');
 
   async function abrir(texto: string) {
-    const codigo = texto.trim().toUpperCase();
+    // a etiqueta das mudas grava o endereço do rastreio; as outras, só o código
+    const codigo = codigoDoQr(texto);
     const c = lerCodigo(codigo);
     const destino = c ? ROTAS[c.tipo] : undefined;
     if (!c || !destino) {

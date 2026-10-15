@@ -2,7 +2,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { normalizarBusca, type ItemCatalogo } from '@crads/dominio';
+import { BotaoPdf } from '../../componentes/BotaoPdf';
 import { Icone } from '../../componentes/Icone';
+import { gerarFichasPdf } from './fichasPdf';
 import { useApp } from '../../contexto';
 import { lerCatalogo, servidorPublico, urlFoto } from './api';
 import { Pagina } from './Pagina';
@@ -84,6 +86,24 @@ export function Catalogo() {
         })}
       </ul>
       {itens && !lista.length && <p className="vazio">Nenhuma muda pronta {busca ? 'com esse nome' : 'no momento'}.</p>}
+      {lista.length > 0 && (
+        <BotaoPdf
+          rotulo={`Imprimir o catálogo com fotos (PDF, ${lista.length} ${lista.length === 1 ? 'espécie' : 'espécies'})`}
+          nome="catalogo-de-mudas.pdf"
+          gerar={(progresso) =>
+            gerarFichasPdf(
+              servidor,
+              'Catálogo de mudas nativas',
+              `Mudas prontas para doação${viveiro ? ` · ${viveiros.find(([v]) => v === viveiro)?.[1] ?? ''}` : ''} · ${new Date().toLocaleDateString('pt-BR')}`,
+              lista.map((i) => {
+                const qtd = viveiro ? i.por_viveiro.find((v) => v.viveiro_id === viveiro)?.disponivel ?? 0 : i.total;
+                return { especie_id: i.especie_id, destaque: `${qtd} mudas prontas`, reserva: i };
+              }),
+              progresso,
+            )
+          }
+        />
+      )}
       <form className="cartao formulario" onSubmit={rastrear}>
         <h2>Rastrear um lote</h2>
         <label>

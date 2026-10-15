@@ -9,6 +9,9 @@ import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
 import { BotaoPlantandoAgua } from './BotaoPlantandoAgua';
 import { CombinarRetirada } from './CombinarRetirada';
+import { BotaoPdf } from '../../componentes/BotaoPdf';
+import { gerarFichasPdf } from '../catalogo/fichasPdf';
+import { servidorPublico } from '../catalogo/api';
 import { disponivelLocal, doacoesNoPrograma, itensDoPedido, ROTULO_SITUACAO } from './dados';
 import { abrirPdf, relatorioPedido, termoDoacao, type DadosPdf } from './pdf';
 
@@ -206,7 +209,7 @@ export function DetalhePedido() {
             <p className="mensagem alerta">{bloqueio}</p>
           ) : (
             <Link to={`/doacao/${id}/retirada`} className="botao-principal">
-              <Icone nome="doacao" /> Registrar retirada
+              <Icone nome="doacao" /> As mudas saíram (dar baixa)
             </Link>
           )}
         </>
@@ -218,6 +221,31 @@ export function DetalhePedido() {
             <Icone nome="baixar" /> Solicitação de mudas (PDF)
           </button>
         )}
+        <BotaoPdf
+          rotulo="Fichas das espécies com fotos (PDF)"
+          nome={`especies-${String(doacao.codigo)}.pdf`}
+          gerar={async (progresso) => {
+            // sem a ficha pública (sem internet): os nomes guardados no aparelho
+            const populares = (await db.colecao('nome_popular').toArray()).filter((n) => !n.excluido);
+            const reserva = async (id: string) => {
+              const e = await db.colecao('especie').get(id);
+              return { nome_cientifico: String(e?.nome_cientifico ?? nomes?.get(id) ?? ''), familia: String(e?.familia ?? ''), nomes_populares: populares.filter((n) => n.especie_id === id).map((n) => String(n.nome)) };
+            };
+            const reservas = new Map(await Promise.all(itens.map(async (i) => [String(i.especie_id), await reserva(String(i.especie_id))] as const)));
+            return gerarFichasPdf(
+              servidorPublico(sessao?.servidor),
+              `Espécies do pedido ${String(doacao.codigo)}`,
+              `${String(viveiro?.nome ?? '')} · ${new Date().toLocaleDateString('pt-BR')}`,
+              itens.map((i) => {
+                const partes = [`Pedidas: ${Number(i.qtd_pedida ?? 0)}`];
+                if (!SITUACOES_EM_ANALISE.includes(situacao)) partes.push(`Aprovadas: ${Number(i.qtd_aprovada ?? 0)}`);
+                if (situacao === 'retirada') partes.push(`Entregues: ${Number(i.qtd_entregue ?? 0)}`);
+                return { especie_id: String(i.especie_id), destaque: partes.join(' · '), reserva: reservas.get(String(i.especie_id)) };
+              }),
+              progresso,
+            );
+          }}
+        />
         {situacao === 'retirada' && (
           <button
             className="botao-secundario"

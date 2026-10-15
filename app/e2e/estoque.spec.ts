@@ -171,7 +171,7 @@ test('mudas que já estavam no viveiro: foto, liberar para doação, limite por 
   await v.goto('/doacao');
   await v.getByRole('button', { name: 'Aguardando retirada' }).click();
   await v.locator('.item-lista', { hasText: codigo }).click();
-  await v.getByRole('link', { name: 'Registrar retirada' }).click();
+  await v.getByRole('link', { name: 'As mudas saíram (dar baixa)' }).click();
   await v.getByLabel('Nome').fill('Recebedor Estoque');
   const tela = v.getByLabel('Área para assinar');
   const caixa = (await tela.boundingBox())!;
@@ -179,7 +179,7 @@ test('mudas que já estavam no viveiro: foto, liberar para doação, limite por 
   await toque('pointerdown', 20, 100);
   for (const [x, y] of [[80, 60], [160, 110], [220, 70]]) await toque('pointermove', x, y);
   await toque('pointerup', 220, 70);
-  await v.getByRole('button', { name: 'Confirmar retirada' }).click();
+  await v.getByRole('button', { name: 'Confirmar: as mudas saíram do viveiro' }).click();
   await expect(v.getByTestId('resumo-pedido')).toContainText('retirado');
   await expect.poll(async () => (await lerDoServidor('movimento_estoque_mudas')).filter((m) => m.lote_mudas_id === lotes[0].id && m.tipo === 'saida_doacao').map((m) => m.quantidade), { timeout: 20_000 }).toEqual([10]);
   await v.goto('/viveiro');

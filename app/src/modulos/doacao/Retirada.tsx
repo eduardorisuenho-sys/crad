@@ -135,7 +135,7 @@ export function Retirada() {
       </section>
       {erro && <p className="erro">{erro}</p>}
       <button className="botao-principal" disabled={salvando} onClick={() => void salvar()}>
-        <Icone nome="certo" /> Confirmar retirada
+        <Icone nome="certo" /> Confirmar: as mudas saíram do viveiro
       </button>
     </Tela>
   );

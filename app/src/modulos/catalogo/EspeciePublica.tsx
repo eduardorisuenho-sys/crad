@@ -6,8 +6,8 @@ import { NOMES_MESES, rotulo } from '../especies/rotulos';
 import { lerEspecie, servidorPublico, urlFoto, type EspeciePublica as Dados } from './api';
 import { Pagina } from './Pagina';
 import { CadeiaLote } from './Rastreio';
+import { CARACTERES } from './fichasPdf';
 
-const CARACTERES = ['folha', 'disposicao', 'latex', 'espinhos', 'casca', 'flor', 'fruto', 'origem', 'forma_vida', 'grupo_sucessional'];
 
 export function EspeciePublica() {
   const { id } = useParams();
