@@ -20,7 +20,7 @@ const UNIDADES = [
   { valor: 'kg', rotulo: 'Quilos (kg)' },
   { valor: 'g', rotulo: 'Gramas (g)' },
   { valor: 'litros', rotulo: 'Litros' },
-  { valor: 'frutos', rotulo: 'Frutos (contados)' },
+  { valor: 'unidades', rotulo: 'Unidades (contadas)' },
 ];
 
 export function formatarDistancia(m: number): string {

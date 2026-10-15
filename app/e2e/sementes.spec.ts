@@ -75,3 +75,18 @@ test('coleta em árvore sem matriz cadastrada (só a espécie) e sementes que j�
   expect((await lerDoServidor('lote_mudas')).find((l) => l.id === lm.id)?.excluido).toBe(false);
   await cg.close();
 });
+
+test('coleta de frutos contados por unidade', async ({ page }) => {
+  await entrarComoColetor(page);
+  await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
+  await page.goto('/coleta/nova');
+  await page.getByRole('button', { name: /MT-9001/ }).click();
+  await page.getByLabel('Quantidade').fill('40');
+  await page.getByRole('button', { name: 'Unidades (contadas)' }).click();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('button', { name: 'Frutos' }).click();
+  await page.getByRole('button', { name: 'Pular a foto' }).click();
+  await expect(page.locator('.ficha')).toContainText('40 unidades (contadas) de frutos');
+  await page.getByRole('button', { name: 'Salvar coleta' }).click();
+  await expect.poll(async () => (await lerDoServidor('coleta')).some((c) => c.quantidade === 40 && c.unidade === 'unidades' && c.material === 'fruto'), { timeout: 20_000 }).toBe(true);
+});
