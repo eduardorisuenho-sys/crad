@@ -139,7 +139,7 @@ export function NovaColeta() {
           >
             <Icone nome="semente" tamanho={40} />
             <span>
-              Árvore sem matriz cadastrada<small className="dica-botao">Escolher só a espécie</small>
+              Registrar sementes<small className="dica-botao">De árvore sem matriz cadastrada: escolher só a espécie</small>
             </span>
           </button>
         </div>

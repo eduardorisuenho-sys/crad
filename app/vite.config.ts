@@ -43,6 +43,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        // Avisos com o app fechado (Web Push).
+        importScripts: ['sw-push.js'],
         // Fotos do catálogo ficam guardadas para abrir sem internet.
         runtimeCaching: [
           {

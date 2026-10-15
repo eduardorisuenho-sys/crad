@@ -11,7 +11,7 @@ test('coleta em árvore sem matriz cadastrada (só a espécie) e sementes que j�
   await expect(c.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await cc.setOffline(true);
   await c.goto('/coleta/nova');
-  await c.getByRole('button', { name: /Árvore sem matriz cadastrada/ }).click();
+  await c.getByRole('button', { name: /Registrar sementes/ }).click();
   await c.getByLabel('Nome da espécie').fill('arvore do catalogo');
   await c.getByRole('button', { name: /Árvore-do-catálogo/ }).click();
   await expect(c.getByText('Árvore sem matriz · Árvore-do-catálogo')).toBeVisible();

@@ -96,6 +96,12 @@ const INTERNAS = [
   },
   { name: 'sync_contador', fields: [campoId, num('valor'), ...datas], indexes: [] },
   {
+    // Inscrição de cada celular para receber avisos com o app fechado (Web Push).
+    name: 'inscricao_push',
+    fields: [campoId, txt('usuario_id'), txt('endpoint'), txt('p256dh'), txt('auth'), ...datas],
+    indexes: ['CREATE UNIQUE INDEX idx_inscricao_push_endpoint ON inscricao_push (endpoint)', 'CREATE INDEX idx_inscricao_push_usuario ON inscricao_push (usuario_id)'],
+  },
+  {
     // Lápide do que o administrador apagou de vez: avisa os aparelhos para tirarem o registro.
     name: 'apagado',
     fields: [campoId, txt('colecao'), txt('registro_id'), num('seq'), ...datas],

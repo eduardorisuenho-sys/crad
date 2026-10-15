@@ -20,7 +20,7 @@ export function InicioColeta() {
       {params.get('salva') && <p className="mensagem">Coleta salva. Vai para o servidor quando houver sinal.</p>}
       <div className="lista-grande">
         {pode('registrar_coleta') && (
-          <Link to="/coleta/nova" className="botao-grande">
+          <Link to="/coleta/nova" className="botao-grande verde">
             <Icone nome="semente" tamanho={40} />
             <span>Registrar coleta</span>
           </Link>

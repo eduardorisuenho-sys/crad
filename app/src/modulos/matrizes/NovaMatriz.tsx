@@ -213,10 +213,6 @@ export function NovaMatriz() {
         <div className="assistente">
           <h2 className="pergunta">Qual é a árvore?</h2>
           <div className="lista-grande">
-            <button className="botao-grande" onClick={() => setEtapa('assistente')}>
-              <FiguraOpcao nome="folha_composta" tamanho={48} />
-              <span>Descobrir com perguntas</span>
-            </button>
             <button className="botao-grande" onClick={() => setEtapa('busca')}>
               <Icone nome="catalogo" tamanho={48} />
               <span>Já sei o nome</span>

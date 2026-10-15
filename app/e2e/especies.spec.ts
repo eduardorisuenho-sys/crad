@@ -48,3 +48,32 @@ test('nova espécie já com vários nomes populares', async ({ page }) => {
   for (const n of ['Árvore-teste-um', 'Árvore-teste-dois', 'Árvore-teste-três']) await expect(chips.filter({ hasText: n })).toHaveCount(1);
   await expect.poll(async () => (await lerDoServidor('nome_popular')).filter((n) => String(n.nome).startsWith('Árvore-teste-')).length, { timeout: 20_000 }).toBe(3);
 });
+
+test('gestora baixa a lista oficial de espécies pelo servidor e vê a prévia antes de gravar', async ({ page }) => {
+  const { strToU8, zipSync } = await import('fflate');
+  // Pacote FICTÍCIO no formato do JBRJ (o servidor de verdade baixa o oficial).
+  const meta = `<?xml version="1.0"?><archive xmlns="http://rs.tdwg.org/dwc/text/">
+  <core fieldsTerminatedBy="\\t" ignoreHeaderLines="1" rowType="http://rs.tdwg.org/dwc/terms/Taxon"><files><location>taxon.txt</location></files><id index="0"/>
+  <field index="1" term="http://rs.tdwg.org/dwc/terms/scientificName"/><field index="2" term="http://rs.tdwg.org/dwc/terms/family"/>
+  <field index="3" term="http://rs.tdwg.org/dwc/terms/taxonRank"/><field index="4" term="http://rs.tdwg.org/dwc/terms/taxonomicStatus"/></core>
+  <extension fieldsTerminatedBy="\\t" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/VernacularName"><files><location>v.txt</location></files><coreid index="0"/>
+  <field index="1" term="http://rs.tdwg.org/dwc/terms/vernacularName"/><field index="2" term="http://purl.org/dc/terms/language"/></extension>
+  <extension fieldsTerminatedBy="\\t" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/Distribution"><files><location>d.txt</location></files><coreid index="0"/>
+  <field index="1" term="http://rs.tdwg.org/dwc/terms/locationID"/></extension>
+  <extension fieldsTerminatedBy="\\t" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/SpeciesProfile"><files><location>p.txt</location></files><coreid index="0"/>
+  <field index="1" term="http://rs.gbif.org/terms/1.0/lifeForm"/></extension></archive>`;
+  const zip = zipSync({
+    'meta.xml': strToU8(meta),
+    'taxon.txt': strToU8('id\tn\tf\tr\ts\n77\tOficialia teste\tTestaceae\tESPECIE\tNOME_ACEITO\n'),
+    'v.txt': strToU8('id\tv\tl\n77\tárvore-oficial-teste\tPORTUGUES\n'),
+    'd.txt': strToU8('id\tl\n77\tBR-TO\n'),
+    'p.txt': strToU8('id\tf\n77\t{"lifeForm":["Árvore"]}\n'),
+  });
+  await page.route('**/flora/flora-TO.zip', (r) => r.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from(zip) }));
+  await entrarComoGestora(page);
+  await page.goto('/especies/importar');
+  await page.getByRole('button', { name: 'Baixar a lista oficial pelo servidor' }).click();
+  const previa = page.locator('.ficha', { hasText: 'Espécies novas de TO' });
+  await expect(previa).toBeVisible();
+  await expect(previa.locator('dd').first()).toHaveText('1');
+});

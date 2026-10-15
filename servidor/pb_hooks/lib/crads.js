@@ -44,11 +44,13 @@ __export(crads_exports, {
   apagarConta: () => apagarConta,
   arquivoParaLer: () => arquivoParaLer,
   auditarPainel: () => auditarPainel,
+  avisarPush: () => avisarPush,
   catalogoPublico: () => catalogoPublico,
   contatoDoacao: () => contatoDoacao,
   contextoDe: () => contextoDe,
   criarConta: () => criarConta,
   enviar: () => enviar,
+  enviosPush: () => enviosPush,
   equipe: () => equipe,
   equipeCadastrar: () => equipeCadastrar,
   equipeRemover: () => equipeRemover,
@@ -57,6 +59,7 @@ __export(crads_exports, {
   eu: () => eu,
   expirarPrazos: () => expirarPrazos,
   fotoMudaPublica: () => fotoMudaPublica,
+  inscreverPush: () => inscreverPush,
   lixeira: () => lixeira,
   lixeiraApagar: () => lixeiraApagar,
   lixeiraRestaurar: () => lixeiraRestaurar,
@@ -65,6 +68,7 @@ __export(crads_exports, {
   receber: () => receber,
   receberArquivo: () => receberArquivo,
   reservarFaixas: () => reservarFaixas,
+  sairPush: () => sairPush,
   transparencia: () => transparencia,
   viveirosPublicos: () => viveirosPublicos
 });
@@ -1378,7 +1382,7 @@ function referenciasPara(nomeColecao) {
 }
 function rotuloRegistro(colecao2, r2) {
   var _a, _b, _c, _d;
-  const dia3 = (v) => String(v != null ? v : "").slice(0, 10).split("-").reverse().join("/");
+  const dia4 = (v) => String(v != null ? v : "").slice(0, 10).split("-").reverse().join("/");
   switch (colecao2) {
     case "especie":
       return String((_a = r2.nome_cientifico) != null ? _a : r2.id);
@@ -1389,7 +1393,7 @@ function rotuloRegistro(colecao2, r2) {
     case "fenologia":
     case "plantio":
     case "monitoramento":
-      return `${colecao2 === "monitoramento" ? "Acompanhamento" : colecao2 === "plantio" ? "Plantio" : colecao2 === "fenologia" ? "Flor e fruto" : "Coleta"} de ${dia3((_c = r2.data) != null ? _c : r2.criado_no_aparelho_em)}`;
+      return `${colecao2 === "monitoramento" ? "Acompanhamento" : colecao2 === "plantio" ? "Plantio" : colecao2 === "fenologia" ? "Flor e fruto" : "Coleta"} de ${dia4((_c = r2.data) != null ? _c : r2.criado_no_aparelho_em)}`;
     default:
       return String((_d = r2.codigo) != null ? _d : r2.id);
   }
@@ -1417,6 +1421,41 @@ function dependentesAtivos(nomeColecao, id, registrosDe) {
 }
 function mensagemDependentes(d2) {
   return `Ainda h\xE1 registros ligados a este: ${d2.map((x) => `${x.quantidade} em ${x.colecao.replace(/_/g, " ")}`).join(", ")}. Exclua ou corrija esses antes.`;
+}
+
+// ../dominio/src/notificacoes.ts
+var EM_ANALISE = ["enviada", "em_analise"];
+var APROVADA = ["aprovada", "aprovada_parcial"];
+var dia3 = (v) => String(v != null ? v : "").slice(0, 10).split("-").reverse().join("/");
+var mudou2 = (antes, depois, campo) => (antes ? antes[campo] : void 0) !== depois[campo];
+function notificacaoPara(colecao2, antes, depois, ctx) {
+  var _a, _b, _c, _d;
+  if (depois.excluido && colecao2 !== "matriz") return null;
+  if (depois.atualizado_por === ctx.id || !antes && depois.criado_por === ctx.id) return null;
+  const id = String((_a = depois.id) != null ? _a : "");
+  const codigo = String((_b = depois.codigo) != null ? _b : "");
+  if (colecao2 === "doacao") {
+    const meu = depois.solicitante_usuario_id === ctx.id;
+    const rota = `/doacao/${id}`;
+    if (EM_ANALISE.includes(String(depois.situacao)) && (!antes || !EM_ANALISE.includes(String(antes.situacao))) && !meu && temPermissao(ctx, "aprovar_doacao", depois.viveiro_id)) {
+      return { titulo: "Novo pedido de mudas", texto: `O pedido ${codigo} est\xE1 aguardando an\xE1lise.`, rota };
+    }
+    if (mudou2(antes, depois, "situacao") && APROVADA.includes(String(depois.situacao))) {
+      if (meu) return { titulo: "Seu pedido de mudas foi aprovado!", texto: `Pedido ${codigo}: fale com o viveiro para combinar o dia da retirada.`, rota };
+      if (temPermissao(ctx, "retirada", depois.viveiro_id)) return { titulo: "Pedido aprovado", texto: `O pedido ${codigo} foi aprovado: combine a retirada com quem pediu.`, rota };
+    }
+    if (meu && mudou2(antes, depois, "situacao") && depois.situacao === "negada") {
+      return { titulo: "Seu pedido de mudas n\xE3o foi aprovado", texto: `Pedido ${codigo}. Veja o motivo no pedido.`, rota };
+    }
+    if (meu && depois.retirada_combinada && mudou2(antes, depois, "retirada_combinada")) {
+      return { titulo: "Retirada combinada", texto: `Busque as mudas do pedido ${codigo} em ${dia3(depois.retirada_combinada)}.`, rota };
+    }
+    return null;
+  }
+  if (colecao2 === "pedido_acesso" && !antes && depois.situacao === "pendente" && temPermissao(ctx, "equipe", depois.viveiro_id)) {
+    return { titulo: "Novo pedido de acesso", texto: `${String((_c = depois.nome) != null ? _c : "Algu\xE9m")} quer entrar na equipe como ${String((_d = depois.perfil) != null ? _d : "")}.`, rota: "/equipe" };
+  }
+  return null;
 }
 
 // src/crads.ts
@@ -2078,15 +2117,15 @@ function expirarPrazos(app, hoje = hojeISO()) {
   let reservas = 0;
   let pedidos = 0;
   app.runInTransaction((tx) => {
-    const dia3 = hoje.slice(0, 10);
+    const dia4 = hoje.slice(0, 10);
     for (const r2 of todos(tx, "reserva")) {
-      if (r2.situacao === "ativa" && r2.valida_ate && String(r2.valida_ate).slice(0, 10) < dia3) {
+      if (r2.situacao === "ativa" && r2.valida_ate && String(r2.valida_ate).slice(0, 10) < dia4) {
         gravar(tx, colecao("reserva"), __spreadProps(__spreadValues({}, r2), { situacao: "expirada", versao: Number(r2.versao) + 1 }));
         reservas++;
       }
     }
     for (const d2 of todos(tx, "doacao")) {
-      if (SITUACOES_APROVADAS.includes(String(d2.situacao)) && d2.retirar_ate && String(d2.retirar_ate).slice(0, 10) < dia3) {
+      if (SITUACOES_APROVADAS.includes(String(d2.situacao)) && d2.retirar_ate && String(d2.retirar_ate).slice(0, 10) < dia4) {
         gravar(tx, colecao("doacao"), __spreadProps(__spreadValues({}, d2), { situacao: "expirada", versao: Number(d2.versao) + 1 }));
         auditar(tx, { colecao: "doacao", registro_id: d2.id, acao: "expirar", antes: { situacao: d2.situacao }, depois: { situacao: "expirada" }, usuario_id: "sistema" });
         pedidos++;
@@ -2216,3 +2255,64 @@ function auditarPainel(app, rec, acao, quem) {
   auditar(app, { colecao: nome, registro_id: rec.id, acao: `${acao}_painel`, antes: null, depois: paraObjeto(colecao(nome), rec), usuario_id: quem });
 }
 var COLECOES_SINCRONIZADAS = COLECOES.map((c) => c.nome);
+function inscreverPush(app, auth, corpo) {
+  var _a, _b, _c;
+  const endpoint = String((_a = corpo.endpoint) != null ? _a : "");
+  if (!/^https:\/\//.test(endpoint) || !((_b = corpo.keys) == null ? void 0 : _b.p256dh) || !((_c = corpo.keys) == null ? void 0 : _c.auth)) throw new Error("Inscri\xE7\xE3o inv\xE1lida.");
+  let rec;
+  try {
+    rec = app.findFirstRecordByFilter("inscricao_push", "endpoint = {:e}", { e: endpoint });
+  } catch (e) {
+    rec = new Record(app.findCollectionByNameOrId("inscricao_push"));
+    rec.set("id", novoId());
+  }
+  rec.set("usuario_id", auth.id);
+  rec.set("endpoint", endpoint);
+  rec.set("p256dh", corpo.keys.p256dh);
+  rec.set("auth", corpo.keys.auth);
+  app.save(rec);
+  return { ok: true };
+}
+function sairPush(app, auth, corpo) {
+  var _a;
+  for (const r2 of app.findRecordsByFilter("inscricao_push", "endpoint = {:e} && usuario_id = {:u}", "", 0, 0, { e: String((_a = corpo.endpoint) != null ? _a : ""), u: auth.id })) app.delete(r2);
+  return { ok: true };
+}
+function enviosPush(app, nome, antesRec, depoisRec) {
+  var _a;
+  if (!existeColecao(nome)) return [];
+  const col = colecao(nome);
+  const depois = paraObjeto(col, depoisRec);
+  const antes = antesRec ? paraObjeto(col, antesRec) : void 0;
+  const porUsuario = /* @__PURE__ */ new Map();
+  for (const i of app.findRecordsByFilter("inscricao_push", "id != ''", "", 0, 0)) {
+    const u = i.getString("usuario_id");
+    ((_a = porUsuario.get(u)) != null ? _a : porUsuario.set(u, []).get(u)).push(i);
+  }
+  const envios = [];
+  for (const [usuarioId, inscricoes] of porUsuario) {
+    const u = buscar(app, "users", usuarioId);
+    if (!u) continue;
+    const ctx = contextoDe(app, u);
+    if (!podeLer(ctx, col, depois)) continue;
+    const n2 = notificacaoPara(nome, antes, depois, ctx);
+    if (!n2) continue;
+    for (const i of inscricoes) envios.push(__spreadValues({ inscricao: { endpoint: i.getString("endpoint"), keys: { p256dh: i.getString("p256dh"), auth: i.getString("auth") } } }, n2));
+  }
+  return envios;
+}
+function avisarPush(app, nome, antesRec, depoisRec) {
+  var _a, _b, _c;
+  try {
+    const envios = enviosPush(app, nome, antesRec, depoisRec);
+    if (!envios.length) return 0;
+    const url = ((_a = $os == null ? void 0 : $os.getenv) == null ? void 0 : _a.call($os, "CRADS_PUSH_URL")) || "http://127.0.0.1:8091/enviar";
+    const r2 = $http.send({ url, method: "POST", body: JSON.stringify({ envios }), headers: { "content-type": "application/json" }, timeout: 5 });
+    const mortas = (_c = (_b = r2 == null ? void 0 : r2.json) == null ? void 0 : _b.mortas) != null ? _c : [];
+    for (const e of mortas) for (const rec of app.findRecordsByFilter("inscricao_push", "endpoint = {:e}", "", 0, 0, { e })) app.delete(rec);
+    return envios.length;
+  } catch (err) {
+    console.log("aviso no celular n\xE3o enviado: " + String(err));
+    return 0;
+  }
+}

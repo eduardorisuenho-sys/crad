@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { codigosRestantes } from '@crads/dominio';
 import { AjusteAvisos } from '../componentes/AjusteAvisos';
 import { useInstalacao } from '../plataforma/instalacao';
+import { sairDosAvisos } from '../plataforma/notificar';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
@@ -38,6 +39,7 @@ export function Configuracoes() {
 
   async function aoSair() {
     if (pendentes && !confirm(`Há ${pendentes} item(ns) ainda não enviados. Eles continuam guardados neste aparelho. Sair mesmo assim?`)) return;
+    if (sessao) await sairDosAvisos(sessao.servidor, sessao.token);
     await sair(db);
     definirSessao(null);
     navegar('/');

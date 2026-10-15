@@ -92,6 +92,9 @@ h1, h2, h3 { color: var(--azul-escuro); }
 .botao-grande.ativo { border-color: var(--azul); background: var(--azul-10); }
 .botao-grande.perigo { border-color: var(--azul-escuro); }
 .botao-grande:disabled { opacity: 0.45; }
+/* ação principal da tela em formato de botão grande */
+.botao-grande.verde { background: var(--verde); border-color: var(--verde); color: var(--branco); }
+.botao-grande.verde svg, .botao-grande.verde .dica-botao { color: var(--branco); }
 .lista-grande { display: flex; flex-direction: column; gap: 12px; }
 .acoes { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 .acoes > * { flex: 1; }

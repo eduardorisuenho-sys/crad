@@ -10,3 +10,5 @@ servidor/pocketbase.zip
 servidor/pocketbase.exe
 servidor/CHANGELOG.md
 servidor/LICENSE.md
+servidor/pb_public/
+servidor/push/vapid.json

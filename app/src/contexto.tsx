@@ -8,7 +8,7 @@ import { idDispositivo, perfisNoViveiro, renovar, sessaoSalva, type Sessao } fro
 import { SemConexao, SessaoExpirada, Sincronizador } from './dados/sincronizador';
 import { TransporteHttp } from './dados/transporte-http';
 import { pedirArmazenamentoPersistente } from './plataforma/armazenamento';
-import { notificarNoAparelho, tocarSom } from './plataforma/notificar';
+import { inscreverAvisosComAppFechado, notificarNoAparelho, permissaoNotificacao, tocarSom } from './plataforma/notificar';
 
 export type EstadoSync = 'parado' | 'sincronizando' | 'sem_sinal' | 'entrar_de_novo' | 'erro';
 
@@ -123,6 +123,13 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
       }
     }
   }, [sync]);
+
+  // Avisos com o app fechado: com a permissão já dada, renova a inscrição deste aparelho ao abrir.
+  useEffect(() => {
+    if (!sessao || permissaoNotificacao() !== 'granted') return;
+    const t = window.setTimeout(() => void inscreverAvisosComAppFechado(sessao.servidor, sessao.token), 5_000);
+    return () => window.clearTimeout(t);
+  }, [sessao?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sincroniza ao abrir, quando o sinal volta, a cada minuto e logo depois de gravar.
   useEffect(() => {

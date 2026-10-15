@@ -243,3 +243,29 @@ routerAdd("GET", "/api/crads/publico/foto/{id}/{arquivo}", (e) => {
     fsys.close();
   }
 });
+
+// Avisos no celular com o app fechado (Web Push): inscrição do aparelho.
+routerAdd("POST", "/api/crads/push/inscrever", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.inscreverPush($app, e.auth, e.requestInfo().body));
+  } catch (err) {
+    throw new BadRequestError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("POST", "/api/crads/push/sair", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  return e.json(200, crads.sairPush($app, e.auth, e.requestInfo().body));
+}, $apis.requireAuth("users"));
+
+// Pedido novo, aprovação, retirada combinada, pedido de acesso: avisa quem precisa saber.
+onRecordAfterCreateSuccess((e) => {
+  e.next();
+  require(`${__hooks}/lib/crads.js`).avisarPush($app, e.record.collection().name, null, e.record);
+}, "doacao", "pedido_acesso");
+
+onRecordAfterUpdateSuccess((e) => {
+  e.next();
+  require(`${__hooks}/lib/crads.js`).avisarPush($app, e.record.collection().name, e.record.original(), e.record);
+}, "doacao", "pedido_acesso");

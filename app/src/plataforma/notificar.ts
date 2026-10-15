@@ -72,3 +72,47 @@ export async function notificarNoAparelho(titulo: string, texto: string) {
     /* sem notificação do sistema: fica o aviso na tela */
   }
 }
+
+/** Chave pública (base64url) no formato que o navegador pede. */
+function chaveBytes(base64url: string): Uint8Array {
+  const b64 = (base64url + '='.repeat((4 - (base64url.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+}
+
+export type ResultadoInscricao = 'ok' | 'sem-suporte' | 'sem-permissao' | 'sem-servidor';
+
+/**
+ * Inscreve este aparelho para receber avisos mesmo com o app fechado (Web
+ * Push). Precisa da permissão de notificação e de internet. No iPhone, só
+ * funciona com o app instalado na tela inicial (iOS 16.4 ou mais novo).
+ */
+export async function inscreverAvisosComAppFechado(servidor: string, token: string): Promise<ResultadoInscricao> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator) || typeof PushManager === 'undefined') return 'sem-suporte';
+  if (permissaoNotificacao() !== 'granted') return 'sem-permissao';
+  try {
+    const base = servidor.replace(/\/$/, '');
+    const r = await fetch(`${base}/push/chave.json`);
+    if (!r.ok) return 'sem-servidor';
+    const { publicKey } = (await r.json()) as { publicKey: string };
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: chaveBytes(publicKey) as BufferSource }));
+    const s = await fetch(`${base}/api/crads/push/inscrever`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: token }, body: JSON.stringify(sub.toJSON()) });
+    return s.ok ? 'ok' : 'sem-servidor';
+  } catch {
+    return 'sem-servidor';
+  }
+}
+
+/** Ao sair da conta: este aparelho deixa de receber os avisos dela. */
+export async function sairDosAvisos(servidor: string, token: string) {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    if (!sub) return;
+    await fetch(`${servidor.replace(/\/$/, '')}/api/crads/push/sair`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: token }, body: JSON.stringify({ endpoint: sub.endpoint }) }).catch(() => null);
+    await sub.unsubscribe();
+  } catch {
+    /* sem problema: o servidor apaga inscrições mortas sozinho */
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "crads-push",
+  "private": true,
+  "description": "Entrega os avisos do CRADS no celular mesmo com o app fechado (Web Push).",
+  "type": "module",
+  "main": "push.mjs",
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}

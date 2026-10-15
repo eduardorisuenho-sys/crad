@@ -1,0 +1,15 @@
+[Unit]
+Description=CRADS - carteiro de avisos no celular (Web Push)
+After=network-online.target crads.service
+
+[Service]
+Type=simple
+User=crads
+Group=crads
+WorkingDirectory=/opt/crads/servidor/push
+ExecStart=/opt/crads/node/bin/node /opt/crads/servidor/push/push.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

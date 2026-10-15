@@ -11,7 +11,7 @@ test('viveirista cadastra sem internet as mudas que já estavam no viveiro: uma 
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await context.setOffline(true);
   await abrirModulo(page, 'Viveiro');
-  await page.getByRole('link', { name: /Mudas que já estavam aqui/ }).click();
+  await page.getByRole('link', { name: /Registrar mudas/ }).click();
 
   // 1) uma espécie por vez
   await page.getByRole('button', { name: /Uma espécie por vez/ }).click();

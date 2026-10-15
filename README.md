@@ -25,8 +25,8 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 7. Módulo 6, Pós-plantio | **pronta** |
 | 8. Módulo 7, Relatórios e transparência | **pronta** |
 
-Mudas que já estavam no viveiro (estoque inicial), em Viveiro → "Mudas que
-já estavam aqui":
+Mudas que já estavam no viveiro (estoque inicial), em Viveiro → **Registrar
+mudas**:
 
 - Três formas, todas sem internet:
   - **uma espécie por vez**: espécie → quantidade → foto das mudas
@@ -81,9 +81,14 @@ Avisos com som:
   - para quem cuida da equipe: **pedido de acesso**.
 - Tocar no aviso abre a tela certa. Em Ajustes → Avisos com som: ligar ou
   desligar o som e **permitir notificações no aparelho**.
-- O app confere as novidades a cada minuto **enquanto está aberto** (também
-  em segundo plano). Com o app totalmente fechado, o aviso aparece na
-  próxima vez que ele for aberto.
+- **Com o app fechado** o aviso também chega (Web Push), com o som de
+  notificação do próprio celular. Basta tocar em "Permitir notificações no
+  aparelho" (Ajustes → Avisos com som). No iPhone, só com o app instalado na
+  tela inicial (iOS 16.4 ou mais novo).
+  - No servidor, o "carteiro" (`servidor/push/push.mjs`, serviço
+    `crads-push`) entrega os avisos; o PocketBase decide quem recebe o quê,
+    com a mesma regra dos avisos com o app aberto. O instalador configura
+    tudo (Node.js, chaves e serviço).
 
 Excluir o que foi preenchido errado:
 
@@ -339,6 +344,10 @@ O que o Módulo 1 entrega (tudo funciona sem internet):
     repetidos não entram de novo);
   - marcação **"revisar"** com o motivo.
 - **Importação de espécies** pela tela do gestor, sempre com prévia antes de gravar:
+  - **Baixar a lista oficial pelo servidor**: o servidor baixa a lista da
+    Flora e Funga do Brasil (JBRJ) só com as espécies do Tocantins (nome
+    científico, família e nomes populares) ao ser instalado ou atualizado e
+    uma vez por mês (`servidor/deploy/flora.py`). Nada é digitado à mão;
   - da planilha de controle atual (aba "Espécies") ou do modelo completo `dados/modelo-especies.xlsx`;
   - do pacote de dados abertos da **Flora e Funga do Brasil**, filtrado por UF e forma de vida.
 - **Assistente de identificação:**

@@ -35,7 +35,7 @@ export function InicioViveiro() {
     <Tela titulo="Viveiro">
       <div className="acoes">
         {pode('producao') && (
-          <Link to="/viveiro/semeadura" className="botao-principal">
+          <Link to="/viveiro/semeadura" className="botao-secundario">
             <Icone nome="muda" /> Nova semeadura
           </Link>
         )}
@@ -47,10 +47,10 @@ export function InicioViveiro() {
       </div>
       <ForaDoCatalogo />
       {pode('estoque_inicial') && (
-        <Link to="/viveiro/estoque-inicial" className="botao-grande">
+        <Link to="/viveiro/estoque-inicial" className="botao-grande verde">
           <Icone nome="mais" tamanho={36} />
           <span>
-            Mudas que já estavam aqui<small className="dica-botao">Cadastrar o estoque de antes do app</small>
+            Registrar mudas<small className="dica-botao">Mudas que já estão no viveiro</small>
           </span>
         </Link>
       )}

@@ -48,6 +48,18 @@ describe('estoque de sementes', () => {
   it('saldo é a soma dos movimentos', () => {
     expect(saldoSementes(movs)).toEqual({ g: 675, unid: 3400 });
   });
+
+  it('lote sem contagem de sementes: nunca mostra número negativo e não bloqueia pela contagem', () => {
+    const semContagem = [
+      { tipo: 'entrada', quantidade_g: 30 },
+      { tipo: 'semeadura', quantidade_g: 0, quantidade_unid: 30 },
+    ];
+    const saldo = saldoSementes(semContagem);
+    expect(saldo).toEqual({ g: 30, unid: 0 });
+    expect(bloqueioSaida(saldo, { unid: 30 })).toBeNull();
+    expect(bloqueioSaida(saldo, { g: 31 })).toMatch(/Só há 30 g/);
+    expect(bloqueioSaida({ g: 10, unid: 5 }, { unid: 6 })).toMatch(/Só há 5 sementes/);
+  });
   it('saída maior que o saldo é bloqueada', () => {
     expect(bloqueioSaida({ g: 675, unid: 3400 }, { g: 700 })).toBe('Só há 675 g neste lote.');
     expect(bloqueioSaida({ g: 675, unid: 3400 }, { g: 675 })).toBeNull();

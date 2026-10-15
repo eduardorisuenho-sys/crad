@@ -40,7 +40,8 @@ const FORMAS = [
 ];
 
 export function ImportarEspecies() {
-  const { db, repo, pode } = useApp();
+  const { db, repo, pode, sessao } = useApp();
+  const [baixando, setBaixando] = useState(false);
   const navegar = useNavigate();
   const [estado, setEstado] = useState<Estado>({ etapa: 'escolher' });
   const [erro, setErro] = useState('');
@@ -55,16 +56,33 @@ export function ImportarEspecies() {
     setEstado({ etapa: 'previa-planilha', plano: planejarImportacao(registros, await carregarExistentes(db)), aba: aba.nome });
   }
 
+  async function preverFlora(bytes: Uint8Array) {
+    const flora = especiesDaFlora(lerDwca(bytes), { uf, formasVida: formas });
+    if (!flora.length) return setErro(`Nenhuma espécie de ${uf} com essas formas de vida no pacote.`);
+    setEstado({ etapa: 'previa-flora', plano: planejarFlora(flora, await carregarExistentes(db), uf), uf });
+  }
+
+  /** O servidor baixa a lista oficial do JBRJ (já só com o Tocantins); aqui só pega pronta. */
+  async function baixarDoServidor() {
+    setErro('');
+    setBaixando(true);
+    try {
+      const r = await fetch(`${sessao!.servidor.replace(/\/$/, '')}/flora/flora-${uf}.zip`).catch(() => null);
+      if (!r) return setErro('Sem internet. Para baixar a lista oficial é preciso conexão.');
+      if (!r.ok) return setErro(`O servidor ainda não tem a lista oficial de ${uf}. Rode a atualização do servidor (ela baixa a lista) ou escolha o arquivo baixado do site do JBRJ.`);
+      await preverFlora(new Uint8Array(await r.arrayBuffer()));
+    } catch (e) {
+      setErro((e as Error).message);
+    } finally {
+      setBaixando(false);
+    }
+  }
+
   async function aoEscolher(arquivo: File) {
     setErro('');
     try {
       const bytes = new Uint8Array(await arquivo.arrayBuffer());
-      if (/\.zip$/i.test(arquivo.name)) {
-        const flora = especiesDaFlora(lerDwca(bytes), { uf, formasVida: formas });
-        if (!flora.length) return setErro(`Nenhuma espécie de ${uf} com essas formas de vida no pacote.`);
-        setEstado({ etapa: 'previa-flora', plano: planejarFlora(flora, await carregarExistentes(db), uf), uf });
-        return;
-      }
+      if (/\.zip$/i.test(arquivo.name)) return await preverFlora(bytes);
       const abas = /\.csv$/i.test(arquivo.name) ? lerCsv(new TextDecoder().decode(bytes)) : lerXlsx(bytes);
       const validas = abas.filter((a) => acharCabecalho(a.linhas) >= 0);
       if (!validas.length) return setErro('Nenhuma aba tem a coluna "Nome científico".');
@@ -102,9 +120,13 @@ export function ImportarEspecies() {
           <section className="cartao">
             <h2>Flora e Funga do Brasil</h2>
             <p>
-              Pacote “Darwin Core Archive” (.zip) da lista de espécies, baixado do site do JBRJ (ipt.jbrj.gov.br). Entram só as espécies aceitas que ocorrem na
-              UF abaixo.
+              Lista oficial de espécies do Jardim Botânico do Rio de Janeiro: nome científico, família e nomes populares. Entram só as espécies aceitas que
+              ocorrem na UF abaixo. Você vê tudo antes de gravar; o que já existe não é repetido.
             </p>
+            <button type="button" className="botao-principal" disabled={baixando} onClick={() => void baixarDoServidor()}>
+              <Icone nome="baixar" /> {baixando ? 'Baixando…' : 'Baixar a lista oficial pelo servidor'}
+            </button>
+            <p className="dica">Ou escolha abaixo o pacote “Darwin Core Archive” (.zip) baixado do site do JBRJ (ipt.jbrj.gov.br).</p>
             <div className="formulario">
               <label>
                 UF

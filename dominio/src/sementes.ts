@@ -73,9 +73,14 @@ export interface MovimentoSementes {
 /** Entradas somam; semeadura, teste e descarte tiram; ajuste vem com o sinal; mudança de endereço não mexe no saldo. */
 const SINAL: Record<string, number> = { entrada: 1, semeadura: -1, teste: -1, descarte: -1, ajuste: 1, mudanca_endereco: 0 };
 
+/**
+ * Saldo do lote. O número de sementes só é controlado se o lote foi
+ * cadastrado com uma contagem; sem contagem, fica 0 (nunca negativo).
+ */
 export function saldoSementes(movimentos: MovimentoSementes[]): { g: number; unid: number } {
   let g = 0;
   let unid = 0;
+  let contado = false;
   for (const m of movimentos) {
     if (m.excluido) continue;
     const s = SINAL[m.tipo] ?? 0;
@@ -84,14 +89,16 @@ export function saldoSementes(movimentos: MovimentoSementes[]): { g: number; uni
     // No ajuste o sinal vem na quantidade; nos demais, a quantidade é sempre positiva.
     g += m.tipo === 'ajuste' ? qg : s * Math.abs(qg);
     unid += m.tipo === 'ajuste' ? qu : s * Math.abs(qu);
+    if (s > 0 && qu > 0) contado = true;
   }
-  return { g: Math.round(g * 100) / 100, unid: Math.round(unid) };
+  return { g: Math.max(0, Math.round(g * 100) / 100), unid: contado ? Math.max(0, Math.round(unid)) : 0 };
 }
 
 /** A saída não pode deixar o saldo negativo. */
 export function bloqueioSaida(saldo: { g: number; unid: number }, saida: { g?: number | null; unid?: number | null }): string | null {
   if ((saida.g ?? 0) > saldo.g + 1e-9) return `Só há ${saldo.g} g neste lote.`;
-  if ((saida.unid ?? 0) > saldo.unid) return `Só há ${saldo.unid} sementes neste lote.`;
+  // Só confere o número de sementes quando o lote tem contagem (saldo > 0).
+  if (saldo.unid > 0 && (saida.unid ?? 0) > saldo.unid) return `Só há ${saldo.unid} sementes neste lote.`;
   return null;
 }
 

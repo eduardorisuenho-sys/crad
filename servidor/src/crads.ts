@@ -46,12 +46,15 @@ import {
   type PortaServidor,
   type Registro,
   type ResultadoOperacao,
+  notificacaoPara,
 } from '../../dominio/src/index';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare const $app: any;
 declare const $security: any;
 declare const Record: any;
+declare const $http: any;
+declare const $os: any;
 
 type App = any;
 type RecordPB = any;
@@ -978,3 +981,73 @@ export function auditarPainel(app: App, rec: RecordPB, acao: string, quem: strin
 }
 
 export const COLECOES_SINCRONIZADAS = COLECOES.map((c) => c.nome);
+
+// ---------------------------------------------------------------------------
+// avisos com o app fechado (Web Push): o PocketBase decide quem recebe; o
+// carteiro (servidor/push/push.mjs) criptografa e entrega
+
+/** POST /api/crads/push/inscrever — guarda a inscrição deste celular. */
+export function inscreverPush(app: App, auth: RecordPB, corpo: { endpoint?: string; keys?: { p256dh?: string; auth?: string } }) {
+  const endpoint = String(corpo.endpoint ?? '');
+  if (!/^https:\/\//.test(endpoint) || !corpo.keys?.p256dh || !corpo.keys?.auth) throw new Error('Inscrição inválida.');
+  let rec: RecordPB;
+  try {
+    rec = app.findFirstRecordByFilter('inscricao_push', 'endpoint = {:e}', { e: endpoint });
+  } catch {
+    rec = new Record(app.findCollectionByNameOrId('inscricao_push'));
+    rec.set('id', novoId());
+  }
+  rec.set('usuario_id', auth.id);
+  rec.set('endpoint', endpoint);
+  rec.set('p256dh', corpo.keys.p256dh);
+  rec.set('auth', corpo.keys.auth);
+  app.save(rec);
+  return { ok: true };
+}
+
+/** POST /api/crads/push/sair — o celular deixa de receber (ao sair da conta). */
+export function sairPush(app: App, auth: RecordPB, corpo: { endpoint?: string }) {
+  for (const r of app.findRecordsByFilter('inscricao_push', 'endpoint = {:e} && usuario_id = {:u}', '', 0, 0, { e: String(corpo.endpoint ?? ''), u: auth.id })) app.delete(r);
+  return { ok: true };
+}
+
+/** Quem recebe aviso desta mudança (mesma regra dos avisos com o app aberto). */
+export function enviosPush(app: App, nome: string, antesRec: RecordPB | null, depoisRec: RecordPB) {
+  if (!existeColecao(nome)) return [];
+  const col = colecao(nome);
+  const depois = paraObjeto(col, depoisRec);
+  const antes = antesRec ? paraObjeto(col, antesRec) : undefined;
+  const porUsuario = new Map<string, RecordPB[]>();
+  for (const i of app.findRecordsByFilter('inscricao_push', "id != ''", '', 0, 0)) {
+    const u = i.getString('usuario_id');
+    (porUsuario.get(u) ?? porUsuario.set(u, []).get(u)!).push(i);
+  }
+  const envios: { inscricao: { endpoint: string; keys: { p256dh: string; auth: string } }; titulo: string; texto: string; rota: string }[] = [];
+  for (const [usuarioId, inscricoes] of porUsuario) {
+    const u = buscar(app, 'users', usuarioId);
+    if (!u) continue;
+    const ctx = contextoDe(app, u);
+    // Só avisa de registro que a pessoa pode ver.
+    if (!podeLer(ctx, col, depois)) continue;
+    const n = notificacaoPara(nome, antes, depois, ctx);
+    if (!n) continue;
+    for (const i of inscricoes) envios.push({ inscricao: { endpoint: i.getString('endpoint'), keys: { p256dh: i.getString('p256dh'), auth: i.getString('auth') } }, ...n });
+  }
+  return envios;
+}
+
+/** Chamado pelos ganchos de gravação: manda os avisos ao carteiro (falha nunca atrapalha a gravação). */
+export function avisarPush(app: App, nome: string, antesRec: RecordPB | null, depoisRec: RecordPB) {
+  try {
+    const envios = enviosPush(app, nome, antesRec, depoisRec);
+    if (!envios.length) return 0;
+    const url = ($os?.getenv?.('CRADS_PUSH_URL') as string) || 'http://127.0.0.1:8091/enviar';
+    const r = $http.send({ url, method: 'POST', body: JSON.stringify({ envios }), headers: { 'content-type': 'application/json' }, timeout: 5 });
+    const mortas: string[] = (r?.json?.mortas as string[]) ?? [];
+    for (const e of mortas) for (const rec of app.findRecordsByFilter('inscricao_push', 'endpoint = {:e}', '', 0, 0, { e })) app.delete(rec);
+    return envios.length;
+  } catch (err) {
+    console.log('aviso no celular não enviado: ' + String(err));
+    return 0;
+  }
+}

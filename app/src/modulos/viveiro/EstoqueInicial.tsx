@@ -80,7 +80,7 @@ export function EstoqueInicial() {
     }
   }
 
-  const titulo = 'Mudas que já estavam aqui';
+  const titulo = 'Registrar mudas';
   return (
     <Tela titulo={titulo}>
       {erro && (
