@@ -18,11 +18,6 @@ export async function nomesEspecies(db: BancoCrads): Promise<Map<string, string>
   return m;
 }
 
-/** Coletas que já entraram em algum lote. */
-export async function coletasEmLote(db: BancoCrads): Promise<Set<string>> {
-  return new Set(ativos(await db.colecao('lote_sementes_coleta').toArray()).map((l) => String(l.coleta_id)));
-}
-
 /** Última fenologia de cada matriz (para a rota: quem está com fruto maduro). */
 export async function ultimaFenologia(db: BancoCrads): Promise<Map<string, Registro>> {
   const m = new Map<string, Registro>();

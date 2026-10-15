@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { bloqueioSaida, ehProvisorio, proximoCodigoLoteMudas } from '@crads/dominio';
+import { bloqueioSaida, ehProvisorio, normalizarBusca, proximoCodigoLoteMudas } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -23,6 +23,7 @@ export function NovaSemeadura() {
   const [recipiente, setRecipiente] = useState('tubete');
   const [canteiro, setCanteiro] = useState('');
   const [erro, setErro] = useState('');
+  const [busca, setBusca] = useState('');
   const [salvando, setSalvando] = useState(false);
   const lotes = useLiveQuery(() => lotesSementesComSaldo(repo), [repo]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
@@ -36,7 +37,9 @@ export function NovaSemeadura() {
   function conferirQuantidade() {
     setErro('');
     if (!n && !g) return setErro('Informe o número de sementes ou o peso.');
-    const b = bloqueioSaida({ g: ls!.g, unid: ls!.unid || Infinity }, { g, unid: lerNumero(sementes) });
+    // Lote ainda sem peso (frutos não pesados): não dá para conferir o saldo; o peso semeado fica registrado.
+    const semPeso = !Number(ls!.lote.peso_g);
+    const b = semPeso ? null : bloqueioSaida({ g: ls!.g, unid: ls!.unid || Infinity }, { g, unid: lerNumero(sementes) });
     if (b) return setErro(b);
     setEtapa('recipiente');
   }
@@ -79,9 +82,12 @@ export function NovaSemeadura() {
     <Tela titulo="Nova semeadura">
       {etapa === 'lote' && (
         <div className="assistente">
-          <h2 className="pergunta">De qual lote de sementes?</h2>
+          <h2 className="pergunta">Qual semente vai semear?</h2>
+          <input className="campo-busca" type="search" placeholder="Nome da árvore ou código do lote" value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar semente" />
           <ul className="lista">
-            {lotes.map((l) => (
+            {lotes
+              .filter((l) => !busca || normalizarBusca(`${nomes?.get(String(l.lote.especie_id)) ?? ''} ${String(l.lote.codigo)}`).includes(normalizarBusca(busca)))
+              .map((l) => (
               <li key={l.lote.id}>
                 <button
                   className="item-lista botao-lista"
@@ -92,17 +98,16 @@ export function NovaSemeadura() {
                 >
                   <Icone nome="semente" />
                   <div>
-                    <strong>
-                      {String(l.lote.codigo)} · {nomes?.get(String(l.lote.especie_id)) ?? ''}
-                    </strong>
+                    <strong>{nomes?.get(String(l.lote.especie_id)) ?? ''}</strong>
                     <small>
-                      {l.g} g{l.unid ? ` · ${l.unid} sementes` : ''}
+                      Lote {String(l.lote.codigo)} · {!Number(l.lote.peso_g) ? 'sem peso ainda' : `${l.g} g`}
+                      {l.unid ? ` · ${l.unid} sementes` : ''}
                     </small>
                   </div>
                 </button>
               </li>
             ))}
-            {!lotes.length && <li className="vazio">Nenhum lote de sementes com saldo.</li>}
+            {!lotes.length && <li className="vazio">Nenhuma semente para semear. As coletas viram lotes sozinhas quando chegam ao servidor.</li>}
           </ul>
         </div>
       )}

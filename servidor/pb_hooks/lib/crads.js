@@ -63,6 +63,8 @@ __export(crads_exports, {
   lixeira: () => lixeira,
   lixeiraApagar: () => lixeiraApagar,
   lixeiraRestaurar: () => lixeiraRestaurar,
+  loteAutomatico: () => loteAutomatico,
+  lotesAutomaticosPendentes: () => lotesAutomaticosPendentes,
   paraObjeto: () => paraObjeto,
   rastreioPublico: () => rastreioPublico,
   receber: () => receber,
@@ -1029,6 +1031,25 @@ function parametro(parametros, chave, viveiroId) {
   const geral = ativos5.find((p2) => !p2.viveiro_id);
   const p = doViveiro != null ? doViveiro : geral;
   return p && p.valor !== void 0 && p.valor !== null ? p.valor : (_a = PARAMETROS_PADRAO[chave]) == null ? void 0 : _a.valor;
+}
+
+// ../dominio/src/sementes.ts
+function emGramas(quantidade, unidade) {
+  if (quantidade === null || quantidade === void 0) return null;
+  if (unidade === "g") return quantidade;
+  if (unidade === "kg") return quantidade * 1e3;
+  return null;
+}
+function loteDaColeta(coleta) {
+  var _a, _b;
+  const g = coleta.material === "semente" ? emGramas(coleta.quantidade, coleta.unidade) : null;
+  const qtd = coleta.quantidade ? `${String(coleta.quantidade).replace(".", ",")} ${String((_a = coleta.unidade) != null ? _a : "")}`.trim() : "";
+  return {
+    data_formacao: String((_b = coleta.data) != null ? _b : "").slice(0, 10),
+    peso_g: g,
+    entrada_g: g != null ? g : 0,
+    observacao: g !== null ? "lote autom\xE1tico da coleta" : `lote autom\xE1tico da coleta${qtd ? ` (${coleta.material === "fruto" ? "frutos" : "material"}: ${qtd})` : ""}; pesar as sementes limpas e lan\xE7ar como ajuste`
+  };
 }
 
 // ../dominio/src/viveiro.ts
@@ -2315,4 +2336,49 @@ function avisarPush(app, nome, antesRec, depoisRec) {
     console.log("aviso no celular n\xE3o enviado: " + String(err));
     return 0;
   }
+}
+function loteAutomatico(app, coletaId) {
+  let criado = null;
+  app.runInTransaction((tx) => {
+    var _a, _b, _c, _d, _e, _f;
+    const rec = buscar(tx, "coleta", coletaId);
+    if (!rec || rec.getBool("excluido")) return;
+    const coleta = paraObjeto(colecao("coleta"), rec);
+    if (tx.findRecordsByFilter("lote_sementes_coleta", "coleta_id = {:c} && excluido = false", "", 1, 0, { c: coletaId }).length) return;
+    let especie = String((_a = coleta.especie_id) != null ? _a : "");
+    if (!especie && coleta.matriz_id) especie = (_c = (_b = buscar(tx, "matriz", String(coleta.matriz_id))) == null ? void 0 : _b.getString("especie_id")) != null ? _c : "";
+    if (!especie) return;
+    const l = loteDaColeta(coleta);
+    const autor = String((_d = coleta.criado_por) != null ? _d : "");
+    const viveiroId = String((_e = coleta.viveiro_id) != null ? _e : "");
+    const ano = Number(l.data_formacao.slice(0, 4)) || (/* @__PURE__ */ new Date()).getFullYear();
+    const lote = __spreadProps(__spreadValues({
+      id: novoId()
+    }, controle(autor, viveiroId)), {
+      codigo: formatarCodigo("LS", ano, reservarNumeros(tx, "LS", ano, 1).inicio),
+      especie_id: especie,
+      origem: "coleta",
+      observacao_origem: l.observacao,
+      data_formacao: l.data_formacao,
+      peso_g: l.peso_g,
+      situacao: "armazenado"
+    });
+    gravar(tx, colecao("lote_sementes"), lote);
+    gravar(tx, colecao("lote_sementes_coleta"), __spreadProps(__spreadValues({ id: novoId() }, controle(autor, viveiroId)), { lote_sementes_id: lote.id, coleta_id: coletaId, quantidade: (_f = coleta.quantidade) != null ? _f : null }));
+    gravar(tx, colecao("movimento_sementes"), __spreadProps(__spreadValues({ id: novoId() }, controle(autor, viveiroId)), { lote_sementes_id: lote.id, tipo: "entrada", quantidade_g: l.entrada_g, data: l.data_formacao, observacao: l.observacao }));
+    auditar(tx, { colecao: "lote_sementes", registro_id: lote.id, acao: "lote_automatico", antes: null, depois: { coleta: coletaId, codigo: lote.codigo }, usuario_id: autor });
+    criado = lote.id;
+  });
+  return criado;
+}
+function lotesAutomaticosPendentes(app, filtro = "excluido = false") {
+  let n2 = 0;
+  for (const c of app.findRecordsByFilter("coleta", filtro, "created", 0, 0)) {
+    try {
+      if (loteAutomatico(app, c.id)) n2++;
+    } catch (err) {
+      console.log("lote autom\xE1tico n\xE3o criado para a coleta " + c.id + ": " + String(err));
+    }
+  }
+  return n2;
 }

@@ -17,7 +17,7 @@ export function InicioColeta() {
 
   return (
     <Tela titulo="Coleta e sementes">
-      {params.get('salva') && <p className="mensagem">Coleta salva. Vai para o servidor quando houver sinal.</p>}
+      {params.get('salva') && <p className="mensagem">Coleta salva. Quando chegar ao servidor, ela vira um lote de sementes sozinha.</p>}
       <div className="lista-grande">
         {pode('registrar_coleta') && (
           <Link to="/coleta/nova" className="botao-grande verde">

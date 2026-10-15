@@ -4,9 +4,8 @@ import { abrirModulo, entrarComoViveirista, lerDoServidor } from './apoio';
 test('viveirista semeia, conta germinação, registra perda, marca como pronta e faz inventário sem internet', async ({ page, context }) => {
   await entrarComoViveirista(page);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
-  await context.setOffline(true);
 
-  // Um lote de sementes próprio deste teste (formado no aparelho, sem internet)
+  // Um lote de sementes próprio deste teste: a coleta vira lote sozinha no servidor
   await page.goto('/coleta/nova?matriz=' + (await page.evaluate(async () => {
     const req = indexedDB.open('crads');
     const db: IDBDatabase = await new Promise((ok) => (req.onsuccess = () => ok(req.result)));
@@ -23,15 +22,15 @@ test('viveirista semeia, conta germinação, registra perda, marca como pronta e
   await page.getByRole('button', { name: 'Pular a foto' }).click();
   await page.getByRole('button', { name: 'Salvar coleta' }).click();
   await expect(page.getByText('Coleta salva')).toBeVisible();
-  await page.goto('/coleta/lotes/novo');
-  await page.getByRole('button', { name: /Árvore-de-campo-fictícia/ }).click();
-  // marca só a coleta deste teste (a mais recente, de 1 kg)
-  for (const cb of await page.locator('.candidata input').all()) await cb.uncheck();
-  await page.locator('.candidata', { hasText: '1 kg' }).locator('input').check();
-  await page.getByRole('button', { name: /Continuar/ }).click();
-  await page.getByLabel('Peso das sementes limpas (gramas)').fill('500');
-  await page.getByLabel('Número de sementes (estimado, opcional)').fill('1000');
-  await page.getByRole('button', { name: 'Criar lote' }).click();
+  const coletaDoTeste = async () => (await lerDoServidor('coleta')).find((c) => c.quantidade === 1 && c.unidade === 'kg' && c.material === 'semente');
+  await expect.poll(async () => !!(await coletaDoTeste()), { timeout: 20_000 }).toBe(true);
+  const coletaId = String((await coletaDoTeste())!.id);
+  await expect.poll(async () => (await lerDoServidor('lote_sementes_coleta')).find((l) => l.coleta_id === coletaId)?.lote_sementes_id, { timeout: 20_000 }).toBeTruthy();
+  const loteId = String((await lerDoServidor('lote_sementes_coleta')).find((l) => l.coleta_id === coletaId)!.lote_sementes_id);
+  await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
+  await page.goto(`/coleta/lotes/${loteId}`);
+  await expect(page.getByTestId('saldo')).toHaveText('1000 g', { timeout: 20_000 });
+  await context.setOffline(true);
 
   // Semeadura: 200 sementes em tubete
   await page.getByRole('link', { name: 'Semear deste lote' }).click();
@@ -43,8 +42,8 @@ test('viveirista semeia, conta germinação, registra perda, marca como pronta e
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: 'Criar lote de mudas' }).click();
   const codigo = (await page.getByTestId('etiqueta-lm').locator('.codigo-grande').innerText()).trim();
-  // Sem internet e sem faixa reservada, o LS é provisório; então o LM também é.
-  expect(codigo).toMatch(/^LM-P-[A-Z0-9]+-\d+$/);
+  // O LS já veio definitivo do servidor; o LM herda o número dele.
+  expect(codigo).toMatch(/^LM-\d{4}-\d{3}-A$/);
 
   // Germinação: 120 e depois 150 (acumulado) → taxa 75%
   const registrar = async (acao: string) => page.getByRole('button', { name: acao, exact: true }).click();

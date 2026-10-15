@@ -24,7 +24,7 @@ import { NovaMatriz } from './modulos/matrizes/NovaMatriz';
 import { Armazenamento } from './modulos/coleta/Armazenamento';
 import { DetalheLote } from './modulos/coleta/DetalheLote';
 import { InicioColeta } from './modulos/coleta/InicioColeta';
-import { ListaLotes, NovoLote } from './modulos/coleta/Lotes';
+import { ListaLotes } from './modulos/coleta/Lotes';
 import { NovaColeta } from './modulos/coleta/NovaColeta';
 import { RotaColeta } from './modulos/coleta/RotaColeta';
 import { DetalheLoteMudas } from './modulos/viveiro/DetalheLoteMudas';
@@ -102,7 +102,6 @@ function Rotas() {
       <Route path="/coleta/relatorio" element={<RelatorioServico />} />
       <Route path="/coleta/rota" element={<RotaColeta />} />
       <Route path="/coleta/lotes" element={<ListaLotes />} />
-      <Route path="/coleta/lotes/novo" element={<NovoLote />} />
       <Route path="/coleta/lotes/sementes-iniciais" element={<SementesIniciais />} />
       <Route path="/coleta/lotes/:id" element={<DetalheLote />} />
       <Route path="/coleta/armazenamento" element={<Armazenamento />} />

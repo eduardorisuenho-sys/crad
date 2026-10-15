@@ -125,3 +125,25 @@ export function emGramas(quantidade: number | null | undefined, unidade: string 
   if (unidade === 'kg') return quantidade * 1000;
   return null;
 }
+
+/**
+ * Lote automático: cada coleta vira um lote de sementes sozinha (no servidor,
+ * quando a coleta chega). A ligação coleta → lote mantém a rastreabilidade até
+ * a matriz. Com sementes pesadas (g/kg), o peso entra no saldo; com frutos
+ * (ou litros), o peso das sementes limpas é lançado depois, como ajuste.
+ */
+export function loteDaColeta(coleta: { data?: unknown; material?: unknown; quantidade?: unknown; unidade?: unknown; observacao?: unknown }): {
+  data_formacao: string;
+  peso_g: number | null;
+  entrada_g: number;
+  observacao: string;
+} {
+  const g = coleta.material === 'semente' ? emGramas(coleta.quantidade as number, coleta.unidade as string) : null;
+  const qtd = coleta.quantidade ? `${String(coleta.quantidade).replace('.', ',')} ${String(coleta.unidade ?? '')}`.trim() : '';
+  return {
+    data_formacao: String(coleta.data ?? '').slice(0, 10),
+    peso_g: g,
+    entrada_g: g ?? 0,
+    observacao: g !== null ? 'lote automático da coleta' : `lote automático da coleta${qtd ? ` (${coleta.material === 'fruto' ? 'frutos' : 'material'}: ${qtd})` : ''}; pesar as sementes limpas e lançar como ajuste`,
+  };
+}

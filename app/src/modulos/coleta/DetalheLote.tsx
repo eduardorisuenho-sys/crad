@@ -46,6 +46,8 @@ export function DetalheLote() {
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [db]) ?? [];
 
   const [tipo, setTipo] = useState('');
+  const [pesoLimpo, setPesoLimpo] = useState('');
+  const [unidLimpas, setUnidLimpas] = useState('');
   const [g, setG] = useState('');
   const [unid, setUnid] = useState('');
   const [pct, setPct] = useState('');
@@ -58,6 +60,20 @@ export function DetalheLote() {
   const enderecoAtual = enderecos.find((e) => e.id === lote.endereco_id);
   const val = situacaoValidade(lote.validade as string, new Date().toISOString(), parametro<number>(parametros, 'aviso_validade_sementes_dias', viveiroId));
   const especie = nomes?.get(String(lote.especie_id)) ?? '';
+
+  /** Lote automático de frutos: lança o peso das sementes limpas (entra no saldo). */
+  async function salvarPeso(e: FormEvent) {
+    e.preventDefault();
+    setErro('');
+    const qg = lerNumero(pesoLimpo);
+    if (!qg || qg <= 0) return setErro('Informe o peso das sementes limpas em gramas.');
+    const hoje = new Date().toISOString().slice(0, 10);
+    await repo.salvar('movimento_sementes', { lote_sementes_id: id, tipo: 'ajuste', quantidade_g: qg, quantidade_unid: Number(unidLimpas) || null, data: hoje, observacao: 'peso das sementes limpas', viveiro_id: lote!.viveiro_id });
+    await repo.salvar('lote_sementes', { peso_g: qg, ...(Number(unidLimpas) ? { sementes_estimadas: Number(unidLimpas) } : {}) }, id);
+    setPesoLimpo('');
+    setUnidLimpas('');
+    setMsg('Peso registrado.');
+  }
 
   async function registrar(e: FormEvent) {
     e.preventDefault();
@@ -107,6 +123,24 @@ export function DetalheLote() {
       <button className="botao-secundario nao-imprimir" onClick={() => window.print()}>
         Imprimir etiqueta
       </button>
+
+      {!Number(lote.peso_g) && pode('lotes_sementes', lote.viveiro_id) && (
+        <form className="cartao formulario nao-imprimir" data-testid="pesar-sementes" onSubmit={(e) => void salvarPeso(e)}>
+          <h2>Pesar as sementes limpas</h2>
+          <p className="dica">{String(lote.observacao_origem || 'Este lote ainda não tem o peso das sementes.')}</p>
+          <label>
+            Peso das sementes limpas (gramas)
+            <input {...CAMPO_DECIMAL} value={pesoLimpo} onChange={(e) => setPesoLimpo(e.target.value)} />
+          </label>
+          <label>
+            Número de sementes (estimado, opcional)
+            <input type="number" inputMode="numeric" min="0" value={unidLimpas} onChange={(e) => setUnidLimpas(e.target.value)} />
+          </label>
+          <button className="botao-principal">
+            <Icone nome="certo" /> Salvar peso
+          </button>
+        </form>
+      )}
 
       {saldo.g > 0 && pode('producao', lote.viveiro_id) && (
         <Link to={`/viveiro/semeadura?ls=${id}`} className="botao-principal nao-imprimir">

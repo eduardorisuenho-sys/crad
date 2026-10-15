@@ -47,6 +47,7 @@ import {
   type Registro,
   type ResultadoOperacao,
   notificacaoPara,
+  loteDaColeta,
 } from '../../dominio/src/index';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -1050,4 +1051,55 @@ export function avisarPush(app: App, nome: string, antesRec: RecordPB | null, de
     console.log('aviso no celular não enviado: ' + String(err));
     return 0;
   }
+}
+
+// ---------------------------------------------------------------------------
+// lote de sementes automático: cada coleta vira um lote sozinha
+
+/** Cria o lote da coleta, se ainda não tiver (e se a espécie já for conhecida). Devolve o id do lote ou null. */
+export function loteAutomatico(app: App, coletaId: string): string | null {
+  let criado: string | null = null;
+  app.runInTransaction((tx: App) => {
+    const rec = buscar(tx, 'coleta', coletaId);
+    if (!rec || rec.getBool('excluido')) return;
+    const coleta = paraObjeto(colecao('coleta'), rec);
+    if (tx.findRecordsByFilter('lote_sementes_coleta', 'coleta_id = {:c} && excluido = false', '', 1, 0, { c: coletaId }).length) return;
+    let especie = String(coleta.especie_id ?? '');
+    if (!especie && coleta.matriz_id) especie = buscar(tx, 'matriz', String(coleta.matriz_id))?.getString('especie_id') ?? '';
+    if (!especie) return; // matriz ainda sem espécie: o lote nasce quando ela for identificada
+    const l = loteDaColeta(coleta as Record<string, unknown>);
+    const autor = String(coleta.criado_por ?? '');
+    const viveiroId = String(coleta.viveiro_id ?? '');
+    const ano = Number(l.data_formacao.slice(0, 4)) || new Date().getFullYear();
+    const lote = {
+      id: novoId(),
+      ...controle(autor, viveiroId),
+      codigo: formatarCodigo('LS', ano, reservarNumeros(tx, 'LS', ano, 1).inicio),
+      especie_id: especie,
+      origem: 'coleta',
+      observacao_origem: l.observacao,
+      data_formacao: l.data_formacao,
+      peso_g: l.peso_g,
+      situacao: 'armazenado',
+    };
+    gravar(tx, colecao('lote_sementes'), lote);
+    gravar(tx, colecao('lote_sementes_coleta'), { id: novoId(), ...controle(autor, viveiroId), lote_sementes_id: lote.id, coleta_id: coletaId, quantidade: coleta.quantidade ?? null });
+    gravar(tx, colecao('movimento_sementes'), { id: novoId(), ...controle(autor, viveiroId), lote_sementes_id: lote.id, tipo: 'entrada', quantidade_g: l.entrada_g, data: l.data_formacao, observacao: l.observacao });
+    auditar(tx, { colecao: 'lote_sementes', registro_id: lote.id, acao: 'lote_automatico', antes: null, depois: { coleta: coletaId, codigo: lote.codigo }, usuario_id: autor });
+    criado = lote.id;
+  });
+  return criado;
+}
+
+/** Coletas ainda sem lote (as antigas, ou de matriz que acabou de ser identificada): cria os lotes. */
+export function lotesAutomaticosPendentes(app: App, filtro = "excluido = false"): number {
+  let n = 0;
+  for (const c of app.findRecordsByFilter('coleta', filtro, 'created', 0, 0)) {
+    try {
+      if (loteAutomatico(app, c.id)) n++;
+    } catch (err) {
+      console.log('lote automático não criado para a coleta ' + c.id + ': ' + String(err));
+    }
+  }
+  return n;
 }

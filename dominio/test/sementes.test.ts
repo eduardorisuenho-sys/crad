@@ -82,3 +82,13 @@ describe('armazenamento', () => {
     expect(situacaoValidade(null, '2026-10-11', 60)).toBe('sem_validade');
   });
 });
+
+describe('lote automático da coleta', () => {
+  it('sementes pesadas entram no saldo; frutos ficam para pesar depois', async () => {
+    const { loteDaColeta } = await import('../src/sementes');
+    expect(loteDaColeta({ data: '2026-10-15T09:00:00Z', material: 'semente', quantidade: 0.5, unidade: 'kg' })).toEqual({ data_formacao: '2026-10-15', peso_g: 500, entrada_g: 500, observacao: 'lote automático da coleta' });
+    const f = loteDaColeta({ data: '2026-10-15', material: 'fruto', quantidade: 2.5, unidade: 'kg' });
+    expect(f).toMatchObject({ peso_g: null, entrada_g: 0 });
+    expect(f.observacao).toMatch(/frutos: 2,5 kg.*pesar as sementes limpas/);
+  });
+});

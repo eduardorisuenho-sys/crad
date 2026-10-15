@@ -31,17 +31,14 @@ test('coleta em árvore sem matriz cadastrada (só a espécie) e sementes que j�
   expect(coleta.especie_id).toBeTruthy();
   await cc.close();
 
-  // ---- viveirista: forma o lote com a coleta sem matriz (alerta, não bloqueia)
+  // ---- a coleta sem matriz também vira lote sozinha (rastreável pela coleta)
+  await expect.poll(async () => (await lerDoServidor('lote_sementes_coleta')).find((l) => l.coleta_id === coleta.id)?.lote_sementes_id, { timeout: 20_000 }).toBeTruthy();
+  const loteColeta = String((await lerDoServidor('lote_sementes_coleta')).find((l) => l.coleta_id === coleta.id)!.lote_sementes_id);
   await entrarComoViveirista(page);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
-  await page.goto('/coleta/lotes/novo');
-  await page.getByRole('button', { name: /Árvore-do-catálogo/ }).click();
-  await expect(page.getByRole('checkbox', { name: 'Coleta de árvore sem matriz' })).toBeChecked();
-  await expect(page.getByText(/1 coleta\(s\) de árvore sem matriz/)).toBeVisible();
-  await page.getByRole('button', { name: /Continuar/ }).click();
-  await page.getByLabel('Peso das sementes limpas (gramas)').fill('800');
-  await page.getByRole('button', { name: 'Criar lote' }).click();
-  await expect(page.getByTestId('origem-ls')).toContainText('Árvore sem matriz');
+  await page.goto(`/coleta/lotes/${loteColeta}`);
+  await expect(page.getByTestId('origem-ls')).toContainText('Árvore sem matriz', { timeout: 20_000 });
+  await expect(page.getByTestId('saldo')).toHaveText('3000 g');
 
   // ---- sementes que já estavam no viveiro (sem coleta nem matriz)
   await page.goto('/coleta/lotes');

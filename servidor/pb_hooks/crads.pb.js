@@ -269,3 +269,31 @@ onRecordAfterUpdateSuccess((e) => {
   e.next();
   require(`${__hooks}/lib/crads.js`).avisarPush($app, e.record.collection().name, e.record.original(), e.record);
 }, "doacao", "pedido_acesso");
+
+// Lote de sementes automático: cada coleta vira um lote (rastreável até a matriz), sem ninguém precisar formar.
+onRecordAfterCreateSuccess((e) => {
+  e.next();
+  try {
+    require(`${__hooks}/lib/crads.js`).loteAutomatico($app, e.record.id);
+  } catch (err) {
+    console.log("lote automático: " + String(err));
+  }
+}, "coleta");
+
+// Matriz identificada depois: as coletas dela que ainda não tinham lote ganham o lote agora.
+onRecordAfterUpdateSuccess((e) => {
+  e.next();
+  if (!e.record.getString("especie_id")) return;
+  require(`${__hooks}/lib/crads.js`).lotesAutomaticosPendentes($app, `excluido = false && matriz_id = '${e.record.id}'`);
+}, "matriz");
+
+// Ao ligar o servidor (já com as migrações aplicadas): coletas antigas que ficaram sem lote.
+onServe((e) => {
+  e.next();
+  try {
+    const n = require(`${__hooks}/lib/crads.js`).lotesAutomaticosPendentes($app);
+    if (n) console.log(`lotes automáticos criados para ${n} coleta(s) antiga(s)`);
+  } catch (err) {
+    console.log("lotes automáticos pendentes: " + String(err));
+  }
+});

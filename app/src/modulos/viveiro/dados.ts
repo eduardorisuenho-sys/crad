@@ -44,7 +44,8 @@ export async function lotesSementesComSaldo(repo: Repositorio): Promise<{ lote: 
   const porLote = agrupar(movs, 'lote_sementes_id');
   return lotes
     .map((lote) => ({ lote, ...saldoSementes((porLote.get(lote.id) ?? []) as never) }))
-    .filter((l) => l.g > 0 || l.unid > 0)
+    // com saldo, ou ainda sem peso das sementes (lote de frutos que ninguém pesou ainda)
+    .filter((l) => l.g > 0 || l.unid > 0 || (!Number(l.lote.peso_g) && !['esgotado', 'descartado'].includes(String(l.lote.situacao))))
     .sort((a, b) => String(a.lote.validade ?? '9999').localeCompare(String(b.lote.validade ?? '9999')));
 }
 

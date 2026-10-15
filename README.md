@@ -316,13 +316,15 @@ O que o Módulo 2 entrega (tudo funciona sem internet):
 - **Rota de coleta:** mapa simples, sem mapa de fundo, com as matrizes
   cadastradas, quem teve **fruto maduro** nos últimos 45 dias, a posição do
   coletor e a distância até cada matriz.
-- **Lotes de sementes** (viveirista e gestor):
-  - para formar o lote, escolha a espécie e as coletas. Uma espécie por lote,
-    e cada coleta entra em um lote só;
-  - **alerta de diversidade** quando o lote tem menos matrizes que o parâmetro
-    (12);
-  - informe peso, sementes estimadas, umidade e validade;
-  - código `LS-AAAA-NNN` e **etiqueta com QR** para o saco ou pote.
+- **Lote de sementes automático** (sem formar, sem aprovação):
+  - cada coleta vira um lote sozinha quando chega ao servidor, com código
+    `LS-AAAA-NNN` e **etiqueta com QR**. A ligação coleta → lote → matriz
+    mantém a **rastreabilidade** até a árvore;
+  - coleta de **sementes** pesadas (g ou kg): o peso já entra no saldo;
+  - coleta de **frutos**: a ficha do lote mostra "Pesar as sementes limpas"
+    (peso e, se quiser, número de sementes); o lote já pode ser semeado antes;
+  - coleta de matriz ainda sem espécie: o lote nasce quando a matriz for
+    identificada; coletas antigas sem lote ganham o lote quando o servidor liga.
 - **Ficha do lote:**
   - saldo, que é sempre a soma das movimentações;
   - teste de germinação (%), descarte, ajuste e mudança de lugar;

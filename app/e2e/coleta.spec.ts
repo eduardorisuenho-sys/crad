@@ -3,7 +3,7 @@ import { entrarComoColetor, entrarComoViveirista, lerDoServidor } from './apoio'
 
 test.use({ permissions: ['geolocation'], geolocation: { latitude: -10.1905, longitude: -48.3405, accuracy: 8 } });
 
-test('coletor registra coleta sem internet; viveirista forma o lote, guarda no endereço e controla o saldo', async ({ browser }) => {
+test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveirista pesa, guarda no endereço e controla o saldo', async ({ browser }) => {
   // ---- coletor, em campo
   const ctxColetor = await browser.newContext({ permissions: ['geolocation'], geolocation: { latitude: -10.1905, longitude: -48.3405, accuracy: 8 } });
   const coletor = await ctxColetor.newPage();
@@ -41,6 +41,10 @@ test('coletor registra coleta sem internet; viveirista forma o lote, guarda no e
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await entrarComoViveirista(page);
+  // a coleta virou um lote de sementes sozinha no servidor e chega ao aparelho
+  const lotesDaColeta = async () => (await lerDoServidor('lote_sementes_coleta')).filter((l) => l.coleta_id === coleta.id);
+  await expect.poll(async () => (await lotesDaColeta()).length, { timeout: 20_000 }).toBe(1);
+  const loteId = String((await lotesDaColeta())[0].lote_sementes_id);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await ctx.setOffline(true);
   await page.getByRole('link', { name: 'Coleta e sementes' }).click();
@@ -54,19 +58,18 @@ test('coletor registra coleta sem internet; viveirista forma o lote, guarda no e
   await page.getByRole('button', { name: 'Salvar endereço' }).click();
   await page.getByRole('button', { name: 'Voltar' }).click();
 
-  // formar o lote: só uma matriz → alerta de diversidade, mas pode criar
-  await page.getByRole('link', { name: 'Lotes de sementes' }).click();
-  await page.getByRole('link', { name: 'Formar lote' }).click();
-  await page.getByRole('button', { name: /Árvore-de-campo-fictícia/ }).click();
-  await expect(page.getByText(/1 matriz\(es\).*pelo menos 12/)).toBeVisible();
-  await page.getByRole('button', { name: 'Continuar (1 matrizes)' }).click();
-  await expect(page.getByText('Coletado: 2500 g')).toBeVisible();
-  await page.getByLabel('Peso das sementes limpas (gramas)').fill('800');
-  await page.getByLabel('Onde vai ficar guardado').selectOption({ label: 'TST-CAMARAFRIA1-E2' });
-  await page.getByRole('button', { name: 'Criar lote' }).click();
+  // o lote automático (de frutos) pede o peso das sementes limpas; depois vai para o endereço
+  await page.goto(`/coleta/lotes/${loteId}`);
+  await expect(page.getByTestId('pesar-sementes')).toContainText('frutos: 2,5 kg');
+  await page.getByTestId('pesar-sementes').getByLabel('Peso das sementes limpas (gramas)').fill('800');
+  await page.getByRole('button', { name: 'Salvar peso' }).click();
+  await expect(page.getByTestId('saldo')).toHaveText('800 g');
+  await expect(page.getByTestId('pesar-sementes')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Mudar de lugar' }).click();
+  await page.getByLabel('Novo lugar').selectOption({ label: 'TST-CAMARAFRIA1-E2' });
+  await page.getByRole('button', { name: 'Registrar', exact: true }).click();
   await expect(page.getByTestId('etiqueta')).toContainText('1 matriz(es)');
   await expect(page.getByTestId('etiqueta')).toContainText('TST-CAMARAFRIA1-E2');
-  await expect(page.getByTestId('saldo')).toHaveText('800 g');
 
   // teste de germinação tira do saldo; descarte maior que o saldo é bloqueado
   await page.getByRole('button', { name: 'Teste de germinação' }).click();
@@ -84,10 +87,10 @@ test('coletor registra coleta sem internet; viveirista forma o lote, guarda no e
 
   await ctx.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
-  const [lote] = (await lerDoServidor('lote_sementes')).filter((l) => l.peso_g === 800);
-  expect(lote).toMatchObject({ peso_g: 800, germinacao_teste_pct: 85 });
+  const lote = (await lerDoServidor('lote_sementes')).find((l) => l.id === loteId)!;
+  expect(lote).toMatchObject({ peso_g: 800, germinacao_teste_pct: 85, origem: 'coleta' });
   expect(String(lote.codigo)).toMatch(/^LS-\d{4}-\d{3}$/);
   const movs = (await lerDoServidor('movimento_sementes')).filter((m) => m.lote_sementes_id === lote.id);
-  expect(movs.map((m) => m.tipo).sort()).toEqual(['entrada', 'teste']);
+  expect(movs.map((m) => m.tipo).sort()).toEqual(['ajuste', 'entrada', 'mudanca_endereco', 'teste']);
   await ctx.close();
 });
