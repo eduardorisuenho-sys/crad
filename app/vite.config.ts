@@ -48,6 +48,12 @@ export default defineConfig({
         // Fotos do catálogo ficam guardadas para abrir sem internet.
         runtimeCaching: [
           {
+            // Mapa de fundo da rota de coleta: os pedaços já vistos ficam no aparelho para usar sem internet.
+            urlPattern: ({ url }) => url.hostname === 'server.arcgisonline.com',
+            handler: 'CacheFirst',
+            options: { cacheName: 'mapa-hibrido', expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 180 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+          {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/files/especie_foto/'),
             handler: 'CacheFirst',
             options: { cacheName: 'fotos-catalogo', expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 120 }, cacheableResponse: { statuses: [0, 200] } },

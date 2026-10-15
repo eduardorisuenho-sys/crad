@@ -17,6 +17,14 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   const item = coletor.locator('.item-lista', { hasText: 'MT-9001' });
   await expect(item).toContainText('fruto maduro');
   await expect(item).toContainText(/\d+ m/);
+  // fundo híbrido (satélite + nomes e estradas), com crédito, e o caminho pelo Google Maps
+  const fundo = coletor.getByTestId('fundo-hibrido');
+  await expect(fundo.locator('image').first()).toHaveAttribute('href', /World_Imagery\/MapServer\/tile\/\d+\/\d+\/\d+$/);
+  await expect(coletor.getByText('Imagens: Esri, Maxar, Earthstar Geographics')).toBeVisible();
+  await expect(coletor.getByRole('link', { name: 'Como chegar (Google Maps)' }).first()).toHaveAttribute('href', /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=-?\d/);
+  if (process.env.CRADS_FOTO_ROTA) await coletor.screenshot({ path: process.env.CRADS_FOTO_ROTA, fullPage: true });
+  await coletor.getByRole('button', { name: 'Satélite' }).click();
+  await expect(fundo).toHaveCount(0);
   await coletor.getByRole('button', { name: 'Voltar' }).click();
 
   await coletor.getByRole('link', { name: 'Registrar coleta' }).click();

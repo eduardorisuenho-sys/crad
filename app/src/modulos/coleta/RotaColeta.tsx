@@ -1,6 +1,7 @@
 /**
- * Rota de coleta: mapa simples (sem internet e sem mapa de fundo) com as
- * matrizes ativas, a posição do coletor e quem está com fruto maduro.
+ * Rota de coleta: mapa com fundo híbrido (satélite + nomes e estradas), as
+ * matrizes ativas, a posição do coletor e quem está com fruto maduro. Sem
+ * internet, mostra os azulejos já vistos (ou só os pontos).
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -10,6 +11,7 @@ import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { acompanharPosicao, type PosicaoGps } from '../../plataforma/gps';
+import { azulejos, CREDITO_HIBRIDO, enquadrar, linkGoogleMaps, mundo } from '../../plataforma/mapa';
 import { nomesEspecies, ultimaFenologia } from './dados';
 import { formatarDistancia } from './NovaColeta';
 
@@ -22,6 +24,7 @@ export function RotaColeta() {
   const { repo, db } = useApp();
   const [gps, setGps] = useState<PosicaoGps | null>(null);
   const [soFruto, setSoFruto] = useState(false);
+  const [satelite, setSatelite] = useState(true);
   useEffect(() => acompanharPosicao(setGps, () => {}), []);
   const matrizes = useLiveQuery(() => repo.listar('matriz'), [repo]) ?? [];
   const feno = useLiveQuery(() => ultimaFenologia(db), [db]);
@@ -41,23 +44,15 @@ export function RotaColeta() {
       .sort((a, b) => Number(b.fruto) - Number(a.fruto) || (a.dist ?? Infinity) - (b.dist ?? Infinity));
   }, [matrizes, feno, gps, soFruto]);
 
-  // Projeção simples (equiretangular) que cabe todos os pontos e o coletor.
+  // Projeção dos mapas da internet (Web Mercator), com o zoom que cabe todos os pontos e o coletor.
   const proj = useMemo(() => {
     const todos = [...pontos.map((p) => ({ lat: p.lat, lon: p.lon })), ...(gps ? [gps] : [])];
-    if (!todos.length) return null;
-    const minLat = Math.min(...todos.map((p) => p.lat));
-    const maxLat = Math.max(...todos.map((p) => p.lat));
-    const minLon = Math.min(...todos.map((p) => p.lon));
-    const maxLon = Math.max(...todos.map((p) => p.lon));
-    const cos = Math.cos((((minLat + maxLat) / 2) * Math.PI) / 180);
-    const larg = Math.max((maxLon - minLon) * cos, 1e-4);
-    const alt = Math.max(maxLat - minLat, 1e-4);
-    const esc = Math.min((L - 2 * MARGEM) / larg, (A - 2 * MARGEM) / alt);
-    const x = (lon: number) => MARGEM + (lon - minLon) * cos * esc + ((L - 2 * MARGEM) - larg * esc) / 2;
-    const y = (lat: number) => A - MARGEM - (lat - minLat) * esc - ((A - 2 * MARGEM) - alt * esc) / 2;
+    const v = enquadrar(todos, L, A, MARGEM);
+    if (!v) return null;
+    const x = (lon: number, lat: number) => mundo(lat, lon, v.z).x - v.ox;
+    const y = (lat: number, lon: number) => mundo(lat, lon, v.z).y - v.oy;
     // barra de escala: quantos metros cabem em 80 px
-    const metros80 = (80 / esc) * 111_320;
-    return { x, y, metros80 };
+    return { v, x, y, metros80: 80 * v.metrosPorPx };
   }, [pontos, gps]);
 
   return (
@@ -66,29 +61,47 @@ export function RotaColeta() {
         <button className={`chip ${soFruto ? 'ativo' : ''}`} onClick={() => setSoFruto(!soFruto)}>
           Só com fruto maduro
         </button>
+        <button className={`chip ${satelite ? 'ativo' : ''}`} onClick={() => setSatelite(!satelite)} aria-pressed={satelite}>
+          Satélite
+        </button>
         <span>{gps ? `GPS ±${gps.precisao_m} m` : 'Procurando o GPS…'}</span>
       </div>
       {proj ? (
         <svg className="mapa-rota" viewBox={`0 0 ${L} ${A}`} role="img" aria-label="Mapa das matrizes">
+          <defs>
+            <clipPath id="recorte-mapa">
+              <rect width={L} height={A} rx={14} />
+            </clipPath>
+          </defs>
           <rect width={L} height={A} rx={14} fill="var(--azul-10)" />
+          {satelite && (
+            <g clipPath="url(#recorte-mapa)" data-testid="fundo-hibrido">
+              {azulejos(proj.v).map((t) => t.urls.map((u) => <image key={u} href={u} x={t.x} y={t.y} width={256} height={256} preserveAspectRatio="none" />))}
+            </g>
+          )}
           {pontos.map((p) => (
             <g key={p.m.id}>
-              <circle cx={proj.x(p.lon)} cy={proj.y(p.lat)} r={p.fruto ? 9 : 6} fill={p.fruto ? 'var(--verde)' : 'var(--azul)'} stroke="var(--branco)" strokeWidth={2} />
-              <text x={proj.x(p.lon) + 11} y={proj.y(p.lat) + 4} fontSize={11} fill="var(--azul-escuro)" fontWeight={700}>
+              <circle cx={proj.x(p.lon, p.lat)} cy={proj.y(p.lat, p.lon)} r={p.fruto ? 9 : 6} fill={p.fruto ? 'var(--verde)' : 'var(--azul)'} stroke="var(--branco)" strokeWidth={2} />
+              <text x={proj.x(p.lon, p.lat) + 11} y={proj.y(p.lat, p.lon) + 4} fontSize={11} fill={satelite ? 'var(--branco)' : 'var(--azul-escuro)'} stroke={satelite ? 'rgba(0,0,0,0.6)' : 'none'} strokeWidth={satelite ? 3 : 0} paintOrder="stroke" fontWeight={700}>
                 {String(p.m.codigo).replace('MT-', '')}
               </text>
             </g>
           ))}
           {gps && (
             <g>
-              <circle cx={proj.x(gps.lon)} cy={proj.y(gps.lat)} r={14} fill="var(--azul-escuro)" opacity={0.18} />
-              <circle cx={proj.x(gps.lon)} cy={proj.y(gps.lat)} r={7} fill="var(--azul-escuro)" stroke="var(--branco)" strokeWidth={3} />
+              <circle cx={proj.x(gps.lon, gps.lat)} cy={proj.y(gps.lat, gps.lon)} r={14} fill="var(--azul-escuro)" opacity={0.18} />
+              <circle cx={proj.x(gps.lon, gps.lat)} cy={proj.y(gps.lat, gps.lon)} r={7} fill="var(--azul-escuro)" stroke="var(--branco)" strokeWidth={3} />
             </g>
           )}
-          <line x1={MARGEM} x2={MARGEM + 80} y1={A - 10} y2={A - 10} stroke="var(--azul-escuro)" strokeWidth={3} />
-          <text x={MARGEM + 86} y={A - 6} fontSize={11} fill="var(--azul-escuro)">
+          <line x1={MARGEM} x2={MARGEM + 80} y1={A - 10} y2={A - 10} stroke={satelite ? 'var(--branco)' : 'var(--azul-escuro)'} strokeWidth={3} />
+          <text x={MARGEM + 86} y={A - 6} fontSize={11} fill={satelite ? 'var(--branco)' : 'var(--azul-escuro)'} stroke={satelite ? 'rgba(0,0,0,0.6)' : 'none'} strokeWidth={satelite ? 3 : 0} paintOrder="stroke">
             {formatarDistancia(proj.metros80)}
           </text>
+          {satelite && (
+            <text x={L - 6} y={A - 6} fontSize={8} textAnchor="end" fill="var(--branco)" stroke="rgba(0,0,0,0.6)" strokeWidth={2} paintOrder="stroke">
+              {CREDITO_HIBRIDO}
+            </text>
+          )}
         </svg>
       ) : (
         <p className="vazio">Nenhuma matriz ativa com GPS neste viveiro.</p>
@@ -108,6 +121,9 @@ export function RotaColeta() {
               {p.fruto && <span className="selo ok">fruto maduro</span>}
               {p.dist !== null && <span className="selo">{formatarDistancia(p.dist)}</span>}
             </Link>
+            <a className="link" href={linkGoogleMaps(p.lat, p.lon)} target="_blank" rel="noreferrer">
+              Como chegar (Google Maps)
+            </a>
           </li>
         ))}
       </ul>

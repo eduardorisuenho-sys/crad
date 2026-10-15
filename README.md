@@ -313,9 +313,20 @@ O que o Módulo 2 entrega (tudo funciona sem internet):
   - frutos ou sementes, foto opcional e GPS da coleta.
   - **a matriz recebe coleta assim que é cadastrada** (não precisa de
     aprovação); só não recebe se estiver morta, inativa ou excluída.
-- **Rota de coleta:** mapa simples, sem mapa de fundo, com as matrizes
-  cadastradas, quem teve **fruto maduro** nos últimos 45 dias, a posição do
-  coletor e a distância até cada matriz.
+- **Rota de coleta:** mapa **híbrido** (imagem de satélite com nomes de
+  cidades e estradas), com as matrizes cadastradas, quem teve **fruto
+  maduro** nos últimos 45 dias, a posição do coletor e a distância até cada
+  matriz.
+  - o botão **Satélite** liga e desliga o fundo;
+  - cada matriz tem o link **Como chegar (Google Maps)**, que abre o trajeto
+    no Google Maps do celular;
+  - as imagens vêm do serviço gratuito da Esri (World Imagery). O híbrido do
+    próprio Google não é usado: exige chave paga da Google Maps Platform
+    (com cartão de crédito), e baixar as imagens do Google direto viola os
+    termos de uso;
+  - as imagens já vistas ficam guardadas no aparelho (até 3000 imagens, por
+    180 dias) e aparecem no campo sem internet. Sem sinal e sem imagem
+    guardada, o mapa mostra só os pontos e as distâncias.
 - **Lote de sementes automático** (sem formar, sem aprovação):
   - cada coleta vira um lote sozinha quando chega ao servidor, com código
     `LS-AAAA-NNN` e **etiqueta com QR**. A ligação coleta → lote → matriz
@@ -600,8 +611,8 @@ No app, entre como gestor e vá em **Espécies → Importar**.
   tabelas fica só para o superusuário.
 - A sessão do aparelho vale 30 dias sem internet (parâmetro
   `dias_sessao_offline`).
-- A rota de coleta ainda não tem mapa de fundo (ruas, rios): mostra os pontos
-  e as distâncias. O mapa de fundo offline entra com o pacote de campo.
+- O mapa da rota de coleta só funciona sem internet nas áreas já abertas com
+  sinal. Ainda não há como baixar antes a região inteira (pacote de campo).
 - Se o lote de sementes ainda tem código provisório (criado sem internet e
   sem faixa reservada), o lote de mudas também nasce provisório. Ao
   sincronizar, o servidor gera os dois definitivos (`LS-2026-012` →
