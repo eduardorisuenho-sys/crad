@@ -1103,3 +1103,8 @@ export function lotesAutomaticosPendentes(app: App, filtro = "excluido = false")
   }
   return n;
 }
+
+/** Só quem cuida das espécies pede ao servidor para baixar a lista oficial. */
+export function exigirPermissaoEspecies(app: App, auth: RecordPB) {
+  if (!temPermissao(contextoDe(app, auth), 'especies')) throw new Error('Só quem cuida das espécies pode atualizar a lista oficial.');
+}

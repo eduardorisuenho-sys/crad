@@ -287,13 +287,37 @@ onRecordAfterUpdateSuccess((e) => {
   require(`${__hooks}/lib/crads.js`).lotesAutomaticosPendentes($app, `excluido = false && matriz_id = '${e.record.id}'`);
 }, "matriz");
 
-// Ao ligar o servidor (já com as migrações aplicadas): coletas antigas que ficaram sem lote.
-onServe((e) => {
-  e.next();
+// Coletas que ficaram sem lote (antigas, ou de matriz identificada depois): confere a cada 15 minutos.
+cronAdd("crads_lotes_pendentes", "*/15 * * * *", () => {
   try {
     const n = require(`${__hooks}/lib/crads.js`).lotesAutomaticosPendentes($app);
-    if (n) console.log(`lotes automáticos criados para ${n} coleta(s) antiga(s)`);
+    if (n) console.log(`lotes automáticos criados para ${n} coleta(s)`);
   } catch (err) {
     console.log("lotes automáticos pendentes: " + String(err));
   }
 });
+
+// Lista oficial de espécies (Flora e Funga do Brasil): situação e pedido para baixar agora.
+routerAdd("GET", "/api/crads/flora/situacao", (e) => {
+  const arquivo = `${__hooks}/../pb_public/flora/situacao.json`;
+  try {
+    return e.json(200, JSON.parse(toString($os.readFile(arquivo))));
+  } catch (_) {
+    return e.json(200, { ok: false, erro: "A lista ainda não foi baixada neste servidor." });
+  }
+}, $apis.requireAuth("users"));
+
+routerAdd("POST", "/api/crads/flora/atualizar", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    crads.exigirPermissaoEspecies($app, e.auth);
+  } catch (err) {
+    throw new ForbiddenError(String(err).replace(/^Error: /, ""));
+  }
+  const script = `${__hooks}/../deploy/flora.py`;
+  const destino = `${__hooks}/../pb_public/flora/flora-TO.zip.novo`;
+  $os.mkdirAll(`${__hooks}/../pb_public/flora`, 493 /* 0755 */);
+  // Roda em segundo plano (pode levar alguns minutos); o app acompanha pela situação.
+  $os.cmd("sh", "-c", 'nohup python3 "$0" "$1" TO >/dev/null 2>&1 &', script, destino).run();
+  return e.json(202, { ok: true, andamento: "baixando a lista do Jardim Botânico (pode levar alguns minutos)" });
+}, $apis.requireAuth("users"));

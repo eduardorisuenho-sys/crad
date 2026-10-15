@@ -9,7 +9,7 @@ lê com o mesmo importador. Nada é inventado: tudo vem do pacote oficial.
 
 Uso:  python3 flora.py SAIDA.zip [UF] [ARQUIVO_DE_ENTRADA.zip]
 """
-import io, re, sys, urllib.request, zipfile
+import datetime, io, json, os, re, ssl, sys, urllib.request, zipfile
 
 URL = "https://ipt.jbrj.gov.br/jbrj/archive.do?r=lista_especies_flora_brasil"
 
@@ -80,20 +80,60 @@ def reduzir(entrada: bytes, uf: str) -> bytes:
     return saida.getvalue()
 
 
+def baixar(url=URL):
+    """Baixa o pacote. Sites do governo às vezes mandam o certificado incompleto:
+    nesse caso tenta de novo sem conferir a cadeia (o conteúdo é público)."""
+    req = urllib.request.Request(url, headers={"User-Agent": "CRADS (Tocantins)"})
+    try:
+        return urllib.request.urlopen(req, timeout=900).read()
+    except (ssl.SSLError, urllib.error.URLError) as erro:
+        if "CERTIFICATE" not in str(erro).upper() and "SSL" not in str(erro).upper():
+            raise
+        print("certificado do site não conferiu; tentando de novo sem conferir a cadeia")
+        return urllib.request.urlopen(req, timeout=900, context=ssl._create_unverified_context()).read()
+
+
+def contar_especies(pacote: bytes) -> int:
+    z = zipfile.ZipFile(io.BytesIO(pacote))
+    meta = z.read("meta.xml").decode("utf-8")
+    for tipo, arq, sep, pular, idi, termos in blocos(meta):
+        if tipo == "taxon":
+            return max(0, len([l for l in z.read(arq).decode("utf-8").split("\n")[pular:] if l.strip()]))
+    return 0
+
+
+def anotar(destino, **dados):
+    """situacao.json ao lado do pacote: o app mostra se deu certo ou o erro."""
+    dados["quando"] = datetime.datetime.now().isoformat(timespec="seconds")
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(destino)), "situacao.json"), "w") as f:
+            json.dump(dados, f, ensure_ascii=False)
+    except OSError:
+        pass
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
     destino, uf = sys.argv[1], (sys.argv[2] if len(sys.argv) > 2 else "TO").upper()
-    if len(sys.argv) > 3:
-        entrada = open(sys.argv[3], "rb").read()
-    else:
-        req = urllib.request.Request(URL, headers={"User-Agent": "CRADS (Tocantins)"})
-        entrada = urllib.request.urlopen(req, timeout=600).read()
-    reduzido = reduzir(entrada, uf)
-    with open(destino, "wb") as f:
-        f.write(reduzido)
-    print(f"Lista da Flora e Funga ({uf}) gravada em {destino} ({len(reduzido) // 1024} KB)")
+    final = destino[:-5] if destino.endswith(".novo") else destino
+    anotar(final, ok=False, andamento="baixando a lista do Jardim Botânico (pode levar alguns minutos)")
+    try:
+        entrada = open(sys.argv[3], "rb").read() if len(sys.argv) > 3 else baixar()
+        anotar(final, ok=False, andamento="separando as espécies do " + uf)
+        reduzido = reduzir(entrada, uf)
+        with open(destino, "wb") as f:
+            f.write(reduzido)
+        if destino != final:
+            os.replace(destino, final)
+        n = contar_especies(reduzido)
+        anotar(final, ok=True, uf=uf, registros=n, tamanho_kb=len(reduzido) // 1024)
+        print(f"Lista da Flora e Funga ({uf}) gravada em {final} ({len(reduzido) // 1024} KB, {n} nomes)")
+    except Exception as erro:  # noqa: BLE001 — o motivo vai para o app
+        anotar(final, ok=False, erro=f"{type(erro).__name__}: {erro}")
+        print(f"Não deu para baixar a lista: {erro}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

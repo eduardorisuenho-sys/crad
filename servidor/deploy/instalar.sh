@@ -55,12 +55,12 @@ echo "==> Lista oficial de espécies (Flora e Funga do Brasil, só o Tocantins)"
 FLORA="$PASTA/servidor/pb_public/flora/flora-TO.zip"
 mkdir -p "$(dirname "$FLORA")"
 if [ ! -s "$FLORA" ] || [ -n "$(find "$FLORA" -mtime +30 2>/dev/null)" ]; then
-  python3 "$PASTA/servidor/deploy/flora.py" "$FLORA.novo" TO && mv "$FLORA.novo" "$FLORA" || echo "   (não deu para baixar a lista agora; rode a atualização de novo mais tarde)"
+  python3 "$PASTA/servidor/deploy/flora.py" "$FLORA.novo" TO || echo "   (não deu para baixar a lista agora; dá para pedir de novo pelo app, em Espécies → Importar)"
 fi
 # Uma vez por mês, sozinho.
 cat > /etc/cron.monthly/crads-flora <<CRON
 #!/bin/sh
-python3 $PASTA/servidor/deploy/flora.py $FLORA.novo TO && mv $FLORA.novo $FLORA && chown crads:crads $FLORA
+python3 $PASTA/servidor/deploy/flora.py $FLORA.novo TO; chown -R crads:crads $(dirname $FLORA)
 CRON
 chmod 755 /etc/cron.monthly/crads-flora
 chown -R crads:crads "$PASTA/servidor/pb_public"

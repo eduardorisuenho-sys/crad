@@ -57,6 +57,7 @@ __export(crads_exports, {
   equipeResponder: () => equipeResponder,
   especiePublica: () => especiePublica,
   eu: () => eu,
+  exigirPermissaoEspecies: () => exigirPermissaoEspecies,
   expirarPrazos: () => expirarPrazos,
   fotoMudaPublica: () => fotoMudaPublica,
   inscreverPush: () => inscreverPush,
@@ -2381,4 +2382,7 @@ function lotesAutomaticosPendentes(app, filtro = "excluido = false") {
     }
   }
   return n2;
+}
+function exigirPermissaoEspecies(app, auth) {
+  if (!temPermissao(contextoDe(app, auth), "especies")) throw new Error("S\xF3 quem cuida das esp\xE9cies pode atualizar a lista oficial.");
 }

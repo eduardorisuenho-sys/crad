@@ -32,7 +32,11 @@ export async function subirServidor(): Promise<ServidorTeste> {
   execFileSync(BINARIO, ['superuser', 'upsert', 'admin@teste.local', 'senha-admin-123', ...flags]);
   const porta = await portaLivre();
   const url = `http://127.0.0.1:${porta}`;
-  const proc: ChildProcess = spawn(BINARIO, ['serve', `--http=127.0.0.1:${porta}`, ...flags], { stdio: 'ignore' });
+  const proc: ChildProcess = spawn(BINARIO, ['serve', `--http=127.0.0.1:${porta}`, ...flags], { stdio: ['ignore', 'pipe', 'pipe'] });
+  // Erro ao carregar os ganchos (pb_hooks) faz o resto do arquivo ser ignorado em silêncio: o teste falha na hora.
+  let saida = '';
+  proc.stdout?.on('data', (d) => (saida += String(d)));
+  proc.stderr?.on('data', (d) => (saida += String(d)));
   for (let i = 0; i < 600; i++) {
     try {
       if ((await fetch(`${url}/api/crads/saude`)).ok) break;
@@ -40,6 +44,10 @@ export async function subirServidor(): Promise<ServidorTeste> {
       /* ainda subindo */
     }
     await new Promise((r) => setTimeout(r, 100));
+  }
+  if (/failed to execute|ReferenceError|SyntaxError|TypeError/.test(saida)) {
+    proc.kill();
+    throw new Error(`Os ganchos do servidor não carregaram:\n${saida}`);
   }
   const r = await fetch(`${url}/api/collections/_superusers/auth-with-password`, {
     method: 'POST',

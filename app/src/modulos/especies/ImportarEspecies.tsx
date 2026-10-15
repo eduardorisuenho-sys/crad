@@ -42,6 +42,8 @@ const FORMAS = [
 export function ImportarEspecies() {
   const { db, repo, pode, sessao } = useApp();
   const [baixando, setBaixando] = useState(false);
+  // situação da lista oficial no servidor (download em andamento, pronto ou erro)
+  const [situacao, setSituacao] = useState<{ ok?: boolean; andamento?: string; erro?: string; registros?: number; quando?: string } | null>(null);
   const navegar = useNavigate();
   const [estado, setEstado] = useState<Estado>({ etapa: 'escolher' });
   const [erro, setErro] = useState('');
@@ -62,19 +64,45 @@ export function ImportarEspecies() {
     setEstado({ etapa: 'previa-flora', plano: planejarFlora(flora, await carregarExistentes(db), uf), uf });
   }
 
+  const base = () => sessao!.servidor.replace(/\/$/, '');
+  const lerSituacao = async () => {
+    const r = await fetch(`${base()}/api/crads/flora/situacao`, { headers: { authorization: sessao!.token } }).catch(() => null);
+    const s = r && r.ok ? await r.json() : { ok: false, erro: 'Não deu para falar com o servidor (sem internet ou servidor desatualizado).' };
+    setSituacao(s);
+    return s as { ok?: boolean; andamento?: string; erro?: string };
+  };
+
   /** O servidor baixa a lista oficial do JBRJ (já só com o Tocantins); aqui só pega pronta. */
   async function baixarDoServidor() {
     setErro('');
     setBaixando(true);
     try {
-      const r = await fetch(`${sessao!.servidor.replace(/\/$/, '')}/flora/flora-${uf}.zip`).catch(() => null);
+      const r = await fetch(`${base()}/flora/flora-${uf}.zip`).catch(() => null);
       if (!r) return setErro('Sem internet. Para baixar a lista oficial é preciso conexão.');
-      if (!r.ok) return setErro(`O servidor ainda não tem a lista oficial de ${uf}. Rode a atualização do servidor (ela baixa a lista) ou escolha o arquivo baixado do site do JBRJ.`);
+      if (!r.ok) {
+        await lerSituacao();
+        return;
+      }
+      setSituacao(null);
       await preverFlora(new Uint8Array(await r.arrayBuffer()));
     } catch (e) {
       setErro((e as Error).message);
     } finally {
       setBaixando(false);
+    }
+  }
+
+  /** Pede ao servidor para baixar a lista agora e acompanha até terminar. */
+  async function pedirAoServidor() {
+    setErro('');
+    const r = await fetch(`${base()}/api/crads/flora/atualizar`, { method: 'POST', headers: { authorization: sessao!.token } }).catch(() => null);
+    if (!r || !r.ok) return setErro('O servidor não aceitou o pedido. Confira a internet e se o servidor foi atualizado.');
+    setSituacao({ ok: false, andamento: 'baixando a lista do Jardim Botânico (pode levar alguns minutos)' });
+    for (let i = 0; i < 120; i++) {
+      await new Promise((ok) => setTimeout(ok, 5000));
+      const s = await lerSituacao();
+      if (s.ok) return void (await baixarDoServidor());
+      if (!s.andamento) return;
     }
   }
 
@@ -126,6 +154,20 @@ export function ImportarEspecies() {
             <button type="button" className="botao-principal" disabled={baixando} onClick={() => void baixarDoServidor()}>
               <Icone nome="baixar" /> {baixando ? 'Baixando…' : 'Baixar a lista oficial pelo servidor'}
             </button>
+            {situacao && (
+              <div className="mensagem alerta" data-testid="situacao-flora">
+                {situacao.andamento ? (
+                  <p>Servidor: {situacao.andamento}…</p>
+                ) : (
+                  <>
+                    <p>O servidor ainda não tem a lista oficial.{situacao.erro ? ` Motivo: ${situacao.erro}` : ''}</p>
+                    <button type="button" className="botao-secundario" onClick={() => void pedirAoServidor()}>
+                      <Icone nome="sincronizar" /> Pedir ao servidor para baixar agora
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
             <p className="dica">Ou escolha abaixo o pacote “Darwin Core Archive” (.zip) baixado do site do JBRJ (ipt.jbrj.gov.br).</p>
             <div className="formulario">
               <label>

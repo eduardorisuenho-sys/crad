@@ -77,3 +77,17 @@ test('gestora baixa a lista oficial de espécies pelo servidor e vê a prévia a
   await expect(previa).toBeVisible();
   await expect(previa.locator('dd').first()).toHaveText('1');
 });
+
+test('sem a lista no servidor, o app mostra o motivo e pede para baixar agora', async ({ page }) => {
+  await page.route('**/flora/flora-TO.zip', (r) => r.fulfill({ status: 404, body: 'File not found.' }));
+  await page.route('**/api/crads/flora/situacao', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: false, erro: 'URLError: sem conexão com o site do JBRJ' }) }));
+  await entrarComoGestora(page);
+  await page.goto('/especies/importar');
+  await page.getByRole('button', { name: 'Baixar a lista oficial pelo servidor' }).click();
+  await expect(page.getByTestId('situacao-flora')).toContainText('Motivo: URLError: sem conexão com o site do JBRJ');
+  // pede de novo: o servidor de teste roda o script de verdade (aqui sem internet, então anota o erro)
+  await page.unroute('**/api/crads/flora/situacao');
+  await page.getByRole('button', { name: 'Pedir ao servidor para baixar agora' }).click();
+  await expect(page.getByTestId('situacao-flora')).toContainText('baixando');
+  await expect(page.getByTestId('situacao-flora')).toContainText('Motivo:', { timeout: 30_000 });
+});
