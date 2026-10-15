@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { BarraSync } from './BarraSync';
 import { Icone } from './Icone';
 
-export function Tela({ titulo, children, voltar = true }: { titulo: string; children: ReactNode; voltar?: boolean }) {
+export function Tela({ titulo, children, voltar = true, acima }: { titulo: string; children: ReactNode; voltar?: boolean; acima?: ReactNode }) {
   const navegar = useNavigate();
   return (
     <div className="tela">
+      {acima}
       <header className="topo">
         {voltar ? (
           <button className="botao-voltar" onClick={() => navegar(-1)} aria-label="Voltar">

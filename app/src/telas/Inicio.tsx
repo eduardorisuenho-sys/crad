@@ -41,7 +41,18 @@ export function Inicio() {
   const pedido = sessao?.pedidos_acesso?.[0];
 
   return (
-    <Tela titulo={`Olá, ${sessao?.nome?.split(' ')[0] || 'bem-vindo'}`} voltar={false}>
+    <Tela
+      titulo={`Olá, ${sessao?.nome?.split(' ')[0] || 'bem-vindo'}`}
+      voltar={false}
+      acima={
+        // símbolo em alta resolução (481×512) e o nome em texto, nítido em qualquer tela
+        <div className="marca-inicio" data-testid="marca-inicio">
+          <img src="/marca/simbolo.png" alt="" width={120} height={128} />
+          <strong>CRAD</strong>
+          <small>Centro de Recuperação de Áreas Degradadas</small>
+        </div>
+      }
+    >
       <BotaoInstalar />
       {semAcesso && (
         <section className="cartao aguardando-acesso" data-testid="aguardando-acesso">

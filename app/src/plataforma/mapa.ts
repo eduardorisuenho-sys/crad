@@ -68,3 +68,15 @@ export function azulejos(v: Vista, camadas = CAMADAS_HIBRIDO): { chave: string; 
 export function linkGoogleMaps(lat: number, lon: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
 }
+
+const DIRECOES = ['norte', 'nordeste', 'leste', 'sudeste', 'sul', 'sudoeste', 'oeste', 'noroeste'];
+
+/** Rumo de `de` até `para`, em graus (0 = norte, 90 = leste), e o nome da direção. */
+export function rumo(de: { lat: number; lon: number }, para: { lat: number; lon: number }): { graus: number; direcao: string } {
+  const r = Math.PI / 180;
+  const dl = (para.lon - de.lon) * r;
+  const y = Math.sin(dl) * Math.cos(para.lat * r);
+  const x = Math.cos(de.lat * r) * Math.sin(para.lat * r) - Math.sin(de.lat * r) * Math.cos(para.lat * r) * Math.cos(dl);
+  const graus = (Math.atan2(y, x) / r + 360) % 360;
+  return { graus, direcao: DIRECOES[Math.round(graus / 45) % 8] };
+}

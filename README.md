@@ -317,8 +317,12 @@ O que o Módulo 2 entrega (tudo funciona sem internet):
   maduro** nos últimos 45 dias, a posição do coletor e a distância até cada
   matriz.
   - o botão **Satélite** liga e desliga o fundo;
-  - cada matriz tem o link **Como chegar (Google Maps)**, que abre o trajeto
-    no Google Maps do celular;
+  - **toque numa matriz** (na lista ou no mapa): o mapa mostra só ela e você,
+    com a **linha do ponto onde você está até a árvore**, a distância em
+    linha reta e a direção (ex.: "78 m em linha reta, para o nordeste").
+    Funciona sem internet. O botão **Caminho pelas estradas (Google Maps)**
+    abre o trajeto no Google Maps do celular (precisa de internet). O voltar
+    do celular ou "Ver todas as matrizes" volta para a lista;
   - as imagens vêm do serviço gratuito da Esri (World Imagery). O híbrido do
     próprio Google não é usado: exige chave paga da Google Maps Platform
     (com cartão de crédito), e baixar as imagens do Google direto viola os
@@ -405,7 +409,7 @@ O que a etapa 1 entrega:
   aparelho, data no aparelho e data no servidor. Isso vale também para o
   que for feito pelo painel do PocketBase, que não deixa apagar de verdade.
 - **App instalável (PWA)** com:
-  - tela inicial de ícones grandes;
+  - tela inicial com a **logomarca do CRAD** no alto (símbolo em alta resolução e o nome em texto, nítido em qualquer tela) e ícones grandes;
   - login que continua valendo sem internet por 30 dias;
   - escolha do viveiro;
   - cadastro de viveiros;

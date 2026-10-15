@@ -36,3 +36,14 @@ describe('mapa híbrido da rota de coleta', () => {
     expect(linkGoogleMaps(-10.18, -48.33)).toBe('https://www.google.com/maps/dir/?api=1&destination=-10.18,-48.33&travelmode=driving');
   });
 });
+
+describe('rumo', () => {
+  it('dá a direção da bússola do coletor até a árvore', async () => {
+    const { rumo } = await import('../src/plataforma/mapa');
+    const p = { lat: -10.2, lon: -48.35 };
+    expect(rumo(p, { lat: -10.1, lon: -48.35 }).direcao).toBe('norte');
+    expect(rumo(p, { lat: -10.2, lon: -48.25 }).direcao).toBe('leste');
+    expect(rumo(p, { lat: -10.3, lon: -48.45 }).direcao).toBe('sudoeste');
+    expect(Math.round(rumo(p, { lat: -10.3, lon: -48.35 }).graus)).toBe(180);
+  });
+});

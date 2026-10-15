@@ -326,3 +326,14 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .notificacao-corpo small { color: var(--suave); }
 .notificacao-fechar { min-width: 48px; background: none; border: 0; font-size: 1.6rem; cursor: pointer; color: inherit; }
 .acoes-lote { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+
+/* Logomarca no alto da tela inicial: símbolo + nome em texto (nítido em qualquer resolução) */
+.marca-inicio { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 20px 16px 4px; background: var(--branco); text-align: center; }
+.marca-inicio img { width: 120px; height: auto; }
+.marca-inicio strong { color: var(--verde); font-size: 2.6rem; font-weight: 800; letter-spacing: 0.04em; line-height: 1.05; margin-top: 6px; }
+.marca-inicio small { color: var(--verde); font-weight: 600; font-size: 0.95rem; }
+
+/* Rota até a matriz escolhida */
+.rota-escolhida { display: grid; gap: 10px; }
+.rota-escolhida h2, .rota-escolhida p { margin: 0; }
+.rota-escolhida .botao-secundario { width: 100%; justify-content: center; }

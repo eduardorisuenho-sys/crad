@@ -9,6 +9,14 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   const coletor = await ctxColetor.newPage();
   await entrarComoColetor(coletor);
   await expect(coletor.getByTestId('barra-sync')).toContainText('Tudo enviado');
+  // logomarca acima do "Olá": símbolo carregado e o nome CRAD
+  const marca = coletor.getByTestId('marca-inicio');
+  await expect(marca).toContainText('CRAD');
+  await expect(marca).toContainText('Centro de Recuperação de Áreas Degradadas');
+  expect(await marca.locator('img').evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth)).toBeGreaterThanOrEqual(480);
+  const alturaMarca = (await marca.boundingBox())!.y;
+  expect(alturaMarca).toBeLessThan((await coletor.getByRole('heading', { name: 'Olá, Coletor' }).boundingBox())!.y);
+  if (process.env.CRADS_FOTO_INICIO) { await coletor.evaluate(() => window.scrollTo(0, 0)); await coletor.screenshot({ path: process.env.CRADS_FOTO_INICIO, clip: { x: 0, y: 0, width: 400, height: 520 } }); }
   await ctxColetor.setOffline(true);
   await coletor.getByRole('link', { name: 'Coleta e sementes' }).click();
 
@@ -21,10 +29,25 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   const fundo = coletor.getByTestId('fundo-hibrido');
   await expect(fundo.locator('image').first()).toHaveAttribute('href', /World_Imagery\/MapServer\/tile\/\d+\/\d+\/\d+$/);
   await expect(coletor.getByText('Imagens: Esri, Maxar, Earthstar Geographics')).toBeVisible();
-  await expect(coletor.getByRole('link', { name: 'Como chegar (Google Maps)' }).first()).toHaveAttribute('href', /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=-?\d/);
+  // escolhe a matriz: o mapa mostra só ela e você, com a linha até a árvore
+  await expect(coletor.locator('svg.mapa-rota circle[r="6"], svg.mapa-rota circle[r="9"]')).toHaveCount(2);
+  await item.click();
+  const rota = coletor.getByTestId('rota-escolhida');
+  await expect(rota).toContainText('Até MT-9001');
+  await expect(rota).toContainText(/\d+ m em linha reta, para o (norte|nordeste|leste|sudeste|sul|sudoeste|oeste|noroeste)/);
+  await expect(coletor.getByTestId('linha-rota')).toBeVisible();
+  await expect(coletor.locator('svg.mapa-rota circle[r="6"], svg.mapa-rota circle[r="9"]')).toHaveCount(1);
+  await expect(coletor.locator('.item-lista', { hasText: 'MT-9002' })).toHaveCount(0);
+  await expect(rota.getByRole('link', { name: /Caminho pelas estradas/ })).toHaveAttribute('href', /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=-?\d/);
   if (process.env.CRADS_FOTO_ROTA) await coletor.screenshot({ path: process.env.CRADS_FOTO_ROTA, fullPage: true });
   await coletor.getByRole('button', { name: 'Satélite' }).click();
   await expect(fundo).toHaveCount(0);
+  // o voltar do celular volta para a lista de todas
+  await coletor.goBack();
+  await expect(coletor.locator('.item-lista', { hasText: 'MT-9002' })).toBeVisible();
+  await item.click();
+  await rota.getByRole('button', { name: 'Ver todas as matrizes' }).click();
+  await expect(coletor.locator('.item-lista', { hasText: 'MT-9002' })).toBeVisible();
   await coletor.getByRole('button', { name: 'Voltar' }).click();
 
   await coletor.getByRole('link', { name: 'Registrar coleta' }).click();
