@@ -9,16 +9,16 @@ import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from './dados';
-import { ROTULO_VALIDADE } from './Lotes';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 
 const TIPOS = [
   { valor: 'teste', rotulo: 'Teste de germinação', saida: true },
   { valor: 'descarte', rotulo: 'Descarte', saida: true },
   { valor: 'ajuste', rotulo: 'Ajuste de peso', saida: false },
-  { valor: 'mudanca_endereco', rotulo: 'Mudar de lugar', saida: false },
 ];
 const ROTULO_MOV: Record<string, string> = { entrada: 'Entrada', semeadura: 'Semeadura', teste: 'Teste de germinação', descarte: 'Descarte', ajuste: 'Ajuste', mudanca_endereco: 'Mudou de lugar' };
+
+const ROTULO_VALIDADE: Record<string, string> = { vencido: 'vencido', vence_logo: 'vence logo', ok: '', sem_validade: '' };
 
 export function DetalheLote() {
   const { id } = useParams();
@@ -42,7 +42,6 @@ export function DetalheLote() {
     const semMatriz = coletas.filter((c) => c && !c.excluido && !c.matriz_id).length;
     return semMatriz ? [...unicas.values(), { id: '', codigo: 'Árvore sem matriz', coletas: semMatriz }] : [...unicas.values()];
   }, [id]);
-  const enderecos = useLiveQuery(() => repo.listar('endereco_armazenamento', (e) => e.ativo !== false), [repo]) ?? [];
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [db]) ?? [];
 
   const [tipo, setTipo] = useState('');
@@ -51,13 +50,11 @@ export function DetalheLote() {
   const [g, setG] = useState('');
   const [unid, setUnid] = useState('');
   const [pct, setPct] = useState('');
-  const [endereco, setEndereco] = useState('');
   const [erro, setErro] = useState('');
   const [msg, setMsg] = useState('');
 
   if (!lote) return <Tela titulo="Lote de sementes">{null}</Tela>;
   const saldo = saldoSementes(movs as never);
-  const enderecoAtual = enderecos.find((e) => e.id === lote.endereco_id);
   const val = situacaoValidade(lote.validade as string, new Date().toISOString(), parametro<number>(parametros, 'aviso_validade_sementes_dias', viveiroId));
   const especie = nomes?.get(String(lote.especie_id)) ?? '';
 
@@ -85,18 +82,15 @@ export function DetalheLote() {
       const b = bloqueioSaida(saldo, { g: qg, unid: qu });
       if (b) return setErro(b);
     }
-    if (tipo === 'mudanca_endereco' && !endereco) return setErro('Escolha o novo lugar.');
     await repo.salvar('movimento_sementes', {
       lote_sementes_id: id,
       tipo,
-      quantidade_g: tipo === 'mudanca_endereco' ? null : qg,
-      quantidade_unid: tipo === 'mudanca_endereco' ? null : qu,
+      quantidade_g: qg,
+      quantidade_unid: qu,
       data: new Date().toISOString().slice(0, 10),
-      endereco_id: tipo === 'mudanca_endereco' ? endereco : null,
       viveiro_id: lote!.viveiro_id,
     });
     const mudancas: Record<string, unknown> = {};
-    if (tipo === 'mudanca_endereco') mudancas.endereco_id = endereco;
     if (tipo === 'teste' && pct) mudancas.germinacao_teste_pct = lerNumero(pct);
     if (Object.keys(mudancas).length) await repo.salvar('lote_sementes', mudancas, id);
     setTipo('');
@@ -117,7 +111,6 @@ export function DetalheLote() {
           <span>{especie}</span>
           <small>Formado em {new Date(String(lote.data_formacao) + 'T12:00').toLocaleDateString('pt-BR')}</small>
           <small>{lote.origem === 'estoque_inicial' ? 'Sementes que já estavam no viveiro' : `${origem?.filter((m) => m.id).length ?? 0} matriz(es)`}</small>
-          <small>{String(enderecoAtual?.codigo ?? 'sem endereço')}</small>
         </div>
       </section>
       <button className="botao-secundario nao-imprimir" onClick={() => window.print()}>
@@ -153,8 +146,6 @@ export function DetalheLote() {
         <dd data-testid="saldo">
           {saldo.g} g{saldo.unid ? ` · ${saldo.unid} sementes` : ''}
         </dd>
-        <dt>Onde está</dt>
-        <dd>{String(enderecoAtual?.codigo ?? 'sem endereço')}</dd>
         {lote.validade ? (
           <>
             <dt>Validade</dt>
@@ -211,35 +202,19 @@ export function DetalheLote() {
         </div>
         {tipo && (
           <form className="formulario" onSubmit={registrar} style={{ marginTop: 12 }}>
-            {tipo === 'mudanca_endereco' ? (
+            <label>
+              {tipo === 'ajuste' ? 'Diferença em gramas (use − para tirar)' : 'Gramas'}
+              <input {...CAMPO_DECIMAL} value={g} onChange={(e) => setG(e.target.value)} />
+            </label>
+            <label>
+              Número de sementes (opcional)
+              <input type="number" inputMode="numeric" step="1" value={unid} onChange={(e) => setUnid(e.target.value)} />
+            </label>
+            {tipo === 'teste' && (
               <label>
-                Novo lugar
-                <select value={endereco} onChange={(e) => setEndereco(e.target.value)}>
-                  <option value="">—</option>
-                  {enderecos.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {String(e.codigo)}
-                    </option>
-                  ))}
-                </select>
+                Resultado do teste: % que germinou (opcional)
+                <input {...CAMPO_DECIMAL} value={pct} onChange={(e) => setPct(e.target.value)} />
               </label>
-            ) : (
-              <>
-                <label>
-                  {tipo === 'ajuste' ? 'Diferença em gramas (use − para tirar)' : 'Gramas'}
-                  <input {...CAMPO_DECIMAL} value={g} onChange={(e) => setG(e.target.value)} />
-                </label>
-                <label>
-                  Número de sementes (opcional)
-                  <input type="number" inputMode="numeric" step="1" value={unid} onChange={(e) => setUnid(e.target.value)} />
-                </label>
-                {tipo === 'teste' && (
-                  <label>
-                    Resultado do teste: % que germinou (opcional)
-                    <input {...CAMPO_DECIMAL} value={pct} onChange={(e) => setPct(e.target.value)} />
-                  </label>
-                )}
-              </>
             )}
             {erro && <p className="erro">{erro}</p>}
             <button className="botao-principal">Registrar</button>
@@ -260,7 +235,7 @@ export function DetalheLote() {
           ))}
         </ul>
       </section>
-      <BotaoExcluir colecao="lote_sementes" registro={lote} voltarPara="/coleta/lotes" />
+      <BotaoExcluir colecao="lote_sementes" registro={lote} voltarPara="/coleta" />
     </Tela>
   );
 }

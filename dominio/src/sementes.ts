@@ -56,7 +56,7 @@ export function verificarLote(
     if (coletasEmLote.has(c.id)) bloqueios.push(`A coleta da matriz ${nome} já está em outro lote.`);
     ids.add(c.matriz_id);
   }
-  if (semMatriz) alertas.push(`${semMatriz} coleta(s) de árvore sem matriz cadastrada: a origem fica registrada só pela espécie e pelo ponto do GPS.`);
+  if (semMatriz) alertas.push(`${semMatriz} coleta(s) de árvore sem matriz cadastrada: a origem fica registrada só pela espécie.`);
   if (coletas.length && ids.size < minMatrizes) {
     alertas.push(`Este lote tem sementes de ${ids.size} matriz(es) cadastrada(s). O recomendado é pelo menos ${minMatrizes}, para manter a diversidade genética.`);
   }

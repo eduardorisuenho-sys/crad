@@ -30,9 +30,6 @@ export function LerQr() {
     const c = lerCodigo(codigo);
     const destino = c ? ROTAS[c.tipo] : undefined;
     if (!c || !destino) {
-      // Etiqueta de endereço do armazenamento (ex.: PAL-CAMARAFRIA1-E2-P3)
-      const en = await db.colecao('endereco_armazenamento').where('codigo').equals(codigo).first();
-      if (en) return navegar(`/coleta/armazenamento?endereco=${encodeURIComponent(codigo)}`, { replace: true });
       return setErro(`O código "${texto}" não é de uma plaqueta ou etiqueta do CRAD.`);
     }
     const reg = await db.colecao(destino.colecao).where('codigo').equals(codigo).first();

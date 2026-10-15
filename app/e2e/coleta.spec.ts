@@ -57,27 +57,20 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   await ctx.setOffline(true);
   await page.getByRole('link', { name: 'Coleta e sementes' }).click();
 
-  // endereço do armazenamento
-  await page.getByRole('link', { name: 'Armazenamento' }).click();
-  await page.getByRole('button', { name: 'Novo endereço' }).click();
-  await page.getByLabel('Local (ex.: Câmara fria 1, Sala seca)').fill('Câmara fria 1');
-  await page.getByLabel('Estante').fill('2');
-  await expect(page.getByTestId('codigo-endereco')).toHaveText('TST-CAMARAFRIA1-E2');
-  await page.getByRole('button', { name: 'Salvar endereço' }).click();
-  await page.getByRole('button', { name: 'Voltar' }).click();
+  // sem botões de Lotes de sementes e Armazenamento: a coleta abre o seu lote
+  await expect(page.getByRole('link', { name: 'Lotes de sementes' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Armazenamento' })).toHaveCount(0);
+  await page.locator('a.item-lista', { hasText: 'MT-9001' }).filter({ hasText: '2,5 kg' }).click();
+  await expect(page).toHaveURL(new RegExp(`/coleta/lotes/${loteId}$`));
 
-  // o lote automático (de frutos) pede o peso das sementes limpas; depois vai para o endereço
-  await page.goto(`/coleta/lotes/${loteId}`);
+  // o lote automático (de frutos) pede o peso das sementes limpas
   await expect(page.getByTestId('pesar-sementes')).toContainText('frutos: 2,5 kg');
   await page.getByTestId('pesar-sementes').getByLabel('Peso das sementes limpas (gramas)').fill('800');
   await page.getByRole('button', { name: 'Salvar peso' }).click();
   await expect(page.getByTestId('saldo')).toHaveText('800 g');
   await expect(page.getByTestId('pesar-sementes')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Mudar de lugar' }).click();
-  await page.getByLabel('Novo lugar').selectOption({ label: 'TST-CAMARAFRIA1-E2' });
-  await page.getByRole('button', { name: 'Registrar', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Mudar de lugar' })).toHaveCount(0);
   await expect(page.getByTestId('etiqueta')).toContainText('1 matriz(es)');
-  await expect(page.getByTestId('etiqueta')).toContainText('TST-CAMARAFRIA1-E2');
 
   // teste de germinação tira do saldo; descarte maior que o saldo é bloqueado
   await page.getByRole('button', { name: 'Teste de germinação' }).click();
@@ -99,6 +92,6 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   expect(lote).toMatchObject({ peso_g: 800, germinacao_teste_pct: 85, origem: 'coleta' });
   expect(String(lote.codigo)).toMatch(/^LS-\d{4}-\d{3}$/);
   const movs = (await lerDoServidor('movimento_sementes')).filter((m) => m.lote_sementes_id === lote.id);
-  expect(movs.map((m) => m.tipo).sort()).toEqual(['ajuste', 'entrada', 'mudanca_endereco', 'teste']);
+  expect(movs.map((m) => m.tipo).sort()).toEqual(['ajuste', 'entrada', 'teste']);
   await ctx.close();
 });

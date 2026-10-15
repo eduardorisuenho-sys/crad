@@ -3,7 +3,7 @@ import { entrarComoColetor, entrarComoGestora, entrarComoViveirista, lerDoServid
 
 test.use({ permissions: ['geolocation'], geolocation: { latitude: -10.2, longitude: -48.35, accuracy: 8 } });
 
-test('coleta em árvore sem matriz cadastrada (só a espécie) e sementes que já estavam no viveiro', async ({ page, browser }) => {
+test('botão Coleta: sem matriz e sem localização, também para sementes guardadas antes do app', async ({ page, browser }) => {
   // ---- coletor: árvore sem matriz, sem internet
   const cc = await browser.newContext({ permissions: ['geolocation'], geolocation: { latitude: -10.2, longitude: -48.35, accuracy: 8 } });
   const c = await cc.newPage();
@@ -11,23 +11,29 @@ test('coleta em árvore sem matriz cadastrada (só a espécie) e sementes que j�
   await expect(c.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await cc.setOffline(true);
   await c.goto('/coleta/nova');
-  await c.getByRole('button', { name: /Registrar sementes/ }).click();
+  await expect(c.getByRole('button', { name: /Registrar sementes|Sementes guardadas/ })).toHaveCount(0);
+  await expect(c.getByRole('link', { name: /Sementes guardadas/ })).toHaveCount(0);
+  const botao = c.getByRole('button', { name: /^Coleta/ });
+  await expect(botao).toHaveClass(/verde/);
+  await botao.click();
   await c.getByLabel('Nome da espécie').fill('arvore do catalogo');
   await c.getByRole('button', { name: /Árvore-do-catálogo/ }).click();
-  await expect(c.getByText('Árvore sem matriz · Árvore-do-catálogo')).toBeVisible();
+  await expect(c.getByText('Coleta sem matriz · Árvore-do-catálogo')).toBeVisible();
   await c.getByLabel('Quantidade').fill('3');
   await c.getByRole('button', { name: 'Quilos (kg)' }).click();
   await c.getByRole('button', { name: 'Continuar' }).click();
   await c.getByRole('button', { name: 'Sementes' }).click();
   await c.getByRole('button', { name: 'Pular a foto' }).click();
   await expect(c.locator('.ficha')).toContainText('sem matriz cadastrada · Árvore-do-catálogo');
+  await expect(c.locator('.ficha')).not.toContainText('Local');
   await c.getByRole('button', { name: 'Salvar coleta' }).click();
   await expect(c.getByText('Coleta salva')).toBeVisible();
   await expect(c.locator('.item-lista', { hasText: 'Sem matriz · Árvore-do-catálogo' })).toContainText('3 kg');
   await cc.setOffline(false);
   await expect.poll(async () => (await lerDoServidor('coleta')).filter((x) => x.quantidade === 3 && !x.matriz_id).length, { timeout: 20_000 }).toBe(1);
   const [coleta] = (await lerDoServidor('coleta')).filter((x) => x.quantidade === 3 && !x.matriz_id);
-  expect(coleta).toMatchObject({ unidade: 'kg', material: 'semente', lat: -10.2 });
+  expect(coleta).toMatchObject({ unidade: 'kg', material: 'semente' });
+  expect(Number(coleta.lat) || null).toBeNull(); // sem localização
   expect(coleta.especie_id).toBeTruthy();
   await cc.close();
 
@@ -40,30 +46,37 @@ test('coleta em árvore sem matriz cadastrada (só a espécie) e sementes que j�
   await expect(page.getByTestId('origem-ls')).toContainText('Árvore sem matriz', { timeout: 20_000 });
   await expect(page.getByTestId('saldo')).toHaveText('3000 g');
 
-  // ---- sementes que já estavam no viveiro (sem coleta nem matriz)
-  // um caminho só: tudo começa em Registrar coleta
-  await page.goto('/coleta/lotes');
-  await expect(page.getByRole('link', { name: /Sementes guardadas antes do app/ })).toHaveCount(0);
+  // ---- sementes que já estavam no viveiro: o mesmo botão Coleta, com a data antiga
   await page.goto('/coleta/nova');
-  await page.getByRole('link', { name: /Sementes guardadas antes do app/ }).click();
+  await page.getByRole('button', { name: /^Coleta/ }).click();
   await page.getByLabel('Nome da espécie').fill('arvore do catalogo');
   await page.getByRole('button', { name: /Árvore-do-catálogo/ }).click();
-  await page.getByLabel('Peso das sementes (gramas)').fill('500');
-  await page.getByLabel(/De onde vieram/).fill('Coleta de 2025 na região de Porto Nacional');
-  await page.getByRole('button', { name: 'Criar lote' }).click();
-  await expect(page.getByTestId('origem-ls')).toContainText('Coleta de 2025 na região de Porto Nacional');
-  await expect(page.getByTestId('saldo')).toContainText('500 g');
-  await expect(page.getByRole('link', { name: /Semear deste lote/ })).toBeVisible();
-  await expect.poll(async () => (await lerDoServidor('lote_sementes')).filter((l) => l.origem === 'estoque_inicial').length, { timeout: 20_000 }).toBe(1);
-  const [ls] = (await lerDoServidor('lote_sementes')).filter((l) => l.origem === 'estoque_inicial');
+  await page.getByLabel('Quantidade').fill('500');
+  await page.getByRole('button', { name: 'Gramas (g)' }).click();
+  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('button', { name: 'Sementes' }).click();
+  await page.getByRole('button', { name: 'Pular a foto' }).click();
+  await page.getByLabel('Quando foi colhido?').fill('2025-08-10');
+  await page.getByLabel(/Observação/).fill('Coleta de 2025 na região de Porto Nacional');
+  await page.getByRole('button', { name: 'Salvar coleta' }).click();
+  await expect(page.getByText('Coleta salva')).toBeVisible();
+  await expect.poll(async () => (await lerDoServidor('coleta')).filter((x) => x.quantidade === 500 && !x.matriz_id).length, { timeout: 20_000 }).toBe(1);
+  const [antiga] = (await lerDoServidor('coleta')).filter((x) => x.quantidade === 500 && !x.matriz_id);
+  expect(String(antiga.data)).toMatch(/^2025-08-10/);
+  expect(Number(antiga.lat) || null).toBeNull();
+  // vira lote sozinha, rastreável pela coleta, e pode ser semeada
+  await expect.poll(async () => (await lerDoServidor('lote_sementes_coleta')).find((l) => l.coleta_id === antiga.id)?.lote_sementes_id, { timeout: 20_000 }).toBeTruthy();
+  const idLote = String((await lerDoServidor('lote_sementes_coleta')).find((l) => l.coleta_id === antiga.id)!.lote_sementes_id);
+  const ls = (await lerDoServidor('lote_sementes')).find((l) => l.id === idLote)!;
   expect(String(ls.codigo)).toMatch(/^LS-\d{4}-\d{3}$/);
-  const movs = (await lerDoServidor('movimento_sementes')).filter((m) => m.lote_sementes_id === ls.id);
-  expect(movs).toEqual([expect.objectContaining({ tipo: 'entrada', quantidade_g: 500 })]);
+  await page.goto(`/coleta/lotes/${idLote}`);
+  await expect(page.getByTestId('saldo')).toContainText('500 g', { timeout: 20_000 });
+  await expect(page.getByRole('link', { name: /Semear deste lote/ })).toBeVisible();
 
   // preenchido errado: quem cadastrou exclui na própria ficha (vai para a lixeira)
   page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: /Excluir \(preenchido errado\)/ }).click();
-  await expect(page).toHaveURL(/\/coleta\/lotes$/);
+  await expect(page).toHaveURL(/\/coleta$/);
   await expect(page.locator('.item-lista', { hasText: String(ls.codigo) })).toHaveCount(0);
   await expect.poll(async () => (await lerDoServidor('lote_sementes')).find((l) => l.id === ls.id)?.excluido, { timeout: 20_000 }).toBe(true);
 

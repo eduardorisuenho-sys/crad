@@ -21,10 +21,8 @@ import { DetalheMatriz } from './modulos/matrizes/DetalheMatriz';
 import { LerQr } from './modulos/matrizes/LerQr';
 import { ListaMatrizes } from './modulos/matrizes/ListaMatrizes';
 import { NovaMatriz } from './modulos/matrizes/NovaMatriz';
-import { Armazenamento } from './modulos/coleta/Armazenamento';
 import { DetalheLote } from './modulos/coleta/DetalheLote';
 import { InicioColeta } from './modulos/coleta/InicioColeta';
-import { ListaLotes } from './modulos/coleta/Lotes';
 import { NovaColeta } from './modulos/coleta/NovaColeta';
 import { RotaColeta } from './modulos/coleta/RotaColeta';
 import { DetalheLoteMudas } from './modulos/viveiro/DetalheLoteMudas';
@@ -48,7 +46,6 @@ import { Equipe } from './modulos/equipe/Equipe';
 import { Permissoes } from './modulos/equipe/Permissoes';
 import { EstoqueInicial } from './modulos/viveiro/EstoqueInicial';
 import { Lixeira } from './modulos/lixeira/Lixeira';
-import { SementesIniciais } from './modulos/coleta/SementesIniciais';
 import { RelatorioServico } from './modulos/coleta/RelatorioServico';
 
 function Rotas() {
@@ -101,10 +98,7 @@ function Rotas() {
       <Route path="/coleta/nova" element={<NovaColeta />} />
       <Route path="/coleta/relatorio" element={<RelatorioServico />} />
       <Route path="/coleta/rota" element={<RotaColeta />} />
-      <Route path="/coleta/lotes" element={<ListaLotes />} />
-      <Route path="/coleta/lotes/sementes-iniciais" element={<SementesIniciais />} />
       <Route path="/coleta/lotes/:id" element={<DetalheLote />} />
-      <Route path="/coleta/armazenamento" element={<Armazenamento />} />
       <Route path="/viveiro" element={<InicioViveiro />} />
       <Route path="/viveiro/semeadura" element={<NovaSemeadura />} />
       <Route path="/viveiro/lotes/:id" element={<DetalheLoteMudas />} />

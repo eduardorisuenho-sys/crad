@@ -1,4 +1,9 @@
-/** Registro de coleta em campo, uma coisa por tela, sem internet. */
+/**
+ * Registro de coleta em campo, uma coisa por tela, sem internet.
+ * Com matriz: o ponto do GPS fica guardado. Sem matriz (botão "Coleta"):
+ * só a espécie, sem localização, e serve também para sementes guardadas
+ * antes do app (a data pode ser antiga).
+ */
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -28,7 +33,7 @@ export function formatarDistancia(m: number): string {
 }
 
 export function NovaColeta() {
-  const { repo, db, sessao, viveiroId, pode } = useApp();
+  const { repo, db, sessao, viveiroId } = useApp();
   const navegar = useNavigate();
   const [params] = useSearchParams();
   const [etapa, setEtapa] = useState<Etapa>(params.get('matriz') ? 'quantidade' : 'matriz');
@@ -43,6 +48,8 @@ export function NovaColeta() {
   const [material, setMaterial] = useState<'fruto' | 'semente'>('fruto');
   const [foto, setFoto] = useState<FotoPendente | null>(null);
   const [observacao, setObservacao] = useState('');
+  const hoje = new Date().toLocaleDateString('sv-SE');
+  const [dataColeta, setDataColeta] = useState(hoje);
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => acompanharPosicao(setGps, () => {}), []);
@@ -68,13 +75,15 @@ export function NovaColeta() {
     const c = await repo.salvar('coleta', {
       matriz_id: matrizId || null,
       especie_id: matrizId ? (matriz?.especie_id ?? null) : especieId,
-      data: new Date().toISOString(),
+      // sem matriz a data pode ser antiga (sementes guardadas antes do app)
+      data: matrizId || dataColeta === hoje ? new Date().toISOString() : new Date(`${dataColeta}T12:00:00`).toISOString(),
       coletor_id: sessao?.id ?? null,
       material,
       quantidade: lerNumero(quantidade),
       unidade,
-      lat: gps?.lat ?? null,
-      lon: gps?.lon ?? null,
+      // sem matriz não guarda localização
+      lat: matrizId ? (gps?.lat ?? null) : null,
+      lon: matrizId ? (gps?.lon ?? null) : null,
       observacao: observacao || null,
     });
     if (foto) await gravarFoto(db, repo, 'coleta', c.id, viveiroId, foto);
@@ -91,7 +100,7 @@ export function NovaColeta() {
       {String(matriz.codigo)} · {nomes?.get(String(matriz.especie_id)) ?? ''}
     </p>
   ) : especieId ? (
-    <p className="contador">Árvore sem matriz · {nomes?.get(especieId) ?? ''}</p>
+    <p className="contador">Coleta sem matriz · {nomes?.get(especieId) ?? ''}</p>
   ) : null;
 
   return (
@@ -103,6 +112,18 @@ export function NovaColeta() {
             <Icone nome="catalogo" tamanho={40} />
             <span>Ler a plaqueta (QR)</span>
           </Link>
+          <button
+            className="botao-grande verde"
+            onClick={() => {
+              setMatrizId(null);
+              setEtapa('especie');
+            }}
+          >
+            <Icone nome="semente" tamanho={40} />
+            <span>
+              Coleta<small className="dica-botao">Sem matriz e sem localização. Também para sementes guardadas antes do app</small>
+            </span>
+          </button>
           <input className="campo-busca" type="search" placeholder="Código ou espécie" value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar matriz" />
           {naoAprovadas.length > 0 && (
             <p className="mensagem alerta">
@@ -130,33 +151,13 @@ export function NovaColeta() {
             ))}
             {!lista.length && <li className="vazio">Nenhuma matriz cadastrada neste viveiro.</li>}
           </ul>
-          <button
-            className="botao-grande"
-            onClick={() => {
-              setMatrizId(null);
-              setEtapa('especie');
-            }}
-          >
-            <Icone nome="semente" tamanho={40} />
-            <span>
-              Registrar sementes<small className="dica-botao">Colhidas agora, de árvore sem matriz cadastrada</small>
-            </span>
-          </button>
-          {pode('lotes_sementes') && (
-            <Link to="/coleta/lotes/sementes-iniciais" className="botao-grande">
-              <Icone nome="viveiro" tamanho={40} />
-              <span>
-                Sementes guardadas antes do app<small className="dica-botao">Já estavam no viveiro, sem coleta registrada</small>
-              </span>
-            </Link>
-          )}
         </div>
       )}
 
       {etapa === 'especie' && (
         <div className="assistente">
           <h2 className="pergunta">De qual espécie é a árvore?</h2>
-          <p className="dica">Use quando a árvore não tem matriz cadastrada. O ponto do GPS fica guardado na coleta.</p>
+          <p className="dica">Coleta sem matriz: não precisa de localização. Serve também para sementes que já estavam guardadas no viveiro.</p>
           <EscolherEspecie
             aoEscolher={(id) => {
               setEspecieId(id);
@@ -245,11 +246,21 @@ export function NovaColeta() {
             <dd>
               {quantidade} {UNIDADES.find((u) => u.valor === unidade)?.rotulo.toLowerCase()} de {material === 'fruto' ? 'frutos' : 'sementes'}
             </dd>
-            <dt>Local</dt>
-            <dd>{gps ? `${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)}` : 'sem GPS'}</dd>
+            {matrizId && (
+              <>
+                <dt>Local</dt>
+                <dd>{gps ? `${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)}` : 'sem GPS'}</dd>
+              </>
+            )}
           </dl>
+          {!matrizId && (
+            <label className="formulario">
+              Quando foi colhido?
+              <input type="date" max={hoje} value={dataColeta} onChange={(e) => setDataColeta(e.target.value || hoje)} />
+            </label>
+          )}
           <label className="formulario">
-            Observação (opcional)
+            {matrizId ? 'Observação (opcional)' : 'Observação (opcional: de onde vieram, quem colheu)'}
             <input value={observacao} onChange={(e) => setObservacao(e.target.value)} />
           </label>
           {aviso && <p className="erro">{aviso}</p>}

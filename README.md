@@ -52,13 +52,12 @@ mudas**:
 
 Sementes sem matriz cadastrada:
 
-- **Coleta em árvore sem matriz**: em Registrar coleta, o botão "Árvore sem
-  matriz cadastrada" pede só a espécie (o ponto do GPS fica guardado). A
-  coleta entra no lote da mesma espécie com um alerta e não conta como
-  matriz na diversidade.
-- **Sementes guardadas antes do app** (Registrar coleta): espécie, peso e, se
-  souber, de onde vieram. Vira um lote de sementes normal (pode semear). O
-  rastreio público diz que as árvores de origem não foram registradas.
+- **Botão verde "Coleta"** (em Registrar coleta): para colheita sem matriz
+  cadastrada e também para **sementes guardadas antes do app**. Pede só a
+  espécie e a quantidade; **não pede localização nem matriz**. A data pode
+  ser antiga ("Quando foi colhido?") e a observação guarda de onde vieram.
+  A coleta vira um lote de sementes sozinha, como as outras, e não conta
+  como matriz na diversidade.
 
 Doação: combinar a retirada e baixa no estoque:
 
@@ -336,16 +335,14 @@ O que o Módulo 2 entrega (tudo funciona sem internet):
     (peso e, se quiser, número de sementes); o lote já pode ser semeado antes;
   - coleta de matriz ainda sem espécie: o lote nasce quando a matriz for
     identificada; coletas antigas sem lote ganham o lote quando o servidor liga.
-- **Ficha do lote:**
+- **Ficha do lote** (abre tocando na coleta em "Últimas coletas", pela
+  leitura do QR da etiqueta ou pelo rastreio; não há mais lista de lotes
+  nem tela de armazenamento):
   - saldo, que é sempre a soma das movimentações;
-  - teste de germinação (%), descarte, ajuste e mudança de lugar;
+  - teste de germinação (%), descarte e ajuste;
   - **saída maior que o saldo é bloqueada**;
   - aviso de validade;
   - **matrizes de origem**, o rastreio do lote até as árvores.
-- **Armazenamento** "como numa farmácia":
-  - endereço legível (ex.: `PAL-CAMARAFRIA1-E2-P3-CX4`) com QR;
-  - busca por código, lote ou espécie, que mostra onde a semente está;
-  - a leitura do QR da etiqueta abre o lote ou o endereço.
 
 O que o Módulo 1 entrega (tudo funciona sem internet):
 
