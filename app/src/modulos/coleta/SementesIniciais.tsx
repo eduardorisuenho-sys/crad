@@ -46,7 +46,7 @@ export function SementesIniciais() {
   }
 
   return (
-    <Tela titulo="Sementes que já estavam aqui">
+    <Tela titulo="Sementes guardadas antes do app">
       {!especie ? (
         <>
           <p className="dica">Para sementes guardadas antes do app, sem matriz registrada. Elas viram um lote de sementes e podem ser semeadas normalmente.</p>

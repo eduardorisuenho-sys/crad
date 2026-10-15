@@ -28,7 +28,7 @@ export function formatarDistancia(m: number): string {
 }
 
 export function NovaColeta() {
-  const { repo, db, sessao, viveiroId } = useApp();
+  const { repo, db, sessao, viveiroId, pode } = useApp();
   const navegar = useNavigate();
   const [params] = useSearchParams();
   const [etapa, setEtapa] = useState<Etapa>(params.get('matriz') ? 'quantidade' : 'matriz');
@@ -139,9 +139,17 @@ export function NovaColeta() {
           >
             <Icone nome="semente" tamanho={40} />
             <span>
-              Registrar sementes<small className="dica-botao">De árvore sem matriz cadastrada: escolher só a espécie</small>
+              Registrar sementes<small className="dica-botao">Colhidas agora, de árvore sem matriz cadastrada</small>
             </span>
           </button>
+          {pode('lotes_sementes') && (
+            <Link to="/coleta/lotes/sementes-iniciais" className="botao-grande">
+              <Icone nome="viveiro" tamanho={40} />
+              <span>
+                Sementes guardadas antes do app<small className="dica-botao">Já estavam no viveiro, sem coleta registrada</small>
+              </span>
+            </Link>
+          )}
         </div>
       )}
 

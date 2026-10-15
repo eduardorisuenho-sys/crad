@@ -41,8 +41,11 @@ test('coleta em árvore sem matriz cadastrada (só a espécie) e sementes que j�
   await expect(page.getByTestId('saldo')).toHaveText('3000 g');
 
   // ---- sementes que já estavam no viveiro (sem coleta nem matriz)
+  // um caminho só: tudo começa em Registrar coleta
   await page.goto('/coleta/lotes');
-  await page.getByRole('link', { name: /Sementes que já estavam aqui/ }).click();
+  await expect(page.getByRole('link', { name: /Sementes guardadas antes do app/ })).toHaveCount(0);
+  await page.goto('/coleta/nova');
+  await page.getByRole('link', { name: /Sementes guardadas antes do app/ }).click();
   await page.getByLabel('Nome da espécie').fill('arvore do catalogo');
   await page.getByRole('button', { name: /Árvore-do-catálogo/ }).click();
   await page.getByLabel('Peso das sementes (gramas)').fill('500');

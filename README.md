@@ -56,7 +56,7 @@ Sementes sem matriz cadastrada:
   matriz cadastrada" pede só a espécie (o ponto do GPS fica guardado). A
   coleta entra no lote da mesma espécie com um alerta e não conta como
   matriz na diversidade.
-- **Sementes que já estavam aqui** (Lotes de sementes): espécie, peso e, se
+- **Sementes guardadas antes do app** (Registrar coleta): espécie, peso e, se
   souber, de onde vieram. Vira um lote de sementes normal (pode semear). O
   rastreio público diz que as árvores de origem não foram registradas.
 

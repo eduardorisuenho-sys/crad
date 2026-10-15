@@ -10,7 +10,7 @@ import { nomesEspecies } from './dados';
 export const ROTULO_VALIDADE: Record<string, string> = { vencido: 'vencido', vence_logo: 'vence logo', ok: '', sem_validade: '' };
 
 export function ListaLotes() {
-  const { repo, db, viveiroId, pode } = useApp();
+  const { repo, db, viveiroId } = useApp();
   const lotes = useLiveQuery(async () => (await repo.listar('lote_sementes')).sort((a, b) => String(b.codigo).localeCompare(String(a.codigo))), [repo, viveiroId]) ?? [];
   const movs = useLiveQuery(() => repo.listar('movimento_sementes'), [repo]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
@@ -21,17 +21,7 @@ export function ListaLotes() {
 
   return (
     <Tela titulo="Lotes de sementes">
-      <p className="dica">Cada coleta vira um lote de sementes sozinha quando chega ao servidor (sem precisar formar nem aprovar). Toque no lote para pesar as sementes limpas, guardar ou semear.</p>
-      {pode('lotes_sementes') && (
-        <>
-          <Link to="/coleta/lotes/sementes-iniciais" className="botao-grande">
-            <Icone nome="semente" tamanho={36} />
-            <span>
-              Sementes que já estavam aqui<small className="dica-botao">Sementes guardadas antes do app, sem matriz</small>
-            </span>
-          </Link>
-        </>
-      )}
+      <p className="dica">Cada coleta vira um lote de sementes sozinha quando chega ao servidor (sem precisar formar nem aprovar). Toque no lote para pesar as sementes limpas, guardar ou semear. Para sementes guardadas antes do app, use Registrar coleta.</p>
       <ul className="lista">
         {lotes.map((l) => {
           const saldo = saldoSementes(movs.filter((m) => m.lote_sementes_id === l.id) as never);
