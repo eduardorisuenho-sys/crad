@@ -10,7 +10,8 @@ import { lotesDeMudas, ROTULO_FASE } from './dados';
 
 export function Inventario() {
   const { repo, db, sessao } = useApp();
-  const lotes = useLiveQuery(async () => (await lotesDeMudas(repo)).filter((l) => l.lote.situacao !== 'encerrado'), [repo]) ?? [];
+  // lote zerado não entra no inventário (só no histórico); o recusado pelo servidor entra para recontar
+  const lotes = useLiveQuery(async () => (await lotesDeMudas(repo)).filter((l) => l.lote.situacao !== 'encerrado' && (l.saldo > 0 || l.recusado)), [repo]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const [contagem, setContagem] = useState<Record<string, string>>({});
   const [feito, setFeito] = useState('');

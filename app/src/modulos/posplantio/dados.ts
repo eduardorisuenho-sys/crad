@@ -14,9 +14,13 @@ export async function resumoPlantio(db: BancoCrads, plantioId: string) {
   return { itens, monitoramentos, sobrevivencia: sobrevivenciaDoPlantio(itens as never, monitoramentos as never, monItens as never) };
 }
 
-/** Mudas entregues por espécie numa doação. */
+/** Mudas entregues por espécie numa doação (o número da retirada ou, se maior, o que de fato saiu do estoque). */
 export async function entreguesDaDoacao(db: BancoCrads, doacaoId: string): Promise<Map<string, number>> {
   const m = new Map<string, number>();
-  for (const i of await de(db, 'doacao_item', 'doacao_id', doacaoId)) if (Number(i.qtd_entregue ?? 0) > 0) m.set(String(i.especie_id), Number(i.qtd_entregue));
+  for (const i of await de(db, 'doacao_item', 'doacao_id', doacaoId)) {
+    const baixado = (await de(db, 'doacao_item_lote', 'doacao_item_id', i.id)).reduce((s, l) => s + Number(l.quantidade ?? 0), 0);
+    const q = Math.max(Number(i.qtd_entregue ?? 0), baixado);
+    if (q > 0) m.set(String(i.especie_id), (m.get(String(i.especie_id)) ?? 0) + q);
+  }
   return m;
 }

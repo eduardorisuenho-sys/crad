@@ -211,7 +211,7 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   await v.getByLabel('Nome').fill('Recebedor do Circuito');
   await assinar(v);
   await v.getByRole('button', { name: 'Confirmar: as mudas saíram do viveiro' }).click();
-  await expect(v.getByText(/reservadas 25 mudas.*não dá para entregar 26/)).toBeVisible();
+  await expect(v.getByText(/aprovadas 25 mudas.*não dá para entregar 26/)).toBeVisible();
   await v.getByLabel(`Entregues de ${NOVA}`).fill('20');
   await v.getByRole('button', { name: 'Confirmar: as mudas saíram do viveiro' }).click();
   await expect(v.getByTestId('resumo-pedido')).toContainText('retirado');

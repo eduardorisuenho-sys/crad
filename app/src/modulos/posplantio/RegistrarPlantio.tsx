@@ -64,6 +64,11 @@ export function RegistrarPlantio() {
       {etapa === 'quantidades' && (
         <div className="assistente">
           <h2 className="pergunta">Quantas mudas foram plantadas?</h2>
+          {!entregues.size && (
+            <p className="mensagem alerta" data-testid="sem-entregues">
+              Este pedido ainda não tem mudas entregues: a retirada foi registrada sem dar baixa. Peça ao viveiro para abrir o pedido e tocar em “Completar a retirada”. Depois volte aqui.
+            </p>
+          )}
           <ul className="lista">
             {[...entregues].map(([e, ent]) => (
               <li key={e} className="item-lista">

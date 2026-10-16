@@ -17,7 +17,8 @@ export function InicioViveiro() {
   const lotes = useLiveQuery(() => lotesDeMudas(repo), [repo, viveiroId]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const especies = useLiveQuery(async () => new Map((await db.colecao('especie').toArray()).map((e) => [e.id, e])), [db]);
-  const ativos = lotes.filter((l) => l.lote.situacao !== 'encerrado');
+  // lote zerado (todas as mudas já saíram) some do viveiro; fica só no histórico e nos relatórios
+  const ativos = lotes.filter((l) => l.lote.situacao !== 'encerrado' && (l.saldo > 0 || l.recusado));
   const hoje = new Date().toISOString();
 
   const pronta = (l: { lote: Record<string, unknown> }) => l.lote.fase_atual === 'pronta';
@@ -64,6 +65,7 @@ export function InicioViveiro() {
             Em formação ({totalFormacao})
           </button>
         )}
+
       </div>
       <ul className="lista">
         {lista.map(({ lote, saldo, germinadas, recusado }) => {

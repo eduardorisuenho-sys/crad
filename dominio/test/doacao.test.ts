@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  planejarBaixa,
   bloqueioDesmarcar,
   bloqueioRetirada,
   bloqueiosPedido,
@@ -143,5 +144,34 @@ describe('Plantando Água', () => {
     expect(programa).toMatchObject({ pedidos: 1, mudas_entregues: 50 });
     // marcar no programa não muda o total geral
     expect(totaisDoacoes(doacoes, itens)).toEqual(geral);
+  });
+});
+
+describe('baixa da retirada sem travar', () => {
+  const itens = [
+    { id: 'i1', especie_id: 'ipe', qtd_aprovada: 5, nome: 'Ipê' },
+    { id: 'i2', especie_id: 'palmeira', qtd_aprovada: 1, nome: 'Palmeira' },
+  ];
+  const reservas = [{ id: 'r1', doacao_item_id: 'i1', lote_mudas_id: 'lA', quantidade: 5, situacao: 'ativa' }];
+  const livres = [
+    { id: 'lP2', especie_id: 'palmeira', data_semeadura: '2026-05-01', disponivel: 3 },
+    { id: 'lP1', especie_id: 'palmeira', data_semeadura: '2026-01-01', disponivel: 1 },
+  ];
+
+  it('item sem reserva no aparelho sai dos lotes prontos da espécie (o mais antigo primeiro)', () => {
+    const p = planejarBaixa(reservas, itens, { i1: 4, i2: 1 }, livres);
+    expect(p).toEqual({
+      consumos: [
+        { reserva_id: 'r1', doacao_item_id: 'i1', lote_mudas_id: 'lA', quantidade: 4 },
+        { reserva_id: '', doacao_item_id: 'i2', lote_mudas_id: 'lP1', quantidade: 1 },
+      ],
+      liberar: [],
+    });
+  });
+
+  it('zero mudas, mais que o aprovado ou sem muda pronta: não deixa', () => {
+    expect(planejarBaixa(reservas, itens, { i1: 0, i2: 0 }, livres)).toEqual({ erro: 'Informe quantas mudas saíram (pelo menos 1).' });
+    expect(planejarBaixa(reservas, itens, { i1: 0, i2: 2 }, livres)).toEqual({ erro: 'Foram aprovadas 1 mudas de Palmeira; não dá para entregar 2.' });
+    expect(planejarBaixa([], itens, { i1: 1, i2: 0 }, livres)).toEqual({ erro: 'Não há mudas prontas suficientes de Ipê no viveiro para esta retirada.' });
   });
 });

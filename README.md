@@ -85,6 +85,16 @@ Doação: combinar a retirada e baixa no estoque:
   as quantidades, colhe a assinatura e toca em **Confirmar: as mudas saíram
   do viveiro**. Cada muda entregue **sai do estoque do lote** (baixa), a
   reserva é consumida e o catálogo é atualizado.
+  - Retirada com **0 mudas** não é aceita; nunca sai mais que o aprovado.
+  - Item aprovado que ficou **sem reserva no aparelho** não trava: as mudas
+    saem dos lotes prontos da espécie (os mais antigos primeiro).
+  - A baixa e o "retirado" vêm antes do PDF: se o termo não puder ser gerado
+    na hora, a retirada vale e o termo sai depois na ficha do pedido.
+  - Pedido que ficou "retirado" sem nenhuma muda baixada mostra **Completar a
+    retirada (dar baixa)**; a coluna "Entregues" conta o que de fato saiu do
+    estoque.
+  - **Lote zerado some do Viveiro e do Inventário**; continua no histórico,
+    no rastreio e nos relatórios.
 
 Termo de compromisso e declaração:
 

@@ -130,6 +130,42 @@ export function planejarRetirada(reservas: Reg[], entregas: Record<string, numbe
   return { consumos, liberar };
 }
 
+/**
+ * Baixa da retirada, sem travar: o que tem reserva sai dos lotes reservados;
+ * o item que ficou sem reserva no aparelho sai dos lotes prontos da espécie
+ * (os mais antigos primeiro). Nunca entrega mais que o aprovado nem zero mudas.
+ */
+export function planejarBaixa(
+  reservas: Reg[],
+  itens: { id: string; especie_id: string; qtd_aprovada: number; nome?: string }[],
+  entregas: Record<string, number>,
+  lotesLivres: LoteDisponivel[],
+): { consumos: Consumo[]; liberar: string[] } | { erro: string } {
+  const total = itens.reduce((s, i) => s + (Number(entregas[i.id]) || 0), 0);
+  if (total <= 0) return { erro: 'Informe quantas mudas saíram (pelo menos 1).' };
+  for (const i of itens) {
+    const q = Number(entregas[i.id] ?? 0);
+    if (!Number.isInteger(q) || q < 0) return { erro: 'Quantidade entregue inválida.' };
+    if (q > i.qtd_aprovada) return { erro: `Foram aprovadas ${i.qtd_aprovada} mudas de ${i.nome ?? 'uma espécie'}; não dá para entregar ${q}.` };
+  }
+  const comReserva = new Set(ativos(reservas).filter((r) => r.situacao === 'ativa').map((r) => String(r.doacao_item_id)));
+  const plano = planejarRetirada(reservas, Object.fromEntries(itens.filter((i) => comReserva.has(i.id)).map((i) => [i.id, Number(entregas[i.id] ?? 0)])));
+  if ('erro' in plano) return plano;
+  const semReserva = itens.filter((i) => !comReserva.has(i.id) && Number(entregas[i.id] ?? 0) > 0);
+  if (semReserva.length) {
+    const extra = planejarReservas(
+      semReserva.map((i) => ({ doacao_item_id: i.id, especie_id: i.especie_id, quantidade: Number(entregas[i.id]) })),
+      lotesLivres,
+    );
+    if ('erro' in extra) {
+      const nomes = semReserva.map((i) => i.nome).filter(Boolean).join(', ');
+      return { erro: `Não há mudas prontas suficientes${nomes ? ` de ${nomes}` : ''} no viveiro para esta retirada.` };
+    }
+    for (const r of extra.reservas) plano.consumos.push({ reserva_id: '', doacao_item_id: r.doacao_item_id, lote_mudas_id: r.lote_mudas_id, quantidade: r.quantidade });
+  }
+  return plano;
+}
+
 // ---------------------------------------------------------------------------
 // Plantando Água (e outros programas): marcação na doação, com histórico.
 

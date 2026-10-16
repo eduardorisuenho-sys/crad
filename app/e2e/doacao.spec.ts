@@ -88,7 +88,7 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await toque('pointerup', 220, 120);
   await expect(v.getByText('Assinado')).toBeVisible();
   await v.getByRole('button', { name: 'Confirmar: as mudas saíram do viveiro' }).click();
-  await expect(v.getByText(/reservadas 25 mudas.*não dá para entregar 30/)).toBeVisible();
+  await expect(v.getByText(/aprovadas 25 mudas.*não dá para entregar 30/)).toBeVisible();
   await v.getByLabel(`Entregues de ${ESPECIE}`).fill('20');
   const download = v.waitForEvent('download');
   await v.getByRole('button', { name: 'Confirmar: as mudas saíram do viveiro' }).click();
@@ -126,6 +126,7 @@ test('o administrador muda o texto do termo e os próximos pedidos usam o novo',
   await editar.getByRole('button', { name: 'Salvar termo' }).click();
   await expect(editar).toContainText('Termo salvo');
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
+  await expect.poll(async () => String((await lerDoServidor('parametro')).find((p) => p.chave === 'termo_compromisso')?.valor ?? ''), { timeout: 20_000 }).toMatch(/^TERMO DO CRAD/);
 
   // quem pede vê o termo novo, já preenchido
   const cs = await browser.newContext();
@@ -146,5 +147,6 @@ test('o administrador muda o texto do termo e os próximos pedidos usam o novo',
   await editar.getByRole('button', { name: 'Voltar ao texto original' }).click();
   await expect(editar.getByLabel('Texto do termo')).toHaveValue(/^TERMO DE COMPROMISSO E DECLARAÇÃO/);
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
+  await expect.poll(async () => String((await lerDoServidor('parametro')).find((p) => p.chave === 'termo_compromisso')?.valor ?? ''), { timeout: 20_000 }).toMatch(/^TERMO DE COMPROMISSO/);
   await cg.close();
 });

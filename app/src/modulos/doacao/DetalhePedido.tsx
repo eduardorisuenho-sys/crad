@@ -30,6 +30,13 @@ export function DetalhePedido() {
   const disp = useLiveQuery(() => (doacao ? disponivelLocal(db, String(doacao.viveiro_id)) : undefined), [doacao?.viveiro_id]);
   const instalacao = useLiveQuery(async () => (await db.colecao('instalacao').toArray())[0], [db]);
   const noPrograma = useLiveQuery(() => doacoesNoPrograma(db), [db]);
+  // o que de fato saiu do estoque para cada item (vale mais que o número digitado)
+  const baixado = useLiveQuery(async () => {
+    const m = new Map<string, number>();
+    for (const l of await db.colecao('doacao_item_lote').toArray()) if (!l.excluido) m.set(String(l.doacao_item_id), (m.get(String(l.doacao_item_id)) ?? 0) + Number(l.quantidade ?? 0));
+    return m;
+  }, [db]);
+  const entregue = (i: { id: string; qtd_entregue?: unknown }) => Math.max(Number(i.qtd_entregue ?? 0), baixado?.get(i.id) ?? 0);
   const retirada = useLiveQuery(async () => (doacao ? (await db.colecao('retirada').where('doacao_id').equals(doacao.id).toArray()).find((r) => !r.excluido) : undefined), [doacao?.id]);
 
   const plantio = useLiveQuery(async () => (doacao ? (await db.colecao('plantio').toArray()).find((p) => p.doacao_id === doacao.id && !p.excluido) : undefined), [doacao?.id]);
@@ -67,7 +74,7 @@ export function DetalhePedido() {
         especie: nomes?.get(String(i.especie_id)) ?? '',
         pedida: Number(i.qtd_pedida ?? 0),
         aprovada: SITUACOES_EM_ANALISE.includes(situacao) ? undefined : Number(i.qtd_aprovada ?? 0),
-        entregue: situacao === 'retirada' ? Number(i.qtd_entregue ?? 0) : undefined,
+        entregue: situacao === 'retirada' ? entregue(i) : undefined,
       })),
     };
   }
@@ -109,7 +116,19 @@ export function DetalhePedido() {
           </button>
         </section>
       )}
-      {params.get('retirado') && <p className="mensagem">Retirada registrada: as mudas saíram do estoque e o termo foi gerado.</p>}
+      {params.get('retirado') && (
+        <p className="mensagem">
+          {params.get('sempdf') ? 'Retirada registrada: as mudas saíram do estoque. O termo não pôde ser gerado agora; baixe em “Termo de doação (PDF)”.' : 'Retirada registrada: as mudas saíram do estoque e o termo foi gerado.'}
+        </p>
+      )}
+      {situacao === 'retirada' && baixado && itens.length > 0 && itens.every((i) => !entregue(i)) && pode('retirada', doacao.viveiro_id) && (
+        <section className="cartao" data-testid="retirada-vazia">
+          <p className="mensagem alerta">Este pedido está como retirado, mas nenhuma muda saiu do estoque.</p>
+          <Link to={`/doacao/${id}/retirada`} className="botao-principal">
+            <Icone nome="doacao" /> Completar a retirada (dar baixa)
+          </Link>
+        </section>
+      )}
       {msg && <p className="mensagem">{msg}</p>}
       <dl className="ficha" data-testid="resumo-pedido">
         <dt>Situação</dt>
@@ -151,7 +170,7 @@ export function DetalhePedido() {
                 <td>{nomes?.get(String(i.especie_id)) ?? ''}</td>
                 <td>{String(i.qtd_pedida ?? 0)}</td>
                 <td>{SITUACOES_EM_ANALISE.includes(situacao) ? '—' : String(i.qtd_aprovada ?? 0)}</td>
-                <td>{String(i.qtd_entregue ?? 0)}</td>
+                <td>{entregue(i)}</td>
               </tr>
             ))}
           </tbody>
@@ -248,7 +267,7 @@ export function DetalhePedido() {
               itens.map((i) => {
                 const partes = [`Pedidas: ${Number(i.qtd_pedida ?? 0)}`];
                 if (!SITUACOES_EM_ANALISE.includes(situacao)) partes.push(`Aprovadas: ${Number(i.qtd_aprovada ?? 0)}`);
-                if (situacao === 'retirada') partes.push(`Entregues: ${Number(i.qtd_entregue ?? 0)}`);
+                if (situacao === 'retirada') partes.push(`Entregues: ${entregue(i)}`);
                 return { especie_id: String(i.especie_id), destaque: partes.join(' · '), reserva: reservas.get(String(i.especie_id)) };
               }),
               progresso,
