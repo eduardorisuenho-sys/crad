@@ -80,17 +80,46 @@ def reduzir(entrada: bytes, uf: str) -> bytes:
     return saida.getvalue()
 
 
-def baixar(url=URL):
-    """Baixa o pacote. Sites do governo às vezes mandam o certificado incompleto:
-    nesse caso tenta de novo sem conferir a cadeia (o conteúdo é público)."""
-    req = urllib.request.Request(url, headers={"User-Agent": "CRADS (Tocantins)"})
+# O site recusa (HTTP 403) programas que não se parecem com um navegador.
+CABECALHOS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "Accept": "application/zip,application/octet-stream,*/*;q=0.8",
+    "Accept-Language": "pt-BR,pt;q=0.9",
+}
+
+BLOQUEADO = (
+    "o site do Jardim Botânico (ipt.jbrj.gov.br) recusou o download feito pelo servidor (HTTP 403). "
+    "Baixe o pacote no computador, em ipt.jbrj.gov.br → lista_especies_flora_brasil → Darwin Core Archive, "
+    "e escolha o arquivo .zip em Espécies → Importar."
+)
+
+
+def _abrir(url):
+    req = urllib.request.Request(url, headers=CABECALHOS)
     try:
         return urllib.request.urlopen(req, timeout=900).read()
     except (ssl.SSLError, urllib.error.URLError) as erro:
-        if "CERTIFICATE" not in str(erro).upper() and "SSL" not in str(erro).upper():
+        if isinstance(erro, urllib.error.HTTPError) or ("CERTIFICATE" not in str(erro).upper() and "SSL" not in str(erro).upper()):
             raise
         print("certificado do site não conferiu; tentando de novo sem conferir a cadeia")
         return urllib.request.urlopen(req, timeout=900, context=ssl._create_unverified_context()).read()
+
+
+def baixar(url=URL):
+    """Baixa o pacote com cabeçalhos de navegador. Sites do governo às vezes
+    mandam o certificado incompleto: nesse caso tenta de novo sem conferir a
+    cadeia (o conteúdo é público). Recusado (403), tenta o endereço sem https e,
+    se ainda recusar, explica como importar pelo app."""
+    tentativas = [url] + ([url.replace("https://", "http://", 1)] if url.startswith("https://") else [])
+    for i, u in enumerate(tentativas):
+        try:
+            return _abrir(u)
+        except urllib.error.HTTPError as erro:
+            if erro.code != 403:
+                raise
+            if i == len(tentativas) - 1:
+                raise RuntimeError(BLOQUEADO) from erro
+            print(f"o site recusou ({erro.code}); tentando outro endereço")
 
 
 def contar_especies(pacote: bytes) -> int:
