@@ -7,7 +7,11 @@ import { Miniatura } from '../../componentes/Miniatura';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
-import { resumoPlantio } from './dados';
+import { entreguesDaDoacao, resumoPlantio } from './dados';
+import { BotaoPdf } from '../../componentes/BotaoPdf';
+import { fotoGuardadaOuBaixada } from '../../dados/arquivos';
+import { doacoesNoPrograma } from '../doacao/dados';
+import { emailDoTermo, fotoDoBlob, relatorioPlantio } from './relatorioPdf';
 import { mostrarNumero } from '../../plataforma/numero';
 
 const data = (s: unknown) => (s ? new Date(String(s).slice(0, 10) + 'T12:00').toLocaleDateString('pt-BR') : '');
@@ -15,7 +19,7 @@ const data = (s: unknown) => (s ? new Date(String(s).slice(0, 10) + 'T12:00').to
 export function DetalhePlantio() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const { db, pode } = useApp();
+  const { db, pode, sessao } = useApp();
   const plantio = useLiveQuery(() => db.colecao('plantio').get(id!), [id]);
   const doacao = useLiveQuery(() => (plantio ? db.colecao('doacao').get(String(plantio.doacao_id)) : undefined), [plantio?.doacao_id]);
   const resumo = useLiveQuery(() => resumoPlantio(db, id!), [id]);
@@ -71,6 +75,59 @@ export function DetalhePlantio() {
           </tbody>
         </table>
       </section>
+      <BotaoPdf
+        className="botao-principal"
+        rotulo="Baixar relatório do plantio (PDF)"
+        nome={`relatorio-plantio-${String(doacao?.codigo ?? id)}.pdf`}
+        gerar={async (progresso) => {
+          const pessoa = doacao ? await db.colecao('pessoa').get(String(doacao.solicitante_pessoa_id)) : undefined;
+          const viveiro = await db.colecao('viveiro').get(String(plantio.viveiro_id));
+          const entregues = doacao ? await entreguesDaDoacao(db, doacao.id) : new Map<string, number>();
+          const monItens = (await db.colecao('monitoramento_item').toArray()).filter((i) => !i.excluido);
+          const programa = doacao ? (await doacoesNoPrograma(db)).has(doacao.id) : false;
+          const fotosPdf = [];
+          for (const [n, f] of fotos.entries()) {
+            progresso(n, fotos.length);
+            const mon = resumo.monitoramentos.find((m) => m.id === f.registro_id);
+            fotosPdf.push({
+              imagem: await fotoDoBlob(await fotoGuardadaOuBaixada(db, sessao, f.id)),
+              data: f.tirada_em ? new Date(String(f.tirada_em)).toLocaleString('pt-BR') : '',
+              lat: typeof f.lat === 'number' ? f.lat : null,
+              lon: typeof f.lon === 'number' ? f.lon : null,
+              aviso: conferirFoto({ lat: f.lat, lon: f.lon }, local, distMax),
+              legenda: mon ? `Acompanhamento de ${data(mon.data)}` : 'Plantio',
+            });
+          }
+          return relatorioPlantio({
+            orgao: 'Secretaria do Meio Ambiente e Recursos Hídricos do Tocantins',
+            codigo: String(doacao?.codigo ?? ''),
+            viveiro: String(viveiro?.nome ?? ''),
+            solicitante: String(pessoa?.nome ?? ''),
+            instituicao: doacao?.instituicao ? String(doacao.instituicao) : undefined,
+            finalidade: doacao?.finalidade ? String(doacao.finalidade) : undefined,
+            dataPlantio: data(plantio.data),
+            local: plantio.local ? String(plantio.local) : undefined,
+            coordenadas: local ? `${local.lat.toFixed(6)}, ${local.lon.toFixed(6)}` : undefined,
+            area_ha: doacao?.area_ha ? Number(doacao.area_ha) : null,
+            programa: programa ? 'Plantando Água' : undefined,
+            especies: s.por_especie.map((e) => ({ nome: nomes?.get(e.especie_id) ?? '', entregues: entregues.get(e.especie_id) ?? 0, plantadas: e.plantadas, vivas: s.taxa === null ? null : e.vivas, taxa: e.taxa })),
+            sobrevivencia: s.taxa === null ? 'ainda sem acompanhamento' : `${mostrarNumero(s.taxa)}% (${s.vivas} vivas de ${s.plantadas})`,
+            acompanhamentos: [...resumo.monitoramentos].reverse().map((m) => {
+              const its = monItens.filter((i) => i.monitoramento_id === m.id);
+              return {
+                data: data(m.data),
+                tipo: m.tipo === 'vistoria' ? 'vistoria' : 'relato de quem plantou',
+                observacao: m.observacao ? String(m.observacao) : undefined,
+                vivas: its.length ? its.reduce((t, i) => t + Number(i.vivas ?? 0), 0) : null,
+                plantadas: its.reduce((t, i) => t + Number(i.plantadas ?? 0), 0),
+              };
+            }),
+            fotos: fotosPdf,
+            termoAceitoEm: doacao?.termo_aceito_em ? new Date(String(doacao.termo_aceito_em)).toLocaleDateString('pt-BR') : undefined,
+            emailRelatorio: emailDoTermo(doacao?.termo_texto ? String(doacao.termo_texto) : undefined),
+          });
+        }}
+      />
       <div className="acoes">
         <Link to={`/pos-plantio/${id}/acompanhamento`} className="botao-principal">
           <Icone nome="plantio" /> Novo acompanhamento

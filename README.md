@@ -96,6 +96,16 @@ Doação: combinar a retirada e baixa no estoque:
   - **Lote zerado some do Viveiro e do Inventário**; continua no histórico,
     no rastreio e nos relatórios.
 
+Relatório do plantio (PDF):
+
+- Na ficha do plantio, **Baixar relatório do plantio (PDF)** gera o
+  "Relatório simplificado de execução" pedido no termo de compromisso:
+  dados do pedido e do plantio (local, coordenadas, área, programa), mudas
+  entregues, plantadas e vivas por espécie, sobrevivência, todos os
+  acompanhamentos e **as fotos com data e ponto do GPS** (a foto tirada longe
+  do local aparece com "Conferir"). No fim, o e-mail para onde enviar,
+  tirado do termo aceito. Sem CPF nem telefone.
+
 Termo de compromisso e declaração:
 
 - No fim do pedido de mudas, quem pede vê o **Termo de compromisso e

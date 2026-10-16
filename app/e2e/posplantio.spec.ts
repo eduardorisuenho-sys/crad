@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { abrirModulo, entrarComoGestora, entrarComoSolicitante, lerDoServidor } from './apoio';
@@ -53,7 +54,7 @@ test('solicitante registra o plantio e o acompanhamento sem internet; foto longe
   await ctx.close();
 
   // ---- vistoria da gestora
-  const cg = await browser.newContext({ permissions: ['geolocation'], geolocation: LOCAL });
+  const cg = await browser.newContext({ permissions: ['geolocation'], geolocation: LOCAL, acceptDownloads: true });
   const g = await cg.newPage();
   await entrarComoGestora(g);
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
@@ -64,5 +65,17 @@ test('solicitante registra o plantio e o acompanhamento sem internet; foto longe
   await g.getByLabel('Vivas de Árvore-da-doação').fill('12');
   await g.getByRole('button', { name: 'Salvar acompanhamento' }).click();
   await expect(g.getByTestId('sobrevivencia')).toContainText('66,7% (12 vivas, vistoria');
+  // relatório detalhado do plantio em PDF (dados, espécies, acompanhamentos e fotos com GPS)
+  const [pdf] = await Promise.all([g.waitForEvent('download'), g.getByRole('button', { name: 'Baixar relatório do plantio (PDF)' }).click()]);
+  expect(pdf.suggestedFilename()).toBe('relatorio-plantio-DO-2026-901.pdf');
+  if (process.env.CRADS_PASTA_PDF) await pdf.saveAs(`${process.env.CRADS_PASTA_PDF}/${pdf.suggestedFilename()}`);
+  const texto = (await readFile(await pdf.path())).toString('latin1');
+  expect(texto).toContain('Relatório simplificado de execução do plantio');
+  expect(texto).toContain('Árvore-da-doação');
+  expect(texto).toContain('66,7% \\(12 vivas de 18\\)'); // parênteses ficam escapados no PDF
+  expect(texto).toContain('vistoria');
+  expect(texto).toContain('Fotos \\(2\\)');
+  expect(texto).toMatch(/GPS -?\d+\.\d{5}, -?\d+\.\d{5}/);
+  expect(texto).not.toMatch(/000\.000\.000|9000\d-/);
   await cg.close();
 });
