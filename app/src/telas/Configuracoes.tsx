@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
 import { codigosRestantes } from '@crads/dominio';
 import { AjusteAvisos } from '../componentes/AjusteAvisos';
+import { EditarTermo } from '../componentes/EditarTermo';
 import { useInstalacao } from '../plataforma/instalacao';
 import { sairDosAvisos } from '../plataforma/notificar';
 import { Icone } from '../componentes/Icone';
@@ -47,6 +48,7 @@ export function Configuracoes() {
 
   return (
     <Tela titulo="Ajustes">
+      {sessao?.gestorGeral && <EditarTermo />}
       <dl className="ficha">
         <dt>Versão do app</dt>
         <dd data-testid="versao">

@@ -30,6 +30,9 @@ export interface DadosPdf {
   recebedor?: string;
   assinatura?: Blob | null;
   entreguePor?: string;
+  /** termo de compromisso aceito (texto já preenchido) e quando */
+  termoCompromisso?: string;
+  termoAceitoEm?: string;
 }
 
 export const TEXTO_TERMO_PADRAO =
@@ -152,6 +155,29 @@ export async function relatorioPedido(d: DadosPdf): Promise<Blob> {
   pdf.setFontSize(8);
   pdf.text('Assinatura do solicitante', 15, y + 10);
   pdf.text(`Pedido ${d.codigo} registrado pelo app do CRAD. Acompanhe a análise pelo app.`, 15, 285);
+  if (d.termoCompromisso) {
+    // o termo aceito no app vai junto, nas páginas seguintes
+    pdf.addPage();
+    let yt = 18;
+    pdf.setFontSize(10);
+    pdf.setTextColor(...AZUL_ESCURO);
+    for (const par of d.termoCompromisso.split('\n')) {
+      const linhas = par.trim() ? (pdf.splitTextToSize(par, 180) as string[]) : [''];
+      for (const l of linhas) {
+        if (yt > 280) {
+          pdf.addPage();
+          yt = 18;
+        }
+        pdf.setFont('helvetica', /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ ()]+:?$/.test(l.trim()) && l.trim().length > 3 ? 'bold' : 'normal');
+        pdf.text(l, 15, yt);
+        yt += 5;
+      }
+    }
+    if (d.termoAceitoEm) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Termo lido e aceito no app em ${new Date(d.termoAceitoEm).toLocaleString('pt-BR')}.`, 15, Math.min(yt + 6, 288));
+    }
+  }
   return pdf.output('blob');
 }
 

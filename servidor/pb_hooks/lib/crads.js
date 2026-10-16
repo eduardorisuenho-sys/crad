@@ -77,6 +77,43 @@ __export(crads_exports, {
 });
 module.exports = __toCommonJS(crads_exports);
 
+// ../dominio/src/termo.ts
+var TERMO_COMPROMISSO_PADRAO = `TERMO DE COMPROMISSO E DECLARA\xC7\xC3O
+
+Eu, [NOME], declaro, sob as penas da lei, que as informa\xE7\xF5es prestadas neste formul\xE1rio s\xE3o verdadeiras e completas.
+
+Declaro n\xE3o possuir passivo ambiental registrado junto ao Instituto Natureza do Tocantins (NATURATINS) e que n\xE3o estou utilizando estas mudas para cumprimento de PRAD, Recupera\xE7\xE3o de \xC1reas Degradadas ou qualquer outra modalidade de compensa\xE7\xE3o/penalidade ambiental.
+
+COMPROMETIDO(A), eu me responsabilizo por:
+
+Utilizar as mudas nativas solicitadas ([ESP\xC9CIES E QUANTITATIVO]) EXCLUSIVAMENTE no plantio indicado nas coordenadas [COORDENADAS UTM/DECIMAIS] e \xE1rea de [\xC1REA TOTAL], conforme justificativa e metodologia descritas.
+
+Realizar o plantio conforme boas pr\xE1ticas silviculturais, garantindo preparo adequado do solo, espa\xE7amento correto e prote\xE7\xE3o inicial das mudas.
+
+Monitorar e manter as mudas por 12 (doze) meses ap\xF3s o plantio, controle de pragas, capina e prote\xE7\xE3o contra inc\xEAndios e pastejo.
+
+Elaborar e enviar RELAT\xD3RIO SIMPLIFICADO DE EXECU\xC7\xC3O em at\xE9 30 dias ap\xF3s o t\xE9rmino dos 12 meses, contendo:
+
+Taxa de sobreviv\xEAncia das mudas (estimativa %);
+
+Registros fotogr\xE1ficos georreferenciados (antes, durante e ap\xF3s 12 meses);
+
+Rela\xE7\xE3o de problemas encontrados e solu\xE7\xF5es adotadas.
+
+O relat\xF3rio dever\xE1 ser enviado para o E-Mail: geprh2023@gmail.com
+
+AUTORIZA\xC7\xD5ES E RESPONSABILIDADES:
+
+Autorizo vistorias t\xE9cnicas para verifica\xE7\xE3o do plantio e sobreviv\xEAncia das mudas.
+
+Assumo total responsabilidade civil e administrativa por descumprimento deste compromisso, sujeitando-me \xE0s san\xE7\xF5es previstas na Lei Federal n\xBA 9.605/1998 (Crimes Ambientais), C\xF3digo Florestal (Lei n\xBA 12.651/2012) e legisla\xE7\xF5es estaduais aplic\xE1veis.
+
+As mudas n\xE3o poder\xE3o ser comercializadas, doadas ou destinadas a outros fins.
+
+Declaro estar ciente de que fornecer informa\xE7\xF5es falsas ou n\xE3o cumprir este compromisso configura falsidade ideol\xF3gica (art. 299 do C\xF3digo Penal) e sujeita a perdas de benef\xEDcios futuros.
+
+Palmas/TO, [DATA]`;
+
 // ../dominio/src/esquema.ts
 var t = (nome, obrigatorio = false) => ({ nome, tipo: "texto", obrigatorio });
 var n = (nome, obrigatorio = false) => ({ nome, tipo: "numero", obrigatorio });
@@ -452,7 +489,10 @@ var COLECOES = [
       d("retirar_ate"),
       // retirada combinada entre o viveiro e quem pediu
       d("retirada_combinada"),
-      t("retirada_obs")
+      t("retirada_obs"),
+      // termo de compromisso aceito por quem pediu (cópia do texto aceito, já preenchido)
+      d("termo_aceito_em"),
+      t("termo_texto")
     ],
     indices: ["codigo", "situacao", "solicitante_usuario_id"],
     leitura: "todos",
@@ -498,6 +538,7 @@ function nomesCampos(c) {
   return nomes;
 }
 var PARAMETROS_PADRAO = {
+  termo_compromisso: { valor: TERMO_COMPROMISSO_PADRAO, descricao: "Termo de compromisso e declara\xE7\xE3o que quem pede mudas aceita (s\xF3 o administrador muda)" },
   meta_matrizes_por_especie: { valor: 12, descricao: "Meta de matrizes por esp\xE9cie" },
   min_matrizes_por_lote: { valor: 12, descricao: "M\xEDnimo de matrizes num lote de sementes antes do alerta de diversidade" },
   distancia_min_matrizes_m: { valor: 100, descricao: "Dist\xE2ncia m\xEDnima entre matrizes da mesma esp\xE9cie (metros)" },
@@ -746,7 +787,7 @@ function soSolicitante(ctx, reg) {
   return p.has("solicitante") && !p.has("viveirista") && !p.has("gestor") && !p.has("coletor");
 }
 function violacaoRegra(col, antes, depois, ctx) {
-  var _a;
+  var _a, _b;
   if (col.nome === "matriz" && mudou(antes, depois, "situacao_validacao") && !(antes === null && depois.situacao_validacao === "pendente")) {
     if (!temPermissao(ctx, "validar_matriz", depois.viveiro_id)) return "Voc\xEA n\xE3o tem permiss\xE3o para aprovar matrizes.";
   }
@@ -774,7 +815,13 @@ function violacaoRegra(col, antes, depois, ctx) {
   if (col.nome === "parametro" && (depois.chave === "permissoes" || (antes == null ? void 0 : antes.chave) === "permissoes") && !ctx.gestorGeral) {
     return "S\xF3 o administrador muda a tabela de permiss\xF5es.";
   }
+  if (col.nome === "parametro" && (depois.chave === "termo_compromisso" || (antes == null ? void 0 : antes.chave) === "termo_compromisso") && !ctx.gestorGeral) {
+    return "S\xF3 o administrador muda o termo de compromisso.";
+  }
   if (col.nome === "doacao") {
+    if (!antes && soSolicitante(ctx, depois) && (!depois.termo_aceito_em || !String((_b = depois.termo_texto) != null ? _b : "").trim())) {
+      return "Para pedir mudas \xE9 preciso ler e aceitar o termo de compromisso e declara\xE7\xE3o.";
+    }
     if (mudou(antes, depois, "situacao") && SITUACOES_SO_SERVIDOR.includes(String(depois.situacao))) {
       return "A aprova\xE7\xE3o do pedido \xE9 feita com internet, para reservar as mudas no servidor.";
     }

@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
-import { bloqueiosPedido, parametro } from '@crads/dominio';
+import { bloqueiosPedido, parametro, preencherTermo } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -31,6 +31,9 @@ export function NovoPedido() {
   const [programa, setPrograma] = useState(false);
   const [erros, setErros] = useState<string[]>([]);
   const [salvando, setSalvando] = useState(false);
+  // termo de compromisso: pode ler antes; aceitar é obrigatório para enviar
+  const [aceito, setAceito] = useState(false);
+  const [lerTermo, setLerTermo] = useState(false);
   const [publico, setPublico] = useState<Awaited<ReturnType<typeof disponivelPublico>> | null>(null);
   const [erroCatalogo, setErroCatalogo] = useState('');
 
@@ -56,6 +59,16 @@ export function NovoPedido() {
   const nomes = equipe ? nomesLocais : publico?.nomes;
   const itens = useMemo(() => Object.entries(quantidades).map(([especie_id, q]) => ({ especie_id, quantidade: lerNumero(q) ?? 0 })).filter((i) => i.quantidade > 0), [quantidades]);
   const total = itens.reduce((s, i) => s + i.quantidade, 0);
+  const hoje = new Date().toLocaleDateString('sv-SE');
+  const termo = preencherTermo(parametro<string>(parametros, 'termo_compromisso'), {
+    nome: pessoa.nome,
+    itens: itens.map((i) => ({ especie: nomes?.get(i.especie_id) ?? i.especie_id, quantidade: i.quantidade })),
+    lat: plantio.lat,
+    lon: plantio.lon,
+    local: [plantio.municipio, plantio.local].filter(Boolean).join(' · '),
+    area_ha: lerNumero(plantio.area),
+    data: hoje,
+  });
 
   function conferirMudas() {
     const b = bloqueiosPedido(itens, disponivel, limite, nomes);
@@ -84,6 +97,9 @@ export function NovoPedido() {
       area_ha: lerNumero(plantio.area),
       canal: equipe ? 'balcao' : 'online',
       situacao: 'enviada',
+      // cópia do termo aceito, já preenchido (vale como prova do compromisso)
+      termo_aceito_em: new Date().toISOString(),
+      termo_texto: termo,
     });
     for (const i of itens) await repo.salvar('doacao_item', { doacao_id: doacao.id, especie_id: i.especie_id, qtd_pedida: i.quantidade, viveiro_id: viveiro, ...(equipe ? {} : { solicitante_usuario_id: sessao?.id }) });
     if (programa) await marcarPrograma(db, repo, doacao, true, sessao?.nome ?? '');
@@ -293,9 +309,25 @@ export function NovoPedido() {
               </span>
             </button>
           )}
-          <button className="botao-principal" disabled={salvando} onClick={() => void salvar()}>
+          <section className="cartao termo" data-testid="termo">
+            <h2>Termo de compromisso e declaração</h2>
+            <p className="dica">{equipe ? 'Leia o termo para quem está pedindo as mudas.' : 'Para receber as mudas, você se compromete com o plantio e o acompanhamento.'}</p>
+            <button type="button" className="botao-secundario" aria-expanded={lerTermo} onClick={() => setLerTermo(!lerTermo)}>
+              <Icone nome="catalogo" /> {lerTermo ? 'Fechar o termo' : 'Ler o termo'}
+            </button>
+            {lerTermo && (
+              <div className="texto-termo" data-testid="texto-termo" tabIndex={0}>
+                {termo}
+              </div>
+            )}
+            <label className="linha-check">
+              <input type="checkbox" checked={aceito} onChange={(e) => setAceito(e.target.checked)} /> Li e aceito o termo de compromisso e declaração
+            </label>
+          </section>
+          <button className="botao-principal" disabled={salvando || !aceito} onClick={() => void salvar()}>
             <Icone nome="certo" /> Enviar pedido
           </button>
+          {!aceito && <p className="dica">Marque “Li e aceito” para enviar o pedido.</p>}
           {voltar('pessoa')}
         </div>
       )}

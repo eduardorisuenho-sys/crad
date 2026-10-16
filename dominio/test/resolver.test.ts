@@ -44,7 +44,7 @@ describe('criar', () => {
 
   it('o pedido do solicitante fica sempre no nome dele', () => {
     const d = resolverOperacao(
-      op({ colecao: 'doacao', registro_id: 'doa000000000001', tipo: 'criar', dados: { codigo: 'DO-2026-001', solicitante_pessoa_id: 'p', situacao: 'rascunho', viveiro_id: VIV_PALMAS, solicitante_usuario_id: 'outra-pessoa' } }),
+      op({ colecao: 'doacao', registro_id: 'doa000000000001', tipo: 'criar', dados: { codigo: 'DO-2026-001', solicitante_pessoa_id: 'p', situacao: 'rascunho', viveiro_id: VIV_PALMAS, solicitante_usuario_id: 'outra-pessoa', termo_aceito_em: '2026-10-16', termo_texto: 'Termo aceito' } }),
       null,
       solicitante,
       porta(),

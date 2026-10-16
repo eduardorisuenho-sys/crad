@@ -53,7 +53,14 @@ export function violacaoRegra(col: Colecao, antes: Reg | null, depois: Reg, ctx:
   if (col.nome === 'parametro' && (depois.chave === 'permissoes' || antes?.chave === 'permissoes') && !ctx.gestorGeral) {
     return 'Só o administrador muda a tabela de permissões.';
   }
+  if (col.nome === 'parametro' && (depois.chave === 'termo_compromisso' || antes?.chave === 'termo_compromisso') && !ctx.gestorGeral) {
+    return 'Só o administrador muda o termo de compromisso.';
+  }
   if (col.nome === 'doacao') {
+    // quem pede mudas pelo app precisa aceitar o termo de compromisso
+    if (!antes && soSolicitante(ctx, depois) && (!depois.termo_aceito_em || !String(depois.termo_texto ?? '').trim())) {
+      return 'Para pedir mudas é preciso ler e aceitar o termo de compromisso e declaração.';
+    }
     if (mudou(antes, depois, 'situacao') && SITUACOES_SO_SERVIDOR.includes(String(depois.situacao))) {
       return 'A aprovação do pedido é feita com internet, para reservar as mudas no servidor.';
     }

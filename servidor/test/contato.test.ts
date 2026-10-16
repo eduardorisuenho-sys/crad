@@ -43,7 +43,7 @@ describe.skipIf(!temPocketBase)('contato para combinar a retirada', () => {
     await enviar(solicitante.token, [
       op({ colecao: 'pessoa', registro_id: pessoa, tipo: 'criar', dados: { nome: 'Pessoa Contato', usuario_id: solicitante.id } }),
       op({ colecao: 'dados_pessoais', tipo: 'criar', dados: { pessoa_id: pessoa, telefone: '63 98888-7777' } }),
-      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: 'DO-2026-950', solicitante_pessoa_id: pessoa, solicitante_usuario_id: solicitante.id, situacao: 'enviada', viveiro_id: VIV } }),
+      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: 'DO-2026-950', solicitante_pessoa_id: pessoa, solicitante_usuario_id: solicitante.id, situacao: 'enviada', viveiro_id: VIV, termo_aceito_em: '2026-10-16', termo_texto: 'Termo de compromisso aceito' } }),
     ]);
     expect((await contato(viveirista.token, doacao)).dados.message).toMatch(/depois que o pedido é aprovado/);
     // aprovado (como faria a análise)
@@ -63,7 +63,7 @@ describe.skipIf(!temPocketBase)('contato para combinar a retirada', () => {
     await enviar(admin.token, [
       op({ colecao: 'especie', registro_id: 'espcontato00001', tipo: 'criar', dados: { nome_cientifico: 'Contatia teste', publicada: true } }),
       op({ colecao: 'pessoa', registro_id: 'pescontato00001', tipo: 'criar', dados: { nome: 'Balcão' } }),
-      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: 'DO-2026-951', solicitante_pessoa_id: 'pescontato00001', situacao: 'enviada', viveiro_id: VIV } }),
+      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: 'DO-2026-951', solicitante_pessoa_id: 'pescontato00001', situacao: 'enviada', viveiro_id: VIV, termo_aceito_em: '2026-10-16', termo_texto: 'Termo de compromisso aceito' } }),
       op({ colecao: 'doacao_item', registro_id: item, tipo: 'criar', dados: { doacao_id: doacao, especie_id: 'espcontato00001', qtd_pedida: 50, viveiro_id: VIV } }),
     ]);
     const r = await chamar(s, admin.token, 'POST', `/api/crads/doacao/${doacao}/analisar`, { itens: [{ item_id: item, qtd_aprovada: 31 }] });

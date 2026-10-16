@@ -31,7 +31,7 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
     const pessoa = gerarId();
     const r = await enviar(solicitante.token, [
       op({ colecao: 'pessoa', registro_id: pessoa, tipo: 'criar', dados: { nome: 'Solicitante Teste' } }),
-      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: `DO-P-TEST-${qtd}`, solicitante_pessoa_id: pessoa, situacao: 'enviada', viveiro_id: VIV, finalidade: 'teste' } }),
+      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: `DO-P-TEST-${qtd}`, solicitante_pessoa_id: pessoa, situacao: 'enviada', viveiro_id: VIV, finalidade: 'teste', termo_aceito_em: '2026-10-16', termo_texto: 'Termo de compromisso aceito' } }),
       op({ colecao: 'doacao_item', registro_id: item, tipo: 'criar', dados: { doacao_id: doacao, especie_id: especie, qtd_pedida: qtd, viveiro_id: VIV } }),
     ]);
     expect(r.dados.resultados.map((x: { status: string }) => x.status)).toEqual(['aplicada', 'aplicada', 'aplicada']);

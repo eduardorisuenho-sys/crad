@@ -3,7 +3,7 @@ import { resolverOperacao, type PortaServidor } from '../src/sync/resolver';
 import { op, solicitante, viveiristaPalmas, VIV_PALMAS } from './apoio';
 
 const porta: PortaServidor = { codigoEmUso: () => false, novoCodigo: () => 'X', faixasDoDispositivo: () => [] };
-const pedido = { codigo: 'DO-2026-001', solicitante_pessoa_id: 'p', situacao: 'enviada', viveiro_id: VIV_PALMAS };
+const pedido = { codigo: 'DO-2026-001', solicitante_pessoa_id: 'p', situacao: 'enviada', viveiro_id: VIV_PALMAS , termo_aceito_em: '2026-10-16', termo_texto: 'Termo aceito' };
 
 describe('regras de escrita da doação', () => {
   it('ninguém aprova pedido pela sincronização (precisa reservar no servidor)', () => {
@@ -19,6 +19,18 @@ describe('regras de escrita da doação', () => {
     expect(resolverOperacao(op({ colecao: 'doacao', registro_id: 'd1', tipo: 'alterar', base_versao: 1, dados: { retirar_ate: '2030-01-01' } }), atual, solicitante, porta).resultado.status).toBe('rejeitada');
     expect(resolverOperacao(op({ colecao: 'doacao', registro_id: 'd1', tipo: 'alterar', base_versao: 1, dados: { situacao: 'retirada' } }), atual, solicitante, porta).resultado.status).toBe('rejeitada');
     expect(resolverOperacao(op({ colecao: 'doacao', registro_id: 'd1', tipo: 'alterar', base_versao: 1, dados: { situacao: 'cancelada' } }), atual, solicitante, porta).resultado.status).toBe('aplicada');
+  });
+
+  it('quem pede pelo app precisa aceitar o termo de compromisso; a equipe no balcão não', () => {
+    const semTermo = { ...pedido, termo_aceito_em: '', termo_texto: '' };
+    const r = resolverOperacao(op({ colecao: 'doacao', registro_id: 'd9', tipo: 'criar', dados: semTermo }), null, solicitante, porta);
+    expect(r.resultado).toMatchObject({ status: 'rejeitada', motivo: expect.stringMatching(/termo de compromisso/) });
+    expect(resolverOperacao(op({ colecao: 'doacao', registro_id: 'd8', tipo: 'criar', dados: semTermo }), null, viveiristaPalmas, porta).resultado.status).toBe('aplicada');
+  });
+
+  it('só o administrador muda o texto do termo', () => {
+    const param = { chave: 'termo_compromisso', valor: 'Novo texto' };
+    expect(resolverOperacao(op({ colecao: 'parametro', registro_id: 'p1', tipo: 'criar', dados: param }), null, viveiristaPalmas, porta).resultado.status).toBe('rejeitada');
   });
 
   it('retirada só de pedido aprovado', () => {

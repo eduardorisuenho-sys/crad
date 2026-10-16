@@ -5,6 +5,7 @@
  * coleções a partir daqui e o aparelho (Dexie) cria as tabelas locais a partir
  * daqui. Ver docs/02-modelo-de-dados.md.
  */
+import { TERMO_COMPROMISSO_PADRAO } from './termo';
 
 export type Perfil = 'coletor' | 'viveirista' | 'gestor' | 'solicitante';
 export const PERFIS: Perfil[] = ['coletor', 'viveirista', 'gestor', 'solicitante'];
@@ -466,6 +467,9 @@ export const COLECOES: Colecao[] = [
       // retirada combinada entre o viveiro e quem pediu
       d('retirada_combinada'),
       t('retirada_obs'),
+      // termo de compromisso aceito por quem pediu (cópia do texto aceito, já preenchido)
+      d('termo_aceito_em'),
+      t('termo_texto'),
     ],
     indices: ['codigo', 'situacao', 'solicitante_usuario_id'],
     leitura: 'todos',
@@ -520,6 +524,7 @@ export function nomesCampos(c: Colecao): string[] {
 
 /** Parâmetros editáveis pelo gestor, com valores padrão. */
 export const PARAMETROS_PADRAO: Record<string, { valor: unknown; descricao: string }> = {
+  termo_compromisso: { valor: TERMO_COMPROMISSO_PADRAO, descricao: 'Termo de compromisso e declaração que quem pede mudas aceita (só o administrador muda)' },
   meta_matrizes_por_especie: { valor: 12, descricao: 'Meta de matrizes por espécie' },
   min_matrizes_por_lote: { valor: 12, descricao: 'Mínimo de matrizes num lote de sementes antes do alerta de diversidade' },
   distancia_min_matrizes_m: { valor: 100, descricao: 'Distância mínima entre matrizes da mesma espécie (metros)' },

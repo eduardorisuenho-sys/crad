@@ -103,7 +103,7 @@ h1, h2, h3 { color: var(--azul-escuro); }
 /* ---------- formulários ---------- */
 .formulario { display: flex; flex-direction: column; gap: 16px; }
 .formulario label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; }
-.formulario input, .avancado input, .formulario select, .campo-busca, .linha-form input {
+.formulario input, .formulario textarea, .avancado input, .formulario select, .campo-busca, .linha-form input {
   min-height: var(--toque); border: 2px solid var(--azul-escuro-25); border-radius: 12px; padding: 0 14px; background: var(--branco); width: 100%; color: var(--azul-escuro);
 }
 .formulario input:focus, .campo-busca:focus, .linha-form input:focus { outline: 3px solid var(--azul); border-color: var(--azul); }
@@ -136,6 +136,7 @@ h1, h2, h3 { color: var(--azul-escuro); }
 a.item-lista { text-decoration: none; }
 .botao-lista { width: 100%; text-align: left; font: inherit; cursor: pointer; }
 .selo-recusado { background: var(--branco) !important; border: 2px solid var(--azul-escuro); white-space: normal !important; }
+.texto-termo { white-space: pre-wrap; max-height: 50vh; overflow-y: auto; border: 1px solid var(--azul-escuro-25); border-radius: 12px; padding: 12px; background: var(--branco); font-size: 0.95rem; line-height: 1.45; margin: 10px 0; }
 .selo { background: var(--azul-escuro-10); color: var(--azul-escuro); border-radius: 99px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
 .selo.ok { background: var(--verde-10); color: var(--verde); }
 .cartao { background: var(--branco); border: 1px solid var(--azul-escuro-25); border-radius: var(--raio); padding: 14px; }
@@ -340,3 +341,4 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .rota-escolhida { display: grid; gap: 10px; }
 .rota-escolhida h2, .rota-escolhida p { margin: 0; }
 .rota-escolhida .botao-secundario { width: 100%; justify-content: center; }
+.formulario textarea { min-height: 40vh; line-height: 1.45; resize: vertical; padding: 12px 14px; }

@@ -119,6 +119,8 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, li
   await s.getByLabel('CPF').fill('000.000.000-00');
   await s.getByLabel('Telefone').fill('63 90000-0004');
   await s.getByRole('button', { name: 'Continuar' }).click();
+  // aceita o termo sem abrir o texto
+  await s.getByLabel('Li e aceito o termo de compromisso e declaração').check();
   await s.getByRole('button', { name: 'Enviar pedido' }).click();
   await expect(s.getByText('Pedido registrado')).toBeVisible();
   await expect.poll(async () => (await s.getByRole('heading', { level: 1 }).innerText()).trim(), { timeout: 20_000 }).toMatch(/^Pedido DO-\d{4}-\d{3}$/);

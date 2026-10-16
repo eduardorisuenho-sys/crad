@@ -63,7 +63,7 @@ describe.skipIf(!temPocketBase)('avisos no celular com o app fechado (Web Push)'
     const doacao = gerarId();
     await enviar(solicitante.token, [
       op({ colecao: 'pessoa', registro_id: pessoa, tipo: 'criar', dados: { nome: 'Quem Pede', usuario_id: solicitante.id } }),
-      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: 'DO-2026-960', solicitante_pessoa_id: pessoa, solicitante_usuario_id: solicitante.id, situacao: 'enviada', viveiro_id: VIV } }),
+      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: 'DO-2026-960', solicitante_pessoa_id: pessoa, solicitante_usuario_id: solicitante.id, situacao: 'enviada', viveiro_id: VIV, termo_aceito_em: '2026-10-16', termo_texto: 'Termo de compromisso aceito' } }),
     ]);
     await expect.poll(() => recebidos.find((r) => r.inscricao.endpoint === 'https://push.exemplo/gestor')?.titulo).toBe('Novo pedido de mudas');
     expect(recebidos.some((r) => r.inscricao.endpoint.includes('solicitante') && r.titulo === 'Novo pedido de mudas')).toBe(false);

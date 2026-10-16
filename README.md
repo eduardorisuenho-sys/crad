@@ -86,6 +86,22 @@ Doação: combinar a retirada e baixa no estoque:
   do viveiro**. Cada muda entregue **sai do estoque do lote** (baixa), a
   reserva é consumida e o catálogo é atualizado.
 
+Termo de compromisso e declaração:
+
+- No fim do pedido de mudas, quem pede vê o **Termo de compromisso e
+  declaração**: pode tocar em **Ler o termo** ou só marcar **Li e aceito**.
+  Sem aceitar, o botão **Enviar pedido** fica desligado (no balcão, a equipe
+  lê para a pessoa e marca).
+- O texto vem **preenchido com o pedido**: nome, espécies e quantidades,
+  coordenadas do plantio (ou "não informadas"), área e data.
+- O pedido guarda **a data do aceite e o texto aceito**; ele aparece na ficha
+  do pedido e nas páginas finais do PDF da solicitação. O servidor recusa
+  pedido feito pelo app sem o termo aceito.
+- O **administrador** muda o texto em **Ajustes → Termo de compromisso dos
+  pedidos** (com **Voltar ao texto original**). Os marcadores [NOME],
+  [ESPÉCIES E QUANTITATIVO], [COORDENADAS UTM/DECIMAIS], [ÁREA TOTAL] e
+  [DATA] são preenchidos sozinhos. Vale para os próximos pedidos.
+
 Imprimir (PDF gerado no próprio aparelho):
 
 - **Catálogo com fotos**: no catálogo, **Imprimir o catálogo com fotos**

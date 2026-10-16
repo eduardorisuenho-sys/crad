@@ -39,7 +39,7 @@ describe.skipIf(!temPocketBase)('cenários: do estoque à retirada, com gente di
     const [doacao, item, pessoa] = [gerarId(), gerarId(), gerarId()];
     const r = await enviar(u.token, [
       op({ colecao: 'pessoa', registro_id: pessoa, tipo: 'criar', dados: { nome, cpf: '000.000.000-00', telefone: '63 90000-0000' } }),
-      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: `DO-P-${nome.toUpperCase()}-1`, solicitante_pessoa_id: pessoa, situacao: 'enviada', viveiro_id: VIV, finalidade: 'teste' } }),
+      op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: `DO-P-${nome.toUpperCase()}-1`, solicitante_pessoa_id: pessoa, situacao: 'enviada', viveiro_id: VIV, finalidade: 'teste', termo_aceito_em: '2026-10-16', termo_texto: 'Termo de compromisso aceito' } }),
       op({ colecao: 'doacao_item', registro_id: item, tipo: 'criar', dados: { doacao_id: doacao, especie_id: ipe, qtd_pedida: qtd, viveiro_id: VIV } }),
     ]);
     expect(status(r)).toEqual(['aplicada', 'aplicada', 'aplicada']);
@@ -104,6 +104,13 @@ describe.skipIf(!temPocketBase)('cenários: do estoque à retirada, com gente di
     const b = await chamar(s, gestor.token, 'POST', `/api/crads/doacao/${pedidoBruno.doacao}/analisar`, { itens: [{ item_id: pedidoBruno.item, qtd_aprovada: 10 }] });
     expect(b.dados.doacao.situacao).toBe('aprovada_parcial');
     expect(await noCatalogo(ipe)).toBe(0);
+  });
+
+  it('sem aceitar o termo de compromisso, o pedido não entra', async () => {
+    const r = await enviar(ana.token, [
+      op({ colecao: 'doacao', tipo: 'criar', dados: { codigo: 'DO-P-SEMTERMO-1', solicitante_pessoa_id: 'x', situacao: 'enviada', viveiro_id: VIV, finalidade: 'teste' } }),
+    ]);
+    expect(r.dados.resultados[0]).toMatchObject({ status: 'rejeitada', motivo: expect.stringMatching(/termo de compromisso/) });
   });
 
   it('cada um só recebe os próprios pedidos e dados (LGPD)', async () => {

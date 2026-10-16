@@ -23,6 +23,17 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await s.getByLabel('Telefone').fill('63 90000-0003');
   await expect(s.getByText(/Ofício/)).toHaveCount(0); // não precisa anexar ofício
   await s.getByRole('button', { name: 'Continuar' }).click();
+  // termo de compromisso: sem aceitar, não envia; o texto vem preenchido com o pedido
+  const termo = s.getByTestId('termo');
+  await expect(s.getByRole('button', { name: 'Enviar pedido' })).toBeDisabled();
+  await termo.getByRole('button', { name: 'Ler o termo' }).click();
+  const texto = termo.getByTestId('texto-termo');
+  await expect(texto).toContainText('TERMO DE COMPROMISSO E DECLARAÇÃO');
+  await expect(texto).toContainText('Eu, Solicitante Teste, declaro');
+  await expect(texto).toContainText(`(${ESPECIE}: 30; total 30 mudas)`);
+  await expect(texto).toContainText('NATURATINS');
+  if (process.env.CRADS_FOTO_TERMO) await s.screenshot({ path: process.env.CRADS_FOTO_TERMO, fullPage: true });
+  await termo.getByLabel('Li e aceito o termo de compromisso e declaração').check();
   await s.getByRole('button', { name: 'Enviar pedido' }).click();
   await expect(s.getByText('Pedido registrado')).toBeVisible();
   // o próprio app gera a solicitação em PDF
@@ -31,6 +42,9 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   expect((await pdfSolicitacao).suggestedFilename()).toMatch(/^solicitacao-DO-.*\.pdf$/);
   await expect(s.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   const codigo = (await s.getByRole('heading', { level: 1 }).innerText()).replace('Pedido ', '').trim();
+  // o termo aceito fica no pedido e no servidor
+  await expect(s.getByTestId('termo-aceito')).toContainText('Termo de compromisso aceito em');
+  await expect.poll(async () => String((await lerDoServidor('doacao')).find((d) => d.codigo === codigo)?.termo_texto ?? ''), { timeout: 20_000 }).toContain(`${ESPECIE}: 30`);
   expect(codigo).toMatch(/^DO-\d{4}-\d{3}$/);
   await cs.close();
 
@@ -98,4 +112,39 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   // 100 − 20 entregues; as 5 reservadas e não levadas voltam ao catálogo
   expect(await noCatalogo(ESPECIE)).toBe(80);
   await cv.close();
+});
+
+test('o administrador muda o texto do termo e os próximos pedidos usam o novo', async ({ browser }) => {
+  const cg = await browser.newContext();
+  const g = await cg.newPage();
+  await entrarComoGestora(g);
+  await g.goto('/configuracoes');
+  const editar = g.getByTestId('editar-termo');
+  await editar.getByText('Termo de compromisso dos pedidos').click();
+  await expect(editar.getByLabel('Texto do termo')).toHaveValue(/^TERMO DE COMPROMISSO E DECLARAÇÃO/);
+  await editar.getByLabel('Texto do termo').fill('TERMO DO CRAD\n\nEu, [NOME], vou plantar [ESPÉCIES E QUANTITATIVO].');
+  await editar.getByRole('button', { name: 'Salvar termo' }).click();
+  await expect(editar).toContainText('Termo salvo');
+  await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
+
+  // quem pede vê o termo novo, já preenchido
+  const cs = await browser.newContext();
+  const s = await cs.newPage();
+  await entrarComoSolicitante(s);
+  await s.goto('/doacao/novo');
+  await s.getByLabel(`Quantidade de ${ESPECIE}`).fill('2');
+  await s.getByRole('button', { name: /Continuar/ }).click();
+  await s.getByRole('button', { name: 'Escola ou quintal' }).click();
+  await s.getByLabel('Município').fill('Palmas');
+  await s.getByRole('button', { name: 'Continuar' }).click();
+  await s.getByRole('button', { name: 'Continuar' }).click();
+  await s.getByTestId('termo').getByRole('button', { name: 'Ler o termo' }).click();
+  await expect(s.getByTestId('texto-termo')).toHaveText(`TERMO DO CRAD\n\nEu, Solicitante Teste, vou plantar ${ESPECIE}: 2; total 2 mudas.`);
+  await cs.close();
+
+  // volta ao texto original (os outros testes usam o original)
+  await editar.getByRole('button', { name: 'Voltar ao texto original' }).click();
+  await expect(editar.getByLabel('Texto do termo')).toHaveValue(/^TERMO DE COMPROMISSO E DECLARAÇÃO/);
+  await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
+  await cg.close();
 });

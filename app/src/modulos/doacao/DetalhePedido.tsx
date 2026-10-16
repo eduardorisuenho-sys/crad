@@ -61,6 +61,8 @@ export function DetalhePedido() {
       data: new Date().toLocaleDateString('pt-BR'),
       programa: noPrograma?.has(doacao!.id) ? 'Plantando Água' : undefined,
       textoTermo: instalacao?.texto_termo_doacao ? String(instalacao.texto_termo_doacao) : undefined,
+      termoCompromisso: doacao!.termo_texto ? String(doacao!.termo_texto) : undefined,
+      termoAceitoEm: doacao!.termo_aceito_em ? String(doacao!.termo_aceito_em) : undefined,
       itens: itens.map((i) => ({
         especie: nomes?.get(String(i.especie_id)) ?? '',
         pedida: Number(i.qtd_pedida ?? 0),
@@ -155,6 +157,13 @@ export function DetalhePedido() {
           </tbody>
         </table>
       </section>
+
+      {doacao.termo_texto ? (
+        <details className="cartao" data-testid="termo-aceito">
+          <summary>Termo de compromisso aceito em {new Date(String(doacao.termo_aceito_em)).toLocaleDateString('pt-BR')}</summary>
+          <div className="texto-termo">{String(doacao.termo_texto)}</div>
+        </details>
+      ) : null}
 
       {pode('plantando_agua', doacao.viveiro_id) && <BotaoPlantandoAgua doacao={doacao} editavel={situacao !== 'cancelada'} />}
 
