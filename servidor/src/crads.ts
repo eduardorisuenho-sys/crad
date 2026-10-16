@@ -872,14 +872,14 @@ function fotosDasMudas(app: App): Livre[] {
     .map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id))!.especie_id, parte: 'muda', arquivo: f.arquivo, miniatura: f.miniatura, credito: 'Viveiro', colecao: 'foto' }));
 }
 
-/** GET /api/crads/publico/foto/{id}/{arquivo} — foto das mudas de um lote de espécie publicada. */
+/** GET /api/crads/publico/foto/{id}/{arquivo} — foto das mudas de um lote (espécie não fictícia). */
 export function fotoMudaPublica(app: App, id: string, arquivo: string): { chave: string; nome: string } {
   const f = buscar(app, 'foto', id);
   if (!f || f.getBool('excluido') || f.getString('entidade') !== 'lote_mudas') throw new Error('foto não encontrada');
   if (![f.getString('arquivo'), f.getString('miniatura')].includes(arquivo) || !arquivo) throw new Error('foto não encontrada');
   const lote = buscar(app, 'lote_mudas', f.getString('registro_id'));
   const especie = lote && !lote.getBool('excluido') ? buscar(app, 'especie', lote.getString('especie_id')) : null;
-  if (!especie || !especie.getBool('publicada') || especie.getBool('ficticia') || especie.getBool('excluido')) throw new Error('foto não encontrada');
+  if (!especie || especie.getBool('ficticia') || especie.getBool('excluido')) throw new Error('foto não encontrada');
   return { chave: `${f.baseFilesPath()}/${arquivo}`, nome: arquivo };
 }
 
@@ -906,7 +906,7 @@ function rastreioDe(app: App, lote: Livre, cache: Partial<Record<string, Livre[]
 export function especiePublica(app: App, id: string) {
   const d = dadosCatalogo(app);
   const e = d.especies.find((x) => x.id === id);
-  if (!e || !e.publicada || e.ficticia) throw new Error('Espécie não encontrada no catálogo.');
+  if (!e || e.ficticia) throw new Error('Espécie não encontrada no catálogo.');
   const disp = disponivelPorLote(d);
   const viveiros = new Map(d.viveiros.map((v) => [v.id, String(v.nome)]));
   const cache: Partial<Record<string, Livre[]>> = { viveiro: d.viveiros };

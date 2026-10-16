@@ -8,7 +8,6 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
 import { lotesDeMudas } from './dados';
-import { ForaDoCatalogo } from '../doacao/ForaDoCatalogo';
 import { mostrarNumero } from '../../plataforma/numero';
 
 export function InicioViveiro() {
@@ -45,7 +44,6 @@ export function InicioViveiro() {
           </Link>
         )}
       </div>
-      <ForaDoCatalogo />
       {pode('estoque_inicial') && (
         <Link to="/viveiro/estoque-inicial" className="botao-grande verde">
           <Icone nome="mais" tamanho={36} />

@@ -16,7 +16,6 @@ import { cadastrarEstoqueInicial } from './estoque';
 import { BotaoFoto } from '../../componentes/BotaoFoto';
 import { MiniaturaBlob } from '../../componentes/Miniatura';
 import { gravarFoto, prepararFoto, type FotoPendente } from '../matrizes/fotos';
-import { ForaDoCatalogo } from '../doacao/ForaDoCatalogo';
 
 type Modo = 'escolher' | 'uma' | 'lista' | 'planilha';
 // As mudas que já estavam no viveiro entram prontas para doação.
@@ -89,7 +88,6 @@ export function EstoqueInicial() {
         </p>
       )}
       {msg && <p className="mensagem" data-testid="estoque-ok">{msg}</p>}
-      {msg && <ForaDoCatalogo />}
 
       {modo === 'escolher' && (
         <div className="lista-grande">

@@ -57,23 +57,9 @@ export function disponivelPorLote(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimen
 }
 
 /**
- * Espécies com mudas prontas para doar que ainda não aparecem para quem pede
- * mudas (a espécie não está publicada no catálogo). Fictícias ficam de fora.
+ * Espécies com mudas prontas disponíveis, somadas por viveiro. Toda espécie
+ * verdadeira com muda pronta aparece (não precisa publicar); fictícias nunca.
  */
-export function prontasForaDoCatalogo(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>, hoje = new Date().toISOString()): { especie_id: string; mudas: number }[] {
-  const disp = disponivelPorLote(d, hoje);
-  const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
-  const m = new Map<string, number>();
-  for (const l of ativos(d.lotesMudas)) {
-    const q = disp.get(l.id) ?? 0;
-    const e = especies.get(String(l.especie_id));
-    if (q <= 0 || !e || e.publicada || e.ficticia) continue;
-    m.set(e.id, (m.get(e.id) ?? 0) + q);
-  }
-  return [...m].map(([especie_id, mudas]) => ({ especie_id, mudas })).sort((a, b) => b.mudas - a.mudas);
-}
-
-/** Espécies publicadas com mudas prontas disponíveis, somadas por viveiro. */
 export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
   const disp = disponivelPorLote(d);
   const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
@@ -88,7 +74,7 @@ export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
     const q = disp.get(l.id) ?? 0;
     if (q <= 0) continue;
     const e = especies.get(String(l.especie_id));
-    if (!e || !e.publicada || e.ficticia) continue;
+    if (!e || e.ficticia) continue;
     let item = itens.get(e.id);
     if (!item) {
       const ordemFoto = ['muda', 'arvore', 'flor', 'fruto', 'folha'];

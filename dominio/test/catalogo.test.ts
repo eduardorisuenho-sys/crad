@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fichaPublica, montarCatalogo, montarRastreio, prontasForaDoCatalogo } from '../src/catalogo';
+import { fichaPublica, montarCatalogo, montarRastreio } from '../src/catalogo';
 
 const base = {
   especies: [
@@ -39,8 +39,17 @@ const base = {
 };
 
 describe('catálogo público', () => {
-  it('só mudas prontas, de espécies publicadas (e não fictícias), sem as reservas', () => {
+  it('só mudas prontas, de espécies verdadeiras (publicadas ou não; fictícias nunca), sem as reservas', () => {
     expect(montarCatalogo(base)).toEqual([
+      {
+        especie_id: 'baru',
+        nome_cientifico: 'Ficticia baru',
+        familia: '',
+        nomes_populares: [],
+        por_viveiro: [{ viveiro_id: 'pal', viveiro: 'Palmas', disponivel: 50 }],
+        total: 50,
+        foto: undefined,
+      },
       {
         especie_id: 'ipe',
         nome_cientifico: 'Ficticia aurea',
@@ -90,24 +99,5 @@ describe('rastreio público', () => {
       lote_sementes: { codigo: 'LS-2026-001', data_formacao: '2026-02-20', matrizes: 2, municipios: ['Palmas', 'Porto Nacional'] },
     });
     expect(JSON.stringify(r)).not.toMatch(/lat|lon|proprietario/);
-  });
-});
-
-describe('mudas prontas fora do catálogo', () => {
-  it('lista espécies não publicadas com mudas para doar (sem fictícias nem lotes não prontos)', () => {
-    const especies = [
-      { id: 'nao', publicada: false },
-      { id: 'sim', publicada: true },
-      { id: 'fic', publicada: false, ficticia: true },
-    ];
-    const lotesMudas = [
-      { id: 'l1', especie_id: 'nao', fase_atual: 'pronta', origem: 'estoque_inicial' },
-      { id: 'l2', especie_id: 'sim', fase_atual: 'pronta' },
-      { id: 'l3', especie_id: 'fic', fase_atual: 'pronta' },
-      { id: 'l4', especie_id: 'nao', fase_atual: 'crescimento' },
-    ];
-    const movimentos = ['l1', 'l2', 'l3', 'l4'].map((l, i) => ({ id: `m${i}`, lote_mudas_id: l, tipo: 'entrada', quantidade: 40 }));
-    const reservas = [{ id: 'r1', lote_mudas_id: 'l1', quantidade: 15, situacao: 'ativa' }];
-    expect(prontasForaDoCatalogo({ especies, lotesMudas, movimentos, reservas })).toEqual([{ especie_id: 'nao', mudas: 25 }]);
   });
 });

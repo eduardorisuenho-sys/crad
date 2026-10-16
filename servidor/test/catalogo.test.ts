@@ -26,7 +26,7 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
     const ops: Operacao[] = [
       op({ colecao: 'viveiro', registro_id: VIV, tipo: 'criar', dados: { sigla: 'CAT', nome: 'Viveiro Catálogo', ativo: true } }),
       op({ colecao: 'municipio', registro_id: mun, tipo: 'criar', dados: { codigo_ibge: '0000000', nome: 'Município Fictício', uf: 'TO' } }),
-      op({ colecao: 'especie', registro_id: especie, tipo: 'criar', dados: { nome_cientifico: 'Ficticia publica', familia: 'Ficticiaceae', publicada: true, revisar: true, nota_revisao: 'interno', folha: 'composta' } }),
+      op({ colecao: 'especie', registro_id: especie, tipo: 'criar', dados: { nome_cientifico: 'Ficticia publica', familia: 'Ficticiaceae', publicada: false, revisar: true, nota_revisao: 'interno', folha: 'composta' } }),
       op({ colecao: 'nome_popular', tipo: 'criar', dados: { especie_id: especie, nome: 'Árvore-pública' } }),
       op({ colecao: 'matriz', registro_id: mat, tipo: 'criar', dados: { codigo: 'MT-0777', especie_id: especie, grau_certeza: 'certo', situacao_validacao: 'aprovada', lat: -10.5, lon: -48.5, municipio_id: mun, viveiro_id: VIV } }),
       op({ colecao: 'coleta', registro_id: col, tipo: 'criar', dados: { matriz_id: mat, data: '2026-01-10', viveiro_id: VIV } }),
@@ -43,7 +43,8 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
   }, 30_000);
   afterAll(() => s?.parar());
 
-  it('catálogo sem login, com o disponível já sem as reservas', async () => {
+  // espécie importada da lista oficial entra como não publicada: as mudas prontas aparecem mesmo assim
+  it('catálogo sem login, com o disponível já sem as reservas (não precisa publicar a espécie)', async () => {
     const r = await chamar(s, '', 'GET', '/api/crads/publico/catalogo');
     expect(r.status).toBe(200);
     expect(r.dados.itens).toEqual([expect.objectContaining({ nome_cientifico: 'Ficticia publica', nomes_populares: ['Árvore-pública'], total: 50, por_viveiro: [{ viveiro_id: VIV, viveiro: 'Viveiro Catálogo', disponivel: 50 }] })]);
@@ -65,7 +66,7 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
     expect(r.dados).toMatchObject({ mudas_doadas: 0, plantios: [], plantando_agua: { doacoes: 0 } });
   });
 
-  it('espécie não publicada não aparece', async () => {
+  it('espécie que não existe não aparece', async () => {
     expect((await chamar(s, '', 'GET', `/api/crads/publico/especie/${gerarId()}`)).status).toBe(404);
   });
 });

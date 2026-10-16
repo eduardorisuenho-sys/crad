@@ -1159,7 +1159,7 @@ function montarCatalogo(d2) {
     const q = (_a = disp.get(l.id)) != null ? _a : 0;
     if (q <= 0) continue;
     const e = especies.get(String(l.especie_id));
-    if (!e || !e.publicada || e.ficticia) continue;
+    if (!e || e.ficticia) continue;
     let item = itens.get(e.id);
     if (!item) {
       const ordemFoto = ["muda", "arvore", "flor", "fruto", "folha"];
@@ -2184,7 +2184,7 @@ function fotoMudaPublica(app, id, arquivo) {
   if (![f.getString("arquivo"), f.getString("miniatura")].includes(arquivo) || !arquivo) throw new Error("foto n\xE3o encontrada");
   const lote = buscar(app, "lote_mudas", f.getString("registro_id"));
   const especie = lote && !lote.getBool("excluido") ? buscar(app, "especie", lote.getString("especie_id")) : null;
-  if (!especie || !especie.getBool("publicada") || especie.getBool("ficticia") || especie.getBool("excluido")) throw new Error("foto n\xE3o encontrada");
+  if (!especie || especie.getBool("ficticia") || especie.getBool("excluido")) throw new Error("foto n\xE3o encontrada");
   return { chave: `${f.baseFilesPath()}/${arquivo}`, nome: arquivo };
 }
 function catalogoPublico(app) {
@@ -2207,7 +2207,7 @@ function rastreioDe(app, lote, cache = {}) {
 function especiePublica(app, id) {
   const d2 = dadosCatalogo(app);
   const e = d2.especies.find((x) => x.id === id);
-  if (!e || !e.publicada || e.ficticia) throw new Error("Esp\xE9cie n\xE3o encontrada no cat\xE1logo.");
+  if (!e || e.ficticia) throw new Error("Esp\xE9cie n\xE3o encontrada no cat\xE1logo.");
   const disp = disponivelPorLote(d2);
   const viveiros = new Map(d2.viveiros.map((v) => [v.id, String(v.nome)]));
   const cache = { viveiro: d2.viveiros };

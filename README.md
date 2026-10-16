@@ -39,11 +39,10 @@ mudas**:
   QR. O código definitivo vem do servidor na sincronização.
 - Entram **prontas para doação** (catálogo, pedidos, reservas e retirada). Como são as mais antigas, saem primeiro nas
   reservas.
-- Espécie que ainda não está no catálogo (as importadas da planilha entram
-  assim) não aparece para quem pede mudas. O app avisa no Viveiro e logo
-  depois do cadastro: "X mudas prontas ainda não aparecem para
-  doação". O gestor toca em **Liberar para doação** e pronto. O viveirista vê
-  o aviso e pede ao gestor.
+- **Toda muda pronta aparece sozinha no catálogo**, de qualquer espécie
+  verdadeira (inclusive as importadas da lista oficial). Não precisa
+  publicar nem liberar a espécie. Espécies fictícias (de teste) nunca
+  aparecem.
 - **Nada é inventado**: o rastreio público diz que a origem das sementes não
   foi registrada. Essas mudas não entram na taxa de germinação, e os
   relatórios mostram o total separado.

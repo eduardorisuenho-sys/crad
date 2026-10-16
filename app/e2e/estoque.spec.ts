@@ -56,9 +56,9 @@ test('viveirista cadastra sem internet as mudas que já estavam no viveiro: uma 
   await expect(page.getByTestId('germinacao')).toHaveCount(0);
 });
 
-test('mudas que já estavam no viveiro: foto, liberar para doação, limite por espécie, combinar a retirada e baixa no estoque', async ({ browser }) => {
+test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, limite por espécie, combinar a retirada e baixa no estoque', async ({ browser }) => {
   test.setTimeout(180_000);
-  // espécie de teste ainda fora do catálogo (como as importadas da planilha)
+  // espécie não publicada (como as importadas da lista oficial): as mudas prontas aparecem mesmo assim
   const admin = { authorization: process.env.CRADS_PB_ADMIN!, 'content-type': 'application/json' };
   const criar = async (col: string, dados: object) => (await (await fetch(`${PB()}/api/collections/${col}/records`, { method: 'POST', headers: admin, body: JSON.stringify(dados) })).json()) as { id: string };
   const esp = await criar('especie', { nome_cientifico: 'Estoquia demonstrativa', familia: 'Testaceae', publicada: false });
@@ -66,7 +66,7 @@ test('mudas que já estavam no viveiro: foto, liberar para doação, limite por 
   // telefone do viveiro (aparece para quem pediu, depois da aprovação)
   await fetch(`${PB()}/api/collections/viveiro/records/vivteste0000001`, { method: 'PATCH', headers: admin, body: JSON.stringify({ telefone: '(63) 3218-0000', endereco: 'Quadra Teste, Palmas' }) });
 
-  // 1) viveirista cadastra 40 mudas prontas; o app avisa que ainda não aparecem para doação
+  // 1) viveirista cadastra 40 mudas prontas: vão direto para o catálogo, sem liberar
   const cv = await browser.newContext();
   const v = await cv.newPage();
   await entrarComoViveirista(v);
@@ -79,21 +79,16 @@ test('mudas que já estavam no viveiro: foto, liberar para doação, limite por 
   await v.locator('label', { hasText: 'Tirar foto das mudas' }).locator('input').setInputFiles(fileURLToPath(new URL('./fixtures/foto.jpg', import.meta.url)));
   await expect(v.getByRole('img', { name: 'Foto das mudas' })).toBeVisible();
   await v.getByRole('button', { name: 'Salvar' }).click();
-  await expect(v.getByTestId('fora-do-catalogo')).toContainText('Árvore-do-estoque');
-  await expect(v.getByTestId('fora-do-catalogo')).toContainText('Peça ao gestor');
-  await expect.poll(async () => (await lerDoServidor('lote_mudas')).some((l) => l.especie_id === esp.id), { timeout: 20_000 }).toBe(true);
-  expect(await noCatalogo('Árvore-do-estoque')).toBe(0);
+  await expect(v.getByTestId('fora-do-catalogo')).toHaveCount(0);
+  await expect.poll(() => noCatalogo('Árvore-do-estoque'), { timeout: 20_000 }).toBe(40);
+  await v.goto('/viveiro');
+  await expect(v.getByText('Liberar para doação')).toHaveCount(0);
 
-  // 2) gestora vê o aviso no Viveiro e libera
+  // 2) no catálogo, com a foto das mudas
   const cg = await browser.newContext();
   const g = await cg.newPage();
   await entrarComoGestora(g);
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
-  await g.goto('/viveiro');
-  await expect(g.getByTestId('fora-do-catalogo')).toContainText('40 mudas prontas');
-  await g.getByRole('button', { name: 'Liberar para doação' }).click();
-  await expect(g.getByTestId('liberadas')).toBeVisible();
-  await expect.poll(() => noCatalogo('Árvore-do-estoque'), { timeout: 20_000 }).toBe(40);
   // a foto das mudas aparece no catálogo (rota pública, sem login)
   await expect
     .poll(async () => ((await (await fetch(`${PB()}/api/crads/publico/catalogo`)).json()).itens as { nomes_populares: string[]; foto?: { colecao?: string } }[]).find((i) => i.nomes_populares.includes('Árvore-do-estoque'))?.foto?.colecao, { timeout: 20_000 })
