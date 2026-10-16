@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { saldoMudas } from '../src/viveiro';
 import { diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio, resumoCatalogo } from '../src/catalogo';
 
 const base = {
@@ -155,6 +156,51 @@ describe('diagnóstico: por que a muda não aparece no catálogo', () => {
 
 describe('resumo do catálogo no servidor (explica o catálogo vazio)', () => {
   it('conta os lotes por situação', () => {
-    expect(resumoCatalogo(base)).toEqual({ lotes: 5, no_catalogo: 3, em_formacao: 1, sem_mudas: 0, reservadas: 1 });
+    expect(resumoCatalogo(base)).toMatchObject({ lotes: 5, no_catalogo: 3, em_formacao: 1, reservadas: 1, sem_entrada: 0, esgotado: 0, sem_especie: 0 });
+  });
+
+  it('separa lote sem entrada de mudas, esgotado e de espécie apagada (pelo código)', () => {
+    const r = resumoCatalogo({
+      especies: [{ id: 'a' }, { id: 'apagada', excluido: true }],
+      lotesMudas: [
+        { id: 'l1', codigo: 'LM-1', especie_id: 'a', fase_atual: 'pronta' },
+        { id: 'l2', codigo: 'LM-2', especie_id: 'a', fase_atual: 'pronta' },
+        { id: 'l3', codigo: 'LM-3', especie_id: 'apagada', fase_atual: 'pronta' },
+      ],
+      movimentos: [
+        { id: 'm1', lote_mudas_id: 'l2', tipo: 'entrada', quantidade: 5 },
+        { id: 'm2', lote_mudas_id: 'l2', tipo: 'saida_doacao', quantidade: 5 },
+        { id: 'm3', lote_mudas_id: 'l3', tipo: 'entrada', quantidade: 9 },
+      ],
+      reservas: [],
+    });
+    expect(r).toMatchObject({ lotes: 3, sem_entrada: 1, esgotado: 1, sem_especie: 1, no_catalogo: 0 });
+    expect(r.fora).toEqual([
+      { codigo: 'LM-1', situacao: 'sem_entrada' },
+      { codigo: 'LM-2', situacao: 'esgotado' },
+      { codigo: 'LM-3', situacao: 'sem_especie' },
+    ]);
+  });
+});
+
+describe('diagnóstico cruzado com o servidor', () => {
+  const especies = [{ id: 'a' }];
+  const lote = (id: string, extra = {}) => ({ id, codigo: id.toUpperCase(), especie_id: 'a', fase_atual: 'pronta', versao: 2, ...extra });
+  const entrada = (l: string, extra = {}) => ({ id: `m-${l}`, lote_mudas_id: l, tipo: 'entrada', quantidade: 10, versao: 2, ...extra });
+
+  it('recusado pelo servidor, sem entrada no servidor, espécie apagada e esgotado', () => {
+    const d = {
+      especies,
+      lotesMudas: [lote('r'), lote('s'), lote('e'), lote('x')],
+      movimentos: [entrada('r', { _rejeitado: true }), entrada('s'), entrada('e'), entrada('x')],
+      reservas: [],
+    };
+    const noServidor = new Map([['S', 'sem_entrada'], ['E', 'sem_especie'], ['X', 'esgotado']]);
+    const r = diagnosticoCatalogo(d, new Set(), 3, noServidor);
+    expect(Object.fromEntries(r.map((x) => [x.codigo, x.motivo]))).toEqual({ R: 'recusado', S: 'sem_entrada_no_servidor', E: 'especie_apagada', X: 'esgotado_no_servidor' });
+  });
+
+  it('o que o servidor recusou não entra no saldo', () => {
+    expect(saldoMudas([{ tipo: 'entrada', quantidade: 10, _rejeitado: true }, { tipo: 'entrada', quantidade: 3 }])).toBe(3);
   });
 });

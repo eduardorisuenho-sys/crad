@@ -43,8 +43,12 @@ mudas**:
   (inclusive as importadas da lista oficial). Não precisa publicar nem
   liberar a espécie.
 - **Catálogo vazio explica o porquê** para qualquer pessoa: quantos lotes o
-  servidor tem em formação, com as mudas todas reservadas ou sem mudas (só
-  contagens, sem dados pessoais) e de qual servidor o app leu. No pedido de
+  servidor tem em formação, com as mudas todas reservadas, sem a quantidade
+  de mudas (a entrada não chegou ao servidor), esgotados ou de espécie
+  apagada (só contagens, sem dados pessoais) e de qual servidor o app leu.
+- **Cadastro recusado pelo servidor** não conta no saldo do celular: o lote
+  aparece no Viveiro com "recusado pelo servidor: veja Avisos" e o motivo
+  fica em Avisos, na barra do alto. No pedido de
   mudas, "De qual viveiro?" sem opções diz que nenhum viveiro tem mudas
   prontas agora.
 - **Por que minha muda não aparece?** Quem é da equipe e abre o catálogo vê

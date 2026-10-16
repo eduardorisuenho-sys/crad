@@ -43,6 +43,7 @@ export function Catalogo() {
     for (const i of itens ?? []) for (const v of i.por_viveiro) m.set(v.viveiro_id, v.viveiro);
     return [...m.entries()];
   }, [itens]);
+  const noServidor = useMemo(() => new Map((resumo?.fora ?? []).map((f) => [f.codigo, f.situacao as string])), [resumo]);
   const noCatalogo = useMemo(() => new Set((itens ?? []).map((i) => i.especie_id)), [itens]);
   const lista = (itens ?? []).filter((i) => {
     if (viveiro && !i.por_viveiro.some((v) => v.viveiro_id === viveiro)) return false;
@@ -78,7 +79,7 @@ export function Catalogo() {
         </div>
       )}
       {itens === null && !erro && <p className="vazio">Carregando…</p>}
-      {equipe && itens && !guardado && <DiagnosticoCatalogo noCatalogo={noCatalogo} regras={regras} />}
+      {equipe && itens && !guardado && <DiagnosticoCatalogo noCatalogo={noCatalogo} regras={regras} noServidor={noServidor} />}
       <ul className="grade-catalogo">
         {lista.map((i) => {
           const qtd = viveiro ? i.por_viveiro.find((v) => v.viveiro_id === viveiro)?.disponivel ?? 0 : i.total;
@@ -102,7 +103,16 @@ export function Catalogo() {
         <p className="dica" data-testid="resumo-catalogo">
           {resumo
             ? resumo.lotes
-              ? `No servidor há ${resumo.lotes} lote(s) de mudas: ${resumo.em_formacao} em formação (ainda não marcados como prontos), ${resumo.reservadas} com todas as mudas reservadas e ${resumo.sem_mudas} sem mudas.`
+              ? `No servidor há ${resumo.lotes} lote(s) de mudas: ${[
+                  [resumo.em_formacao, 'em formação (ainda não marcados como prontos)'],
+                  [resumo.reservadas, 'com todas as mudas reservadas'],
+                  [resumo.sem_entrada, 'sem a quantidade de mudas (não chegou ao servidor)'],
+                  [resumo.esgotado, 'sem mudas (todas já saíram)'],
+                  [resumo.sem_especie, 'de espécie apagada'],
+                ]
+                  .filter(([n]) => Number(n) > 0)
+                  .map(([n, t]) => `${n} ${t}`)
+                  .join(', ')}.`
               : 'O servidor ainda não tem nenhum lote de mudas registrado.'
             : 'O servidor ainda está na versão antiga: peça para atualizar.'}{' '}
           Servidor: {servidor.replace(/^https?:\/\//, '')}

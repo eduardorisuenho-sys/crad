@@ -66,7 +66,7 @@ export function InicioViveiro() {
         )}
       </div>
       <ul className="lista">
-        {lista.map(({ lote, saldo, germinadas }) => {
+        {lista.map(({ lote, saldo, germinadas, recusado }) => {
           const previsao = dataPrevistaPronta(lote.data_semeadura as string, especies?.get(String(lote.especie_id))?.meses_ate_pronta as number);
           const taxa = taxaGerminacao(lote.sementes_semeadas as number, germinadas);
           return (
@@ -82,7 +82,11 @@ export function InicioViveiro() {
                   </small>
                 </div>
                 {atrasado(previsao, lote.fase_atual as string, hoje) && <span className="selo">atrasado</span>}
-                {lote.versao === 0 && <span className="selo">não enviado</span>}
+                {recusado ? (
+                  <span className="selo selo-recusado" data-testid="recusado">recusado pelo servidor: veja Avisos</span>
+                ) : (
+                  lote.versao === 0 && <span className="selo">não enviado</span>
+                )}
               </Link>
             </li>
           );

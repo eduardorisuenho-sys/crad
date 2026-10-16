@@ -1058,7 +1058,7 @@ function saldoMudas(movs) {
   var _a;
   let s = 0;
   for (const m of movs) {
-    if (m.excluido) continue;
+    if (m.excluido || m._rejeitado) continue;
     const q = Number((_a = m.quantidade) != null ? _a : 0);
     if (m.tipo === "entrada") s += Math.abs(q);
     else if (m.tipo === "ajuste_inventario") s += q;
@@ -1239,20 +1239,24 @@ function fichaPublica(e) {
 }
 var REGRAS_CATALOGO = 3;
 function resumoCatalogo(d2, hoje = (/* @__PURE__ */ new Date()).toISOString()) {
-  var _a, _b;
+  var _a, _b, _c;
   const movs = agrupar(ativos2(d2.movimentos), "lote_mudas_id");
   const disp = disponivelPorLote(d2, hoje);
   const especies = new Map(ativos2(d2.especies).map((e) => [e.id, e]));
-  const r2 = { lotes: 0, no_catalogo: 0, em_formacao: 0, sem_mudas: 0, reservadas: 0 };
+  const r2 = { lotes: 0, no_catalogo: 0, em_formacao: 0, reservadas: 0, sem_entrada: 0, esgotado: 0, sem_especie: 0, fora: [] };
   for (const l of ativos2(d2.lotesMudas)) {
     if (l.situacao === "encerrado") continue;
     r2.lotes++;
-    const e = especies.get(String(l.especie_id));
-    if (saldoMudas((_a = movs.get(l.id)) != null ? _a : []) <= 0) r2.sem_mudas++;
-    else if (!e) r2.sem_mudas++;
-    else if (l.fase_atual !== "pronta") r2.em_formacao++;
-    else if (((_b = disp.get(l.id)) != null ? _b : 0) <= 0) r2.reservadas++;
-    else r2.no_catalogo++;
+    const doLote = (_a = movs.get(l.id)) != null ? _a : [];
+    let s;
+    if (!especies.has(String(l.especie_id))) s = "sem_especie";
+    else if (!doLote.length) s = "sem_entrada";
+    else if (saldoMudas(doLote) <= 0) s = "esgotado";
+    else if (l.fase_atual !== "pronta") s = "em_formacao";
+    else if (((_b = disp.get(l.id)) != null ? _b : 0) <= 0) s = "reservadas";
+    else s = "no_catalogo";
+    r2[s]++;
+    if (s !== "no_catalogo") r2.fora.push({ codigo: String((_c = l.codigo) != null ? _c : ""), situacao: s });
   }
   return r2;
 }

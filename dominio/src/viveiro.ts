@@ -13,6 +13,8 @@ export interface MovimentoMudas {
   tipo: string;
   quantidade: number;
   excluido?: boolean;
+  /** o servidor recusou: não vale no saldo até ser corrigido */
+  _rejeitado?: boolean;
 }
 
 /**
@@ -22,7 +24,7 @@ export interface MovimentoMudas {
 export function saldoMudas(movs: MovimentoMudas[]): number {
   let s = 0;
   for (const m of movs) {
-    if (m.excluido) continue;
+    if (m.excluido || m._rejeitado) continue;
     const q = Number(m.quantidade ?? 0);
     if (m.tipo === 'entrada') s += Math.abs(q);
     else if (m.tipo === 'ajuste_inventario') s += q;

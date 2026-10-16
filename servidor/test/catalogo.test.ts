@@ -48,7 +48,7 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
     const r = await chamar(s, '', 'GET', '/api/crads/publico/catalogo');
     expect(r.status).toBe(200);
     // resumo só com contagens, para explicar um catálogo vazio
-    expect(r.dados.resumo).toEqual({ lotes: 1, no_catalogo: 1, em_formacao: 0, sem_mudas: 0, reservadas: 0 });
+    expect(r.dados.resumo).toEqual({ lotes: 1, no_catalogo: 1, em_formacao: 0, reservadas: 0, sem_entrada: 0, esgotado: 0, sem_especie: 0, fora: [] });
     expect(r.dados.itens).toEqual([expect.objectContaining({ nome_cientifico: 'Ficticia publica', nomes_populares: ['Árvore-pública'], total: 50, por_viveiro: [{ viveiro_id: VIV, viveiro: 'Viveiro Catálogo', disponivel: 50 }] })]);
   });
 

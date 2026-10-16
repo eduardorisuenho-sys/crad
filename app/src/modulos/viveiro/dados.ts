@@ -22,6 +22,8 @@ export interface LoteMudasResumo {
   lote: Registro;
   saldo: number;
   germinadas: number;
+  /** o servidor recusou o lote ou uma entrada de mudas */
+  recusado: boolean;
 }
 
 /** Lotes de mudas do viveiro atual com saldo e última contagem de germinação. */
@@ -33,6 +35,8 @@ export async function lotesDeMudas(repo: Repositorio): Promise<LoteMudasResumo[]
     .map((lote) => ({
       lote,
       saldo: saldoMudas((porLoteMov.get(lote.id) ?? []) as never),
+      // o servidor recusou o lote ou uma entrada de mudas: não vale até corrigir (ver Avisos)
+      recusado: !!lote._rejeitado || (porLoteMov.get(lote.id) ?? []).some((m) => m._rejeitado),
       germinadas: Math.max(0, ...(porLoteEv.get(lote.id) ?? []).map((e) => Number(e.quantidade ?? 0))),
     }))
     .sort((a, b) => String(b.lote.codigo).localeCompare(String(a.lote.codigo)));

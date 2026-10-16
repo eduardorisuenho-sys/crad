@@ -135,6 +135,7 @@ h1, h2, h3 { color: var(--azul-escuro); }
 .item-lista small, .ficha small { color: var(--suave); }
 a.item-lista { text-decoration: none; }
 .botao-lista { width: 100%; text-align: left; font: inherit; cursor: pointer; }
+.selo-recusado { background: var(--branco) !important; border: 2px solid var(--azul-escuro); white-space: normal !important; }
 .selo { background: var(--azul-escuro-10); color: var(--azul-escuro); border-radius: 99px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
 .selo.ok { background: var(--verde-10); color: var(--verde); }
 .cartao { background: var(--branco); border: 1px solid var(--azul-escuro-25); border-radius: var(--raio); padding: 14px; }

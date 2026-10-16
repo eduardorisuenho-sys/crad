@@ -10,14 +10,18 @@ import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
 
 export const TEXTO_MOTIVO: Record<MotivoForaDoCatalogo, string> = {
-  em_formacao: 'Em formação: abra o lote e toque em “Ficou pronta para doação”.',
+  recusado: 'O servidor recusou este cadastro: abra Avisos (barra do alto) para ver o motivo e corrija.',
+  em_formacao: 'Em formação: abra o lote e toque em “Marcar como pronta”.',
   reservadas: 'Todas as mudas já estão reservadas para pedidos aprovados.',
   nao_enviado: 'Ainda não foi enviado ao servidor: abra o app com internet e espere “Tudo enviado”.',
   servidor_desatualizado: 'O servidor está desatualizado: rode a atualização do servidor (comando de instalação).',
+  sem_entrada_no_servidor: 'O lote chegou ao servidor, mas a quantidade de mudas não chegou. Abra o lote e registre a quantidade de novo (Inventário).',
+  especie_apagada: 'A espécie deste lote foi apagada no servidor: restaure a espécie na Lixeira ou apague o lote.',
+  esgotado_no_servidor: 'No servidor, as mudas deste lote já saíram (doação ou perda). Confira o lote.',
   servidor: 'O servidor ainda não mostrou este lote: toque em Enviar (barra do alto) e abra o catálogo de novo.',
 };
 
-export function DiagnosticoCatalogo({ noCatalogo, regras }: { noCatalogo: Set<string>; regras: number | undefined }) {
+export function DiagnosticoCatalogo({ noCatalogo, regras, noServidor }: { noCatalogo: Set<string>; regras: number | undefined; noServidor: Map<string, string> }) {
   const { db } = useApp();
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const fora = useLiveQuery(async () => {
@@ -26,8 +30,9 @@ export function DiagnosticoCatalogo({ noCatalogo, regras }: { noCatalogo: Set<st
       { lotesMudas: await todos('lote_mudas'), movimentos: await todos('movimento_estoque_mudas'), reservas: await todos('reserva'), especies: await todos('especie') },
       noCatalogo,
       regras,
+      noServidor,
     );
-  }, [db, noCatalogo, regras]);
+  }, [db, noCatalogo, regras, noServidor]);
   if (!fora?.length) return null;
   const desatualizado = fora.some((f) => f.motivo === 'servidor_desatualizado');
   return (

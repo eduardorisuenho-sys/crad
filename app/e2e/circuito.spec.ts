@@ -111,7 +111,7 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   expect(await noCatalogo(NOVA)).toBe(0);
   await v.goto('/catalogo');
   const diag = v.getByTestId('diagnostico-catalogo');
-  await expect(diag.locator('.item-lista', { hasText: NOVA })).toContainText('Em formação: abra o lote e toque em “Ficou pronta para doação”.');
+  await expect(diag.locator('.item-lista', { hasText: NOVA })).toContainText('Em formação: abra o lote e toque em “Marcar como pronta”.');
   await diag.locator('.item-lista', { hasText: NOVA }).click();
   await expect(v).toHaveURL(urlLote);
   await registrar('Marcar como pronta');

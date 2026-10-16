@@ -174,7 +174,16 @@ export function fichaPublica(e: Reg): Record<string, unknown> {
  */
 export const REGRAS_CATALOGO = 3;
 
-export type MotivoForaDoCatalogo = 'nao_enviado' | 'em_formacao' | 'reservadas' | 'servidor_desatualizado' | 'servidor';
+export type MotivoForaDoCatalogo =
+  | 'recusado'
+  | 'nao_enviado'
+  | 'em_formacao'
+  | 'reservadas'
+  | 'servidor_desatualizado'
+  | 'sem_entrada_no_servidor'
+  | 'especie_apagada'
+  | 'esgotado_no_servidor'
+  | 'servidor';
 
 export interface LoteForaDoCatalogo {
   lote_id: string;
@@ -187,12 +196,14 @@ export interface LoteForaDoCatalogo {
 /**
  * Por que as mudas deste aparelho não aparecem no catálogo do servidor:
  * olha cada lote com mudas e diz o motivo (para a equipe resolver sozinha).
- * `noCatalogo` = espécies que vieram no catálogo do servidor.
+ * `noCatalogo` = espécies que vieram no catálogo do servidor; `noServidor` =
+ * a situação de cada lote fora do catálogo, como o servidor vê (pelo código).
  */
 export function diagnosticoCatalogo(
   d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>,
   noCatalogo: Set<string>,
   regrasServidor: number | undefined,
+  noServidor: Map<string, string> = new Map(),
   hoje = new Date().toISOString(),
 ): LoteForaDoCatalogo[] {
   const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
@@ -200,44 +211,63 @@ export function diagnosticoCatalogo(
   const fora: LoteForaDoCatalogo[] = [];
   for (const l of ativos(d.lotesMudas)) {
     if (l.situacao === 'encerrado') continue;
-    const saldo = saldoMudas((movs.get(l.id) ?? []) as never);
+    const doLote = movs.get(l.id) ?? [];
+    // conta também o que o servidor recusou, para avisar (no saldo de verdade não entra)
+    const saldo = saldoMudas(doLote.map((m) => ({ ...m, _rejeitado: false })) as never);
     if (saldo <= 0) continue;
     const especie_id = String(l.especie_id);
     if (noCatalogo.has(especie_id)) continue;
+    const situacao = noServidor.get(String(l.codigo ?? ''));
     let motivo: MotivoForaDoCatalogo;
-    if (l.fase_atual !== 'pronta') motivo = 'em_formacao';
+    if (l._rejeitado || doLote.some((m) => m._rejeitado)) motivo = 'recusado';
+    else if (l.fase_atual !== 'pronta') motivo = 'em_formacao';
     else if ((disp.get(l.id) ?? 0) <= 0) motivo = 'reservadas';
-    else if (l.versao === 0 || (movs.get(l.id) ?? []).some((m) => m.versao === 0)) motivo = 'nao_enviado';
+    else if (l.versao === 0 || doLote.some((m) => m.versao === 0)) motivo = 'nao_enviado';
     else if ((regrasServidor ?? 1) < REGRAS_CATALOGO) motivo = 'servidor_desatualizado';
+    else if (situacao === 'sem_entrada') motivo = 'sem_entrada_no_servidor';
+    else if (situacao === 'sem_especie') motivo = 'especie_apagada';
+    else if (situacao === 'esgotado') motivo = 'esgotado_no_servidor';
     else motivo = 'servidor';
     fora.push({ lote_id: l.id, codigo: String(l.codigo ?? ''), especie_id, saldo, motivo });
   }
   return fora;
 }
 
-/** Contagem dos lotes do servidor por situação (sem dados pessoais): explica um catálogo vazio. */
+export type SituacaoNoServidor = 'no_catalogo' | 'em_formacao' | 'reservadas' | 'sem_entrada' | 'esgotado' | 'sem_especie';
+
 export interface ResumoCatalogo {
   lotes: number;
   no_catalogo: number;
   em_formacao: number;
-  sem_mudas: number;
   reservadas: number;
+  /** nenhuma entrada de mudas chegou ao servidor */
+  sem_entrada: number;
+  /** teve mudas, mas todas já saíram (doação, perda) */
+  esgotado: number;
+  /** a espécie do lote foi apagada */
+  sem_especie: number;
+  /** situação de cada lote fora do catálogo, pelo código (público, como no rastreio) */
+  fora: { codigo: string; situacao: SituacaoNoServidor }[];
 }
 
 export function resumoCatalogo(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>, hoje = new Date().toISOString()): ResumoCatalogo {
   const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
   const disp = disponivelPorLote(d, hoje);
   const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
-  const r: ResumoCatalogo = { lotes: 0, no_catalogo: 0, em_formacao: 0, sem_mudas: 0, reservadas: 0 };
+  const r: ResumoCatalogo = { lotes: 0, no_catalogo: 0, em_formacao: 0, reservadas: 0, sem_entrada: 0, esgotado: 0, sem_especie: 0, fora: [] };
   for (const l of ativos(d.lotesMudas)) {
     if (l.situacao === 'encerrado') continue;
     r.lotes++;
-    const e = especies.get(String(l.especie_id));
-    if (saldoMudas((movs.get(l.id) ?? []) as never) <= 0) r.sem_mudas++;
-    else if (!e) r.sem_mudas++;
-    else if (l.fase_atual !== 'pronta') r.em_formacao++;
-    else if ((disp.get(l.id) ?? 0) <= 0) r.reservadas++;
-    else r.no_catalogo++;
+    const doLote = movs.get(l.id) ?? [];
+    let s: SituacaoNoServidor;
+    if (!especies.has(String(l.especie_id))) s = 'sem_especie';
+    else if (!doLote.length) s = 'sem_entrada';
+    else if (saldoMudas(doLote as never) <= 0) s = 'esgotado';
+    else if (l.fase_atual !== 'pronta') s = 'em_formacao';
+    else if ((disp.get(l.id) ?? 0) <= 0) s = 'reservadas';
+    else s = 'no_catalogo';
+    r[s]++;
+    if (s !== 'no_catalogo') r.fora.push({ codigo: String(l.codigo ?? ''), situacao: s });
   }
   return r;
 }
