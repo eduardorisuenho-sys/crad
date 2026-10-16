@@ -12,3 +12,7 @@ servidor/CHANGELOG.md
 servidor/LICENSE.md
 servidor/pb_public/
 servidor/push/vapid.json
+
+# cache do Python
+__pycache__/
+*.pyc
