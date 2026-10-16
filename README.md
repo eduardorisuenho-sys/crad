@@ -43,6 +43,12 @@ mudas**:
   verdadeira (inclusive as importadas da lista oficial). Não precisa
   publicar nem liberar a espécie. Espécies fictícias (de teste) nunca
   aparecem.
+- **Por que minha muda não aparece?** Quem é da equipe e abre o catálogo vê
+  a lista dos lotes deste aparelho que não estão no catálogo, cada um com o
+  motivo e o que fazer: em formação (marcar como pronta), todas reservadas,
+  ainda não enviado (abrir com internet), espécie fictícia ou **servidor
+  desatualizado** (rodar a atualização do servidor). Tocar no lote abre a
+  ficha dele.
 - **Nada é inventado**: o rastreio público diz que a origem das sementes não
   foi registrada. Essas mudas não entram na taxa de germinação, e os
   relatórios mostram o total separado.
@@ -97,6 +103,8 @@ Avisos com som:
   - para quem pediu: **pedido aprovado**, recusado ou **retirada combinada**;
   - para quem entrega: **pedido aprovado** (combinar a retirada);
   - para quem cuida da equipe: **pedido de acesso**.
+- Aparece **um aviso por vez** (o mais novo), para não cobrir a tela; os
+  outros ficam em **Ver mais avisos**, e **Fechar todos** limpa a lista.
 - Tocar no aviso abre a tela certa. Em Ajustes → Avisos com som: ligar ou
   desligar o som e **permitir notificações no aparelho**.
 - **Com o app fechado** o aviso também chega (Web Push), com o som de

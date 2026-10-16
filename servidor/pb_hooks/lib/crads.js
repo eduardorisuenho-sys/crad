@@ -1237,6 +1237,7 @@ function fichaPublica(e) {
   for (const c of CAMPOS_FICHA_PUBLICA) if (e[c] !== void 0 && e[c] !== null && e[c] !== "" && e[c] !== 0) f[c] = e[c];
   return f;
 }
+var REGRAS_CATALOGO = 2;
 
 // ../dominio/src/posplantio.ts
 var ativos3 = (rs) => rs.filter((r2) => !r2.excluido);
@@ -2188,7 +2189,7 @@ function fotoMudaPublica(app, id, arquivo) {
   return { chave: `${f.baseFilesPath()}/${arquivo}`, nome: arquivo };
 }
 function catalogoPublico(app) {
-  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: (/* @__PURE__ */ new Date()).toISOString() };
+  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: (/* @__PURE__ */ new Date()).toISOString(), regras: REGRAS_CATALOGO };
 }
 function rastreioDe(app, lote, cache = {}) {
   const pegar = (n2) => {

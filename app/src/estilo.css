@@ -319,7 +319,9 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .botao-instalar:active { background: var(--azul-escuro); }
 .botao-secundario.perigo { background: var(--azul-escuro); color: var(--branco); }
 .linha-foto { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.notificacoes { position: fixed; top: 8px; left: 8px; right: 8px; z-index: 50; display: flex; flex-direction: column; gap: 8px; max-width: 560px; margin: 0 auto; }
+.notificacoes { position: fixed; top: 8px; left: 8px; right: 8px; z-index: 50; display: flex; flex-direction: column; gap: 8px; max-width: 560px; margin: 0 auto; max-height: 70vh; overflow-y: auto; }
+.notificacoes-mais { display: flex; gap: 8px; justify-content: flex-end; }
+.notificacoes-mais .chip { background: var(--branco); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
 .notificacao { display: flex; align-items: stretch; background: var(--branco); border: 2px solid var(--azul); border-radius: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18); overflow: hidden; }
 .notificacao-corpo { flex: 1; display: flex; gap: 10px; align-items: center; padding: 12px; background: none; border: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .notificacao-corpo span { display: flex; flex-direction: column; }

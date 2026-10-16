@@ -8,13 +8,16 @@ import { gerarFichasPdf } from './fichasPdf';
 import { useApp } from '../../contexto';
 import { lerCatalogo, servidorPublico, urlFoto } from './api';
 import { Pagina } from './Pagina';
+import { DiagnosticoCatalogo } from './DiagnosticoCatalogo';
 
 export function Catalogo() {
-  const { sessao } = useApp();
+  const { sessao, perfis } = useApp();
+  const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
   const servidor = servidorPublico(sessao?.servidor);
   const navegar = useNavigate();
   const [itens, setItens] = useState<ItemCatalogo[] | null>(null);
   const [guardado, setGuardado] = useState<string | null>(null);
+  const [regras, setRegras] = useState<number | undefined>(undefined);
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
   const [viveiro, setViveiro] = useState('');
@@ -24,6 +27,7 @@ export function Catalogo() {
     lerCatalogo(servidor)
       .then((r) => {
         setItens(r.dados.itens);
+        setRegras(r.dados.regras);
         setGuardado(r.guardado ? r.em : null);
       })
       .catch((e) => setErro((e as Error).message));
@@ -34,6 +38,7 @@ export function Catalogo() {
     for (const i of itens ?? []) for (const v of i.por_viveiro) m.set(v.viveiro_id, v.viveiro);
     return [...m.entries()];
   }, [itens]);
+  const noCatalogo = useMemo(() => new Set((itens ?? []).map((i) => i.especie_id)), [itens]);
   const lista = (itens ?? []).filter((i) => {
     if (viveiro && !i.por_viveiro.some((v) => v.viveiro_id === viveiro)) return false;
     if (!busca) return true;
@@ -68,6 +73,7 @@ export function Catalogo() {
         </div>
       )}
       {itens === null && !erro && <p className="vazio">Carregando…</p>}
+      {equipe && itens && !guardado && <DiagnosticoCatalogo noCatalogo={noCatalogo} regras={regras} />}
       <ul className="grade-catalogo">
         {lista.map((i) => {
           const qtd = viveiro ? i.por_viveiro.find((v) => v.viveiro_id === viveiro)?.disponivel ?? 0 : i.total;

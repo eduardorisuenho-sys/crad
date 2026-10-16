@@ -166,3 +166,54 @@ export function fichaPublica(e: Reg): Record<string, unknown> {
   for (const c of CAMPOS_FICHA_PUBLICA) if (e[c] !== undefined && e[c] !== null && e[c] !== '' && e[c] !== 0) f[c] = e[c];
   return f;
 }
+
+/**
+ * Versão das regras do catálogo no servidor. 2 = toda espécie verdadeira com
+ * muda pronta aparece (não precisa publicar). O app compara para avisar que o
+ * servidor está desatualizado.
+ */
+export const REGRAS_CATALOGO = 2;
+
+export type MotivoForaDoCatalogo = 'nao_enviado' | 'em_formacao' | 'reservadas' | 'ficticia' | 'servidor_desatualizado' | 'servidor';
+
+export interface LoteForaDoCatalogo {
+  lote_id: string;
+  codigo: string;
+  especie_id: string;
+  saldo: number;
+  motivo: MotivoForaDoCatalogo;
+}
+
+/**
+ * Por que as mudas deste aparelho não aparecem no catálogo do servidor:
+ * olha cada lote com mudas e diz o motivo (para a equipe resolver sozinha).
+ * `noCatalogo` = espécies que vieram no catálogo do servidor.
+ */
+export function diagnosticoCatalogo(
+  d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>,
+  noCatalogo: Set<string>,
+  regrasServidor: number | undefined,
+  hoje = new Date().toISOString(),
+): LoteForaDoCatalogo[] {
+  const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
+  const disp = disponivelPorLote(d, hoje);
+  const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
+  const fora: LoteForaDoCatalogo[] = [];
+  for (const l of ativos(d.lotesMudas)) {
+    if (l.situacao === 'encerrado') continue;
+    const saldo = saldoMudas((movs.get(l.id) ?? []) as never);
+    if (saldo <= 0) continue;
+    const especie_id = String(l.especie_id);
+    if (noCatalogo.has(especie_id)) continue;
+    const e = especies.get(especie_id);
+    let motivo: MotivoForaDoCatalogo;
+    if (e?.ficticia) motivo = 'ficticia';
+    else if (l.fase_atual !== 'pronta') motivo = 'em_formacao';
+    else if ((disp.get(l.id) ?? 0) <= 0) motivo = 'reservadas';
+    else if (l.versao === 0 || (movs.get(l.id) ?? []).some((m) => m.versao === 0)) motivo = 'nao_enviado';
+    else if ((regrasServidor ?? 1) < REGRAS_CATALOGO) motivo = 'servidor_desatualizado';
+    else motivo = 'servidor';
+    fora.push({ lote_id: l.id, codigo: String(l.codigo ?? ''), especie_id, saldo, motivo });
+  }
+  return fora;
+}

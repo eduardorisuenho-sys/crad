@@ -26,6 +26,7 @@ import {
   existeColecao,
   fichaPublica,
   montarCatalogo,
+  REGRAS_CATALOGO,
   montarTransparencia,
   montarRastreio,
   formatarCodigo,
@@ -885,7 +886,7 @@ export function fotoMudaPublica(app: App, id: string, arquivo: string): { chave:
 
 /** GET /api/crads/publico/catalogo */
 export function catalogoPublico(app: App) {
-  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: new Date().toISOString() };
+  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: new Date().toISOString(), regras: REGRAS_CATALOGO };
 }
 
 type Livre = { id: string; [k: string]: unknown };

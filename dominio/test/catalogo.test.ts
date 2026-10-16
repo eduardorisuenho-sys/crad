@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fichaPublica, montarCatalogo, montarRastreio } from '../src/catalogo';
+import { diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio } from '../src/catalogo';
 
 const base = {
   especies: [
@@ -99,5 +99,44 @@ describe('rastreio público', () => {
       lote_sementes: { codigo: 'LS-2026-001', data_formacao: '2026-02-20', matrizes: 2, municipios: ['Palmas', 'Porto Nacional'] },
     });
     expect(JSON.stringify(r)).not.toMatch(/lat|lon|proprietario/);
+  });
+});
+
+describe('diagnóstico: por que a muda não aparece no catálogo', () => {
+  const especies = [
+    { id: 'ok', nome_cientifico: 'A' },
+    { id: 'fic', nome_cientifico: 'B', ficticia: true },
+    { id: 'form', nome_cientifico: 'C' },
+    { id: 'res', nome_cientifico: 'D' },
+    { id: 'novo', nome_cientifico: 'E' },
+    { id: 'serv', nome_cientifico: 'F' },
+  ];
+  const lotesMudas = [
+    { id: 'l-ok', codigo: 'LM-1', especie_id: 'ok', fase_atual: 'pronta', versao: 2 },
+    { id: 'l-fic', codigo: 'LM-2', especie_id: 'fic', fase_atual: 'pronta', versao: 2 },
+    { id: 'l-form', codigo: 'LM-3', especie_id: 'form', fase_atual: 'crescimento', versao: 2 },
+    { id: 'l-res', codigo: 'LM-4', especie_id: 'res', fase_atual: 'pronta', versao: 2 },
+    { id: 'l-novo', codigo: 'LM-P-X-1', especie_id: 'novo', fase_atual: 'pronta', versao: 0 },
+    { id: 'l-serv', codigo: 'LM-6', especie_id: 'serv', fase_atual: 'pronta', versao: 2 },
+    { id: 'l-vazio', codigo: 'LM-7', especie_id: 'serv', fase_atual: 'pronta', versao: 2 },
+  ];
+  const movimentos = lotesMudas.filter((l) => l.id !== 'l-vazio').map((l, i) => ({ id: `m${i}`, lote_mudas_id: l.id, tipo: 'entrada', quantidade: 10, versao: l.versao }));
+  const reservas = [{ id: 'r', lote_mudas_id: 'l-res', quantidade: 10, situacao: 'ativa' }];
+  const d = { especies, lotesMudas, movimentos, reservas };
+
+  it('dá o motivo de cada lote com mudas que não está no catálogo', () => {
+    const r = diagnosticoCatalogo(d, new Set(['ok']), 2);
+    expect(Object.fromEntries(r.map((x) => [x.codigo, x.motivo]))).toEqual({
+      'LM-2': 'ficticia',
+      'LM-3': 'em_formacao',
+      'LM-4': 'reservadas',
+      'LM-P-X-1': 'nao_enviado',
+      'LM-6': 'servidor',
+    });
+  });
+
+  it('servidor sem as regras novas: avisa que precisa atualizar', () => {
+    const r = diagnosticoCatalogo(d, new Set(['ok']), undefined);
+    expect(r.find((x) => x.codigo === 'LM-6')?.motivo).toBe('servidor_desatualizado');
   });
 });

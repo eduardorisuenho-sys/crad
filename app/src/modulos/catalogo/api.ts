@@ -50,7 +50,8 @@ async function lerComCopia<T>(servidor: string, caminho: string): Promise<Respos
   }
 }
 
-export const lerCatalogo = (s: string) => lerComCopia<{ itens: ItemCatalogo[]; gerado_em: string }>(s, '/api/crads/publico/catalogo');
+/** `regras` vem do servidor atualizado (versão das regras do catálogo). */
+export const lerCatalogo = (s: string) => lerComCopia<{ itens: ItemCatalogo[]; gerado_em: string; regras?: number }>(s, '/api/crads/publico/catalogo');
 
 export interface EspeciePublica {
   ficha: Record<string, unknown> & { id: string; nome_cientifico: string };
