@@ -47,6 +47,8 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
   it('catálogo sem login, com o disponível já sem as reservas (não precisa publicar a espécie)', async () => {
     const r = await chamar(s, '', 'GET', '/api/crads/publico/catalogo');
     expect(r.status).toBe(200);
+    // resumo só com contagens, para explicar um catálogo vazio
+    expect(r.dados.resumo).toEqual({ lotes: 1, no_catalogo: 1, em_formacao: 0, sem_mudas: 0, reservadas: 0 });
     expect(r.dados.itens).toEqual([expect.objectContaining({ nome_cientifico: 'Ficticia publica', nomes_populares: ['Árvore-pública'], total: 50, por_viveiro: [{ viveiro_id: VIV, viveiro: 'Viveiro Catálogo', disponivel: 50 }] })]);
   });
 
@@ -60,8 +62,10 @@ describe.skipIf(!temPocketBase)('catálogo público no servidor', () => {
     expect((await chamar(s, '', 'GET', '/api/crads/publico/rastreio/LM-0000-000-A')).status).toBe(404);
   });
 
-  it('portal de transparência responde sem login e sem dados pessoais', async () => {
-    const r = await chamar(s, '', 'GET', '/api/crads/publico/transparencia');
+  it('transparência só com login, e sem dados pessoais', async () => {
+    expect((await chamar(s, '', 'GET', '/api/crads/publico/transparencia')).status).toBe(401);
+    const quem = await criarUsuario(s, 'leitor@catalogo.local', { solicitante: true });
+    const r = await chamar(s, quem.token, 'GET', '/api/crads/publico/transparencia');
     expect(r.status).toBe(200);
     expect(r.dados).toMatchObject({ mudas_doadas: 0, plantios: [], plantando_agua: { doacoes: 0 } });
   });

@@ -1159,7 +1159,7 @@ function montarCatalogo(d2) {
     const q = (_a = disp.get(l.id)) != null ? _a : 0;
     if (q <= 0) continue;
     const e = especies.get(String(l.especie_id));
-    if (!e || e.ficticia) continue;
+    if (!e) continue;
     let item = itens.get(e.id);
     if (!item) {
       const ordemFoto = ["muda", "arvore", "flor", "fruto", "folha"];
@@ -1237,7 +1237,25 @@ function fichaPublica(e) {
   for (const c of CAMPOS_FICHA_PUBLICA) if (e[c] !== void 0 && e[c] !== null && e[c] !== "" && e[c] !== 0) f[c] = e[c];
   return f;
 }
-var REGRAS_CATALOGO = 2;
+var REGRAS_CATALOGO = 3;
+function resumoCatalogo(d2, hoje = (/* @__PURE__ */ new Date()).toISOString()) {
+  var _a, _b;
+  const movs = agrupar(ativos2(d2.movimentos), "lote_mudas_id");
+  const disp = disponivelPorLote(d2, hoje);
+  const especies = new Map(ativos2(d2.especies).map((e) => [e.id, e]));
+  const r2 = { lotes: 0, no_catalogo: 0, em_formacao: 0, sem_mudas: 0, reservadas: 0 };
+  for (const l of ativos2(d2.lotesMudas)) {
+    if (l.situacao === "encerrado") continue;
+    r2.lotes++;
+    const e = especies.get(String(l.especie_id));
+    if (saldoMudas((_a = movs.get(l.id)) != null ? _a : []) <= 0) r2.sem_mudas++;
+    else if (!e) r2.sem_mudas++;
+    else if (l.fase_atual !== "pronta") r2.em_formacao++;
+    else if (((_b = disp.get(l.id)) != null ? _b : 0) <= 0) r2.reservadas++;
+    else r2.no_catalogo++;
+  }
+  return r2;
+}
 
 // ../dominio/src/posplantio.ts
 var ativos3 = (rs) => rs.filter((r2) => !r2.excluido);
@@ -2185,11 +2203,12 @@ function fotoMudaPublica(app, id, arquivo) {
   if (![f.getString("arquivo"), f.getString("miniatura")].includes(arquivo) || !arquivo) throw new Error("foto n\xE3o encontrada");
   const lote = buscar(app, "lote_mudas", f.getString("registro_id"));
   const especie = lote && !lote.getBool("excluido") ? buscar(app, "especie", lote.getString("especie_id")) : null;
-  if (!especie || especie.getBool("ficticia") || especie.getBool("excluido")) throw new Error("foto n\xE3o encontrada");
+  if (!especie || especie.getBool("excluido")) throw new Error("foto n\xE3o encontrada");
   return { chave: `${f.baseFilesPath()}/${arquivo}`, nome: arquivo };
 }
 function catalogoPublico(app) {
-  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: (/* @__PURE__ */ new Date()).toISOString(), regras: REGRAS_CATALOGO };
+  const d2 = dadosCatalogo(app);
+  return { itens: montarCatalogo(d2), gerado_em: (/* @__PURE__ */ new Date()).toISOString(), regras: REGRAS_CATALOGO, resumo: resumoCatalogo(d2) };
 }
 function rastreioDe(app, lote, cache = {}) {
   const pegar = (n2) => {
@@ -2208,7 +2227,7 @@ function rastreioDe(app, lote, cache = {}) {
 function especiePublica(app, id) {
   const d2 = dadosCatalogo(app);
   const e = d2.especies.find((x) => x.id === id);
-  if (!e || e.ficticia) throw new Error("Esp\xE9cie n\xE3o encontrada no cat\xE1logo.");
+  if (!e) throw new Error("Esp\xE9cie n\xE3o encontrada no cat\xE1logo.");
   const disp = disponivelPorLote(d2);
   const viveiros = new Map(d2.viveiros.map((v) => [v.id, String(v.nome)]));
   const cache = { viveiro: d2.viveiros };

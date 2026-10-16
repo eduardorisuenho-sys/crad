@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio } from '../src/catalogo';
+import { diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio, resumoCatalogo } from '../src/catalogo';
 
 const base = {
   especies: [
@@ -39,8 +39,10 @@ const base = {
 };
 
 describe('catálogo público', () => {
-  it('só mudas prontas, de espécies verdadeiras (publicadas ou não; fictícias nunca), sem as reservas', () => {
-    expect(montarCatalogo(base)).toEqual([
+  it('só mudas prontas, de qualquer espécie (publicada ou não), sem as reservas', () => {
+    // em ordem alfabética do nome
+    expect(montarCatalogo(base).map((i) => i.especie_id)).toEqual(['baru', 'treino', 'ipe']);
+    expect([...montarCatalogo(base)].sort((a, b) => ['baru', 'ipe', 'treino'].indexOf(a.especie_id) - ['baru', 'ipe', 'treino'].indexOf(b.especie_id))).toEqual([
       {
         especie_id: 'baru',
         nome_cientifico: 'Ficticia baru',
@@ -58,6 +60,15 @@ describe('catálogo público', () => {
         por_viveiro: [{ viveiro_id: 'pal', viveiro: 'Palmas', disponivel: 60 }],
         total: 60,
         foto: { id: 'f2', arquivo: 'muda.jpg', miniatura: 'muda-mini.jpg', parte: 'muda' },
+      },
+      {
+        especie_id: 'treino',
+        nome_cientifico: 'Ficticia treino',
+        familia: '',
+        nomes_populares: [],
+        por_viveiro: [{ viveiro_id: 'pal', viveiro: 'Palmas', disponivel: 50 }],
+        total: 50,
+        foto: undefined,
       },
     ]);
   });
@@ -125,9 +136,8 @@ describe('diagnóstico: por que a muda não aparece no catálogo', () => {
   const d = { especies, lotesMudas, movimentos, reservas };
 
   it('dá o motivo de cada lote com mudas que não está no catálogo', () => {
-    const r = diagnosticoCatalogo(d, new Set(['ok']), 2);
+    const r = diagnosticoCatalogo(d, new Set(['ok', 'fic']), 3);
     expect(Object.fromEntries(r.map((x) => [x.codigo, x.motivo]))).toEqual({
-      'LM-2': 'ficticia',
       'LM-3': 'em_formacao',
       'LM-4': 'reservadas',
       'LM-P-X-1': 'nao_enviado',
@@ -136,7 +146,15 @@ describe('diagnóstico: por que a muda não aparece no catálogo', () => {
   });
 
   it('servidor sem as regras novas: avisa que precisa atualizar', () => {
-    const r = diagnosticoCatalogo(d, new Set(['ok']), undefined);
+    // servidor antigo (regras 2): esta ainda não aparecia lá
+    const r = diagnosticoCatalogo(d, new Set(['ok']), 2);
+    expect(r.find((x) => x.codigo === 'LM-2')?.motivo).toBe('servidor_desatualizado');
     expect(r.find((x) => x.codigo === 'LM-6')?.motivo).toBe('servidor_desatualizado');
+  });
+});
+
+describe('resumo do catálogo no servidor (explica o catálogo vazio)', () => {
+  it('conta os lotes por situação', () => {
+    expect(resumoCatalogo(base)).toEqual({ lotes: 5, no_catalogo: 3, em_formacao: 1, sem_mudas: 0, reservadas: 1 });
   });
 });

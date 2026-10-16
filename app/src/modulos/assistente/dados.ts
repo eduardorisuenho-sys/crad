@@ -1,5 +1,5 @@
 /** Dados do assistente lidos do banco do aparelho, e cadastro dos exemplos. */
-import { ESPECIES_FICTICIAS, normalizarBusca, PERGUNTAS_PADRAO, type EspecieAssistente, type PerguntaAssistente, type Registro } from '@crads/dominio';
+import { PERGUNTAS_PADRAO, type EspecieAssistente, type PerguntaAssistente, type Registro } from '@crads/dominio';
 import type { BancoCrads } from '../../dados/db';
 import type { Repositorio } from '../../dados/repositorio';
 
@@ -68,31 +68,6 @@ export async function criarPerguntasPadrao(db: BancoCrads, repo: Repositorio): P
     if (existentes.has(p.chave)) continue;
     const reg = await repo.salvar('pergunta', { texto: p.texto, chave: p.chave, parte: p.parte, ordem: p.ordem, ativa: true });
     for (const [i, o] of p.opcoes.entries()) await repo.salvar('opcao', { pergunta_id: reg.id, rotulo: o.rotulo, chave: o.chave, figura_padrao: o.figura, ordem: i + 1 });
-    criadas++;
-  }
-  return criadas;
-}
-
-/** Cria as espécies FICTÍCIAS de treinamento, com as características marcadas. */
-export async function criarEspeciesFicticias(db: BancoCrads, repo: Repositorio): Promise<number> {
-  await criarPerguntasPadrao(db, repo);
-  const opcaoPorChave = new Map(ativos(await db.colecao('opcao').toArray()).map((o) => [String(o.chave), o.id]));
-  const ja = new Set(ativos(await db.colecao('especie').toArray()).map((e) => normalizarBusca(String(e.nome_cientifico))));
-  let criadas = 0;
-  for (const f of ESPECIES_FICTICIAS) {
-    if (ja.has(normalizarBusca(f.nome_cientifico))) continue;
-    const e = await repo.salvar('especie', {
-      nome_cientifico: f.nome_cientifico,
-      familia: f.familia,
-      meses_flor: f.meses_flor,
-      meses_fruto: f.meses_fruto,
-      ficticia: true,
-      publicada: false,
-      fonte_cadastro: 'manual',
-    });
-    await repo.salvar('nome_popular', { especie_id: e.id, nome: f.nome_popular, nome_busca: normalizarBusca(f.nome_popular) });
-    for (const o of f.opcoes) if (opcaoPorChave.has(o)) await repo.salvar('especie_opcao', { especie_id: e.id, opcao_id: opcaoPorChave.get(o) });
-    for (const b of f.biomas) await repo.salvar('especie_ocorrencia', { especie_id: e.id, uf: 'TO', bioma: b, origem: 'manual' });
     criadas++;
   }
   return criadas;

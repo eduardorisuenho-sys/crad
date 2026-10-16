@@ -58,13 +58,12 @@ function Rotas() {
   }, [sessao, viveiroId, viveiros, escolherViveiro]);
 
   if (carregando) return <div className="carregando">Abrindo…</div>;
-  // Catálogo e rastreio são públicos: abrem sem login.
+  // Catálogo e rastreio são públicos: abrem sem login. Transparência só com login.
   const publicas = (
     <>
       <Route path="/catalogo" element={<Catalogo />} />
       <Route path="/catalogo/:id" element={<EspeciePublica />} />
       <Route path="/rastreio/:codigo" element={<RastreioLote />} />
-      <Route path="/transparencia" element={<Transparencia />} />
       <Route path="/instalar" element={<Instalar />} />
     </>
   );
@@ -85,6 +84,7 @@ function Rotas() {
     <Guarda>
     <Routes>
       {publicas}
+      <Route path="/transparencia" element={<Transparencia />} />
       <Route path="/" element={precisaEscolher ? <Navigate to="/viveiro-atual" replace /> : <Inicio />} />
       <Route path="/viveiro-atual" element={<EscolherViveiro />} />
       <Route path="/viveiros" element={<Viveiros />} />

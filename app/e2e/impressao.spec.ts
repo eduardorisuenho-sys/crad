@@ -26,8 +26,7 @@ test('imprimir: catálogo com fotos, fichas das espécies do pedido e etiquetas 
   expect(c.texto).toContain('Árvore-do-catálogo');
   expect(c.texto).toContain('Catalogia demonstrativa');
   expect(c.texto).toMatch(/\d+ mudas prontas/);
-  // espécie fictícia de treino nunca entra no catálogo
-  expect(c.texto).not.toContain('Árvore-de-campo-fictícia');
+  expect(c.texto).not.toContain('FICTÍCIA');
   await cv.close();
 
   // ---- solicitante: fichas das espécies do pedido, com as quantidades

@@ -2,13 +2,12 @@ import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { useApp } from '../contexto';
-import { entrar, guardarServidor, servidorGuardado } from '../dados/sessao';
+import { descobrirServidor, entrar } from '../dados/sessao';
 
 export function Entrar() {
   const { db, definirSessao } = useApp();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [servidor, setServidor] = useState(servidorGuardado);
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
 
@@ -17,8 +16,8 @@ export function Entrar() {
     setErro('');
     setEnviando(true);
     try {
-      guardarServidor(servidor);
-      definirSessao(await entrar(db, servidor, email.trim(), senha));
+      // o app acha o servidor sozinho (não precisa digitar endereço)
+      definirSessao(await entrar(db, await descobrirServidor(), email.trim(), senha));
     } catch (err) {
       setErro((err as Error).message);
     } finally {
@@ -51,13 +50,6 @@ export function Entrar() {
         <Link to="/catalogo" className="botao-secundario">
           Ver o catálogo de mudas (sem login)
         </Link>
-        <Link to="/transparencia" className="link link-centro">
-          Resultados das doações (transparência)
-        </Link>
-        <details className="avancado">
-          <summary>Endereço do servidor</summary>
-          <input value={servidor} onChange={(e) => setServidor(e.target.value)} aria-label="Endereço do servidor" />
-        </details>
       </form>
     </div>
   );

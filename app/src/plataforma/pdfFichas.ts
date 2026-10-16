@@ -3,7 +3,7 @@
  * - fichas das espécies (catálogo ou as espécies de um pedido), com foto e
  *   as informações da ficha pública;
  * - etiquetas com QR para fixar nas mudas dentro do viveiro.
- * Nada é inventado: só entra o que está cadastrado na espécie.
+ * Só entra o que está cadastrado na espécie.
  */
 import QRCode from 'qrcode';
 
@@ -16,7 +16,6 @@ export interface FichaPdf {
   dados: [string, string][];
   /** linha de destaque (ex.: "40 mudas prontas" ou "Pedidas: 20 · Aprovadas: 15") */
   destaque?: string;
-  ficticia?: boolean;
   /** foto já em data URL (JPEG) */
   foto?: string | null;
 }
@@ -29,7 +28,6 @@ export interface EtiquetaPdf {
   data?: string;
   /** texto gravado no QR (endereço do rastreio público) */
   qr: string;
-  ficticia?: boolean;
 }
 
 const AZUL_ESCURO: [number, number, number] = [51, 97, 141];
@@ -39,7 +37,6 @@ const CINZA: [number, number, number] = [90, 100, 110];
 /** Linhas de texto de uma ficha (testável sem gerar o PDF). */
 export function textoDaFicha(f: FichaPdf): string[] {
   const l: string[] = [f.nome];
-  if (f.ficticia) l.push('ESPÉCIE FICTÍCIA (só para testes)');
   l.push(`${f.cientifico}${f.familia ? ` · ${f.familia}` : ''}`);
   if (f.outrosNomes.length) l.push(`Também chamada de ${f.outrosNomes.join(', ')}`);
   if (f.destaque) l.push(f.destaque);
@@ -148,12 +145,6 @@ export async function fichasPdf(titulo: string, subtitulo: string, fichas: Ficha
       pdf.text(l, x, y);
       y += 6.5;
     }
-    if (f.ficticia) {
-      pdf.setFontSize(9);
-      pdf.setTextColor(180, 60, 40);
-      pdf.text('ESPÉCIE FICTÍCIA (só para testes)', x, y);
-      y += 5;
-    }
     pdf.setTextColor(...AZUL_ESCURO);
     pdf.setFont('helvetica', 'italic');
     pdf.setFontSize(11);
@@ -250,10 +241,6 @@ export async function etiquetasPdf(etiquetas: EtiquetaPdf[]): Promise<Blob> {
       y += 3.2;
     }
     if (e.data) pdf.text(e.data, x, y);
-    if (e.ficticia) {
-      pdf.setTextColor(180, 60, 40);
-      pdf.text('espécie fictícia (teste)', x, p.y + p.altura - 1.5);
-    }
   });
   return pdf.output('blob');
 }

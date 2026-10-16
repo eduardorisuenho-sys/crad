@@ -14,13 +14,12 @@ const publica = {
 };
 
 describe('fichas das espécies em PDF', () => {
-  it('usa só o que está cadastrado e marca a espécie fictícia', () => {
+  it('usa só o que está cadastrado na espécie', () => {
     const f = fichaDaEspecie(publica, 'Pedidas: 20 · Aprovadas: 15');
     expect(f.nome).toBe('Árvore-de-campo-fictícia');
     expect(f.outrosNomes).toEqual(['pau-de-teste']);
-    expect(f.ficticia).toBe(true);
     const texto = textoDaFicha(f);
-    expect(texto).toContain('ESPÉCIE FICTÍCIA (só para testes)');
+    expect(texto.join(' ')).not.toContain('ESPÉCIE FICTÍCIA');
     expect(texto).toContain('Arvorea ficticia · Fabaceae');
     expect(texto).toContain('Pedidas: 20 · Aprovadas: 15');
     expect(texto).toContain('Frutos: ago, set');

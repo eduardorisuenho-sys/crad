@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { bloqueiosPedido, parametro } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
@@ -103,6 +103,15 @@ export function NovoPedido() {
           <h2 className="pergunta">De qual viveiro?</h2>
           {erroCatalogo && <p className="erro">{erroCatalogo}</p>}
           {!publico && !erroCatalogo && <p className="vazio">Carregando o catálogo…</p>}
+          {publico && !publico.viveiros.length && (
+            <div className="cartao" data-testid="sem-mudas">
+              <p>Nenhum viveiro tem mudas prontas para doação neste momento.</p>
+              <p className="dica">As mudas aparecem aqui assim que o viveiro marcar um lote como pronto para doação. Tente de novo mais tarde.</p>
+              <Link to="/catalogo" className="botao-secundario">
+                Ver o catálogo
+              </Link>
+            </div>
+          )}
           <div className="lista-grande">
             {publico?.viveiros.map((v) => (
               <button

@@ -12,14 +12,18 @@ import { CARACTERES } from './fichasPdf';
 export function EspeciePublica() {
   const { id } = useParams();
   const { sessao } = useApp();
-  const servidor = servidorPublico(sessao?.servidor);
+  const pedido = servidorPublico(sessao?.servidor);
+  const [servidor, setServidor] = useState(pedido);
   const [d, setD] = useState<Dados | null>(null);
   const [erro, setErro] = useState('');
   useEffect(() => {
-    lerEspecie(servidor, id!)
-      .then((r) => setD(r.dados))
+    lerEspecie(pedido, id!)
+      .then((r) => {
+        setD(r.dados);
+        setServidor(r.servidor);
+      })
       .catch((e) => setErro((e as Error).message === 'Não encontrado.' ? 'Esta espécie não está no catálogo.' : (e as Error).message));
-  }, [id, servidor]);
+  }, [id, pedido]);
 
   const f = d?.ficha;
   const meses = (v: unknown) => (Array.isArray(v) ? (v as number[]).map((m) => NOMES_MESES[m - 1]).join(', ') : '');

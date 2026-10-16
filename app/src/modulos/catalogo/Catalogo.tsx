@@ -1,7 +1,7 @@
 /** Catálogo público: espécies com mudas prontas para doação, sem login. */
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { normalizarBusca, type ItemCatalogo } from '@crads/dominio';
+import { normalizarBusca, type ItemCatalogo, type ResumoCatalogo } from '@crads/dominio';
 import { BotaoPdf } from '../../componentes/BotaoPdf';
 import { Icone } from '../../componentes/Icone';
 import { gerarFichasPdf } from './fichasPdf';
@@ -13,25 +13,30 @@ import { DiagnosticoCatalogo } from './DiagnosticoCatalogo';
 export function Catalogo() {
   const { sessao, perfis } = useApp();
   const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
-  const servidor = servidorPublico(sessao?.servidor);
+  const pedido = servidorPublico(sessao?.servidor);
+  // servidor que respondeu (o app acha o certo sozinho se o endereço falhar)
+  const [servidor, setServidor] = useState(pedido);
   const navegar = useNavigate();
   const [itens, setItens] = useState<ItemCatalogo[] | null>(null);
   const [guardado, setGuardado] = useState<string | null>(null);
   const [regras, setRegras] = useState<number | undefined>(undefined);
+  const [resumo, setResumo] = useState<ResumoCatalogo | undefined>(undefined);
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
   const [viveiro, setViveiro] = useState('');
   const [codigo, setCodigo] = useState('');
 
   useEffect(() => {
-    lerCatalogo(servidor)
+    lerCatalogo(pedido)
       .then((r) => {
         setItens(r.dados.itens);
+        setServidor(r.servidor);
         setRegras(r.dados.regras);
+        setResumo(r.dados.resumo);
         setGuardado(r.guardado ? r.em : null);
       })
       .catch((e) => setErro((e as Error).message));
-  }, [servidor]);
+  }, [pedido]);
 
   const viveiros = useMemo(() => {
     const m = new Map<string, string>();
@@ -92,6 +97,17 @@ export function Catalogo() {
         })}
       </ul>
       {itens && !lista.length && <p className="vazio">Nenhuma muda pronta {busca ? 'com esse nome' : 'no momento'}.</p>}
+      {itens && !itens.length && !guardado && (
+        // catálogo vazio: diz o que o servidor tem (só contagens) e de onde o app leu
+        <p className="dica" data-testid="resumo-catalogo">
+          {resumo
+            ? resumo.lotes
+              ? `No servidor há ${resumo.lotes} lote(s) de mudas: ${resumo.em_formacao} em formação (ainda não marcados como prontos), ${resumo.reservadas} com todas as mudas reservadas e ${resumo.sem_mudas} sem mudas.`
+              : 'O servidor ainda não tem nenhum lote de mudas registrado.'
+            : 'O servidor ainda está na versão antiga: peça para atualizar.'}{' '}
+          Servidor: {servidor.replace(/^https?:\/\//, '')}
+        </p>
+      )}
       {lista.length > 0 && (
         <BotaoPdf
           rotulo={`Imprimir o catálogo com fotos (PDF, ${lista.length} ${lista.length === 1 ? 'espécie' : 'espécies'})`}
@@ -118,9 +134,11 @@ export function Catalogo() {
         </label>
         <button className="botao-secundario">Ver de onde vieram as sementes</button>
       </form>
-      <Link to="/transparencia" className="botao-grande">
-        <Icone nome="relatorio" /> Resultados das doações (transparência)
-      </Link>
+      {sessao && (
+        <Link to="/transparencia" className="botao-grande">
+          <Icone nome="relatorio" /> Resultados das doações (transparência)
+        </Link>
+      )}
     </Pagina>
   );
 }

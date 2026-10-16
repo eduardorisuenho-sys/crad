@@ -7,7 +7,7 @@ export const GRUPOS_FICHA: { titulo: string; campos: string[] }[] = [
   { titulo: 'Época', campos: ['meses_flor', 'meses_fruto'] },
   { titulo: 'Sementes e mudas', campos: ['sementes_por_kg', 'dormencia', 'tratamento_pre_germinativo', 'dias_germinacao', 'meses_ate_pronta', 'grupo_sucessional'] },
   { titulo: 'Referência', campos: ['lorenzi_volume', 'lorenzi_pagina', 'flora_id'] },
-  { titulo: 'Situação', campos: ['revisar', 'nota_revisao', 'ficticia'] },
+  { titulo: 'Situação', campos: ['revisar', 'nota_revisao'] },
 ];
 
 const EXTRAS: Record<string, string> = {
@@ -15,7 +15,6 @@ const EXTRAS: Record<string, string> = {
   flora_id: 'Código na Flora e Funga',
   revisar: 'Precisa de revisão',
   nota_revisao: 'O que revisar',
-  ficticia: 'Espécie fictícia (só para testes)',
 };
 
 export function rotulo(campo: string): string {

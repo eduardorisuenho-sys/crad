@@ -19,12 +19,16 @@ test('catálogo público sem login: mudas prontas, ficha com foto, rastreio sem 
   // o visitante usa o servidor de teste
   await p.evaluate((url) => localStorage.setItem('crads_servidor', url), PB());
   await p.getByRole('link', { name: 'Ver o catálogo de mudas (sem login)' }).click();
+  // botão Voltar no catálogo de quem não fez login: volta para a entrada
+  await p.getByRole('button', { name: 'Voltar' }).click();
+  await expect(p.getByRole('button', { name: 'Entrar' })).toBeVisible();
+  await p.getByRole('link', { name: 'Ver o catálogo de mudas (sem login)' }).click();
   const cartao = p.locator('.cartao-especie', { hasText: 'Árvore-do-catálogo' });
   await expect(cartao).toContainText('60 mudas');
   await expect(cartao.locator('img')).toHaveJSProperty('complete', true);
   expect(await cartao.locator('img').evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(0);
-  // espécie fictícia de treino nunca aparece no catálogo
-  await expect(p.locator('.cartao-especie', { hasText: 'Árvore-de-campo-fictícia' })).toHaveCount(0);
+  // nenhum selo de "teste" no catálogo
+  await expect(p.locator('main')).not.toContainText('(teste)');
 
   await cartao.click();
   await expect(p.getByTestId('onde-tem')).toContainText('Viveiro Teste: 60 mudas');

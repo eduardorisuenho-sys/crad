@@ -40,13 +40,17 @@ mudas**:
 - Entram **prontas para doação** (catálogo, pedidos, reservas e retirada). Como são as mais antigas, saem primeiro nas
   reservas.
 - **Toda muda pronta aparece sozinha no catálogo**, de qualquer espécie
-  verdadeira (inclusive as importadas da lista oficial). Não precisa
-  publicar nem liberar a espécie. Espécies fictícias (de teste) nunca
-  aparecem.
+  (inclusive as importadas da lista oficial). Não precisa publicar nem
+  liberar a espécie.
+- **Catálogo vazio explica o porquê** para qualquer pessoa: quantos lotes o
+  servidor tem em formação, com as mudas todas reservadas ou sem mudas (só
+  contagens, sem dados pessoais) e de qual servidor o app leu. No pedido de
+  mudas, "De qual viveiro?" sem opções diz que nenhum viveiro tem mudas
+  prontas agora.
 - **Por que minha muda não aparece?** Quem é da equipe e abre o catálogo vê
   a lista dos lotes deste aparelho que não estão no catálogo, cada um com o
   motivo e o que fazer: em formação (marcar como pronta), todas reservadas,
-  ainda não enviado (abrir com internet), espécie fictícia ou **servidor
+  ainda não enviado (abrir com internet) ou **servidor
   desatualizado** (rodar a atualização do servidor). Tocar no lote abre a
   ficha dele.
 - **Nada é inventado**: o rastreio público diz que a origem das sementes não
@@ -218,12 +222,12 @@ O que o Módulo 7 entrega:
   DO), mostra a cadeia inteira. Para trás vai até as matrizes; para frente,
   até as doações e os plantios. A doação só traz os lotes de onde saíram as
   suas mudas.
-- **Portal da transparência** (`/transparencia`, sem login, com link no
-  catálogo e na tela de entrada). Mostra:
+- **Transparência** (`/transparencia`, **só para quem entrou no app**; sem
+  login não há link e o servidor não entrega os dados). Mostra:
   - mudas doadas e plantadas, sobrevivência e Plantando Água;
   - doações por ano e espécies mais doadas;
   - mapa dos plantios com o ponto arredondado (cerca de 1 km), sem nomes nem
-    documentos. Espécies fictícias de treino não aparecem.
+    documentos.
 
   Uma cópia fica guardada para abrir sem internet.
 
@@ -303,9 +307,10 @@ O que o Módulo 4 entrega:
   - de quantas matrizes vieram as sementes e em quais municípios;
   - lote de sementes e datas;
   - **nunca** a coordenada da árvore, o proprietário, o coletor ou o código da matriz.
-- **Regras de publicação:**
-  - só aparece espécie marcada pelo gestor como **"Aparece no catálogo"**;
-  - espécies fictícias de treino nunca aparecem.
+- **Regras de publicação:** toda espécie com muda pronta e disponível
+  aparece; não precisa marcar nada.
+- **Botão Voltar** no catálogo de quem não fez login (aberto direto pelo
+  endereço, volta para a tela de entrada).
 - **Sem internet:** o catálogo, as fichas já vistas e as fotos ficam guardados
   no aparelho e abrem com o aviso "mostrando o catálogo de [data]".
 - **Fotos da espécie:** o gestor envia na ficha, comprimidas no aparelho, por
@@ -438,6 +443,9 @@ O que a etapa 1 entrega:
 - **App instalável (PWA)** com:
   - tela inicial com a **logomarca do CRAD** no alto (símbolo em alta resolução e o nome em texto, nítido em qualquer tela) e ícones grandes;
   - login que continua valendo sem internet por 30 dias;
+  - **sem campo de endereço do servidor**: o app acha o servidor sozinho
+    (o que já funcionou no aparelho, o da publicação e o do piloto, nessa
+    ordem) e guarda o que respondeu;
   - escolha do viveiro;
   - cadastro de viveiros;
   - guia de instalação no iPhone.
@@ -601,8 +609,6 @@ No app, entre como gestor e vá em **Espécies → Importar**.
     nome com "ou" ou "et al." e nome só até o gênero.
   - A importação **nunca sobrescreve** a ficha: só completa campos vazios e
     acrescenta nomes populares. Pode importar de novo sem duplicar.
-  - A linha de exemplo do modelo (família "Ficticiaceae") entra marcada como
-    fictícia e não aparece no catálogo.
 - **Flora e Funga do Brasil (.zip):**
   - Baixe o pacote "Darwin Core Archive" da Lista de Espécies da Flora do
     Brasil no IPT do JBRJ (ipt.jbrj.gov.br) e envie o .zip.
@@ -618,9 +624,7 @@ No app, entre como gestor e vá em **Espécies → Importar**.
 - **Assistente:** em **Espécies → Assistente de identificação**:
   - "Criar perguntas padrão" cria as perguntas de folha, disposição, látex,
     espinhos, casca, flor e fruto;
-  - na ficha de cada espécie, o gestor marca as respostas que valem para ela;
-  - "Espécies fictícias de treino" cria 5 espécies inventadas para
-    treinar a equipe.
+  - na ficha de cada espécie, o gestor marca as respostas que valem para ela.
 
 ## Decisões pequenas tomadas sem consulta
 

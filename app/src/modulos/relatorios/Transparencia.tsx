@@ -1,4 +1,4 @@
-/** Portal da transparência: totais e mapa dos plantios, sem login e sem dados pessoais. */
+/** Transparência: totais e mapa dos plantios, sem dados pessoais. Só para quem entrou no app. */
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Transparencia as Dados } from '@crads/dominio';
@@ -17,7 +17,7 @@ export function Transparencia() {
   const [erro, setErro] = useState('');
 
   useEffect(() => {
-    lerTransparencia(servidor)
+    lerTransparencia(servidor, sessao?.token ?? '')
       .then((r) => {
         setT(r.dados);
         setGuardado(r.guardado ? r.em : null);

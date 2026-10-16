@@ -233,7 +233,7 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   expect(r.lote_sementes).toMatchObject({ arvores_sem_matriz: 1 });
   expect(JSON.stringify(r)).not.toMatch(/000\.000|90000|Recebedor/);
   // transparência conta as mudas doadas
-  const t = await (await fetch(`${PB()}/api/crads/publico/transparencia`)).json();
+  const t = await (await fetch(`${PB()}/api/crads/publico/transparencia`, { headers: { authorization: process.env.CRADS_PB_ADMIN! } })).json();
   expect(t.mudas_doadas).toBeGreaterThanOrEqual(40);
 
   // ---- 11. o plantio: quem pediu registra o pós-plantio deste pedido

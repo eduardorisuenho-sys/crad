@@ -32,7 +32,7 @@ describe.skipIf(!temPocketBase)('cenários: do estoque à retirada, com gente di
   const loteTreino = gerarId();
   const enviar = (t: string, ops: Operacao[]) => chamar(s, t, 'POST', '/api/crads/sync/enviar', { dispositivo_id: 'aparelho0000077', operacoes: ops });
   const status = (r: { dados: { resultados: { status: string }[] } }) => r.dados.resultados.map((x) => x.status);
-  const catalogo = async () => (await chamar(s, '', 'GET', '/api/crads/publico/catalogo')).dados as { itens: { especie_id: string; total: number }[]; regras: number };
+  const catalogo = async () => (await chamar(s, '', 'GET', '/api/crads/publico/catalogo')).dados as { itens: { especie_id: string; total: number; ficticia?: boolean }[]; regras: number };
   const noCatalogo = async (id: string) => (await catalogo()).itens.find((i) => i.especie_id === id)?.total ?? 0;
 
   async function pedir(u: Usuario, nome: string, qtd: number) {
@@ -70,13 +70,13 @@ describe.skipIf(!temPocketBase)('cenários: do estoque à retirada, com gente di
   }, 30_000);
   afterAll(() => s?.parar());
 
-  it('espécie importada e não publicada aparece no catálogo; fictícia nunca (nem a ficha)', async () => {
+  it('espécie importada e não publicada aparece no catálogo, e as de exemplo também (sem exceção)', async () => {
     const c = await catalogo();
-    expect(c.regras).toBe(2);
+    expect(c.regras).toBe(3);
     expect(await noCatalogo(ipe)).toBe(40);
-    expect(await noCatalogo(treino)).toBe(0);
+    expect(await noCatalogo(treino)).toBe(50);
     expect((await chamar(s, '', 'GET', `/api/crads/publico/especie/${ipe}`)).status).toBe(200);
-    expect((await chamar(s, '', 'GET', `/api/crads/publico/especie/${treino}`)).status).toBe(404);
+    expect((await chamar(s, '', 'GET', `/api/crads/publico/especie/${treino}`)).status).toBe(200);
   });
 
   let pedidoAna: { doacao: string; item: string };

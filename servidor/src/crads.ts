@@ -27,6 +27,7 @@ import {
   fichaPublica,
   montarCatalogo,
   REGRAS_CATALOGO,
+  resumoCatalogo,
   montarTransparencia,
   montarRastreio,
   formatarCodigo,
@@ -873,20 +874,22 @@ function fotosDasMudas(app: App): Livre[] {
     .map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id))!.especie_id, parte: 'muda', arquivo: f.arquivo, miniatura: f.miniatura, credito: 'Viveiro', colecao: 'foto' }));
 }
 
-/** GET /api/crads/publico/foto/{id}/{arquivo} — foto das mudas de um lote (espécie não fictícia). */
+/** GET /api/crads/publico/foto/{id}/{arquivo} — foto das mudas de um lote. */
 export function fotoMudaPublica(app: App, id: string, arquivo: string): { chave: string; nome: string } {
   const f = buscar(app, 'foto', id);
   if (!f || f.getBool('excluido') || f.getString('entidade') !== 'lote_mudas') throw new Error('foto não encontrada');
   if (![f.getString('arquivo'), f.getString('miniatura')].includes(arquivo) || !arquivo) throw new Error('foto não encontrada');
   const lote = buscar(app, 'lote_mudas', f.getString('registro_id'));
   const especie = lote && !lote.getBool('excluido') ? buscar(app, 'especie', lote.getString('especie_id')) : null;
-  if (!especie || especie.getBool('ficticia') || especie.getBool('excluido')) throw new Error('foto não encontrada');
+  if (!especie || especie.getBool('excluido')) throw new Error('foto não encontrada');
   return { chave: `${f.baseFilesPath()}/${arquivo}`, nome: arquivo };
 }
 
 /** GET /api/crads/publico/catalogo */
 export function catalogoPublico(app: App) {
-  return { itens: montarCatalogo(dadosCatalogo(app)), gerado_em: new Date().toISOString(), regras: REGRAS_CATALOGO };
+  const d = dadosCatalogo(app);
+  // resumo só com contagens: explica um catálogo vazio, sem dados pessoais
+  return { itens: montarCatalogo(d), gerado_em: new Date().toISOString(), regras: REGRAS_CATALOGO, resumo: resumoCatalogo(d) };
 }
 
 type Livre = { id: string; [k: string]: unknown };
@@ -907,7 +910,7 @@ function rastreioDe(app: App, lote: Livre, cache: Partial<Record<string, Livre[]
 export function especiePublica(app: App, id: string) {
   const d = dadosCatalogo(app);
   const e = d.especies.find((x) => x.id === id);
-  if (!e || e.ficticia) throw new Error('Espécie não encontrada no catálogo.');
+  if (!e) throw new Error('Espécie não encontrada no catálogo.');
   const disp = disponivelPorLote(d);
   const viveiros = new Map(d.viveiros.map((v) => [v.id, String(v.nome)]));
   const cache: Partial<Record<string, Livre[]>> = { viveiro: d.viveiros };

@@ -1,15 +1,21 @@
 /** Moldura das páginas do catálogo: dentro do app (com login) ou pública. */
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 
 export function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
   const { sessao } = useApp();
+  const navegar = useNavigate();
   if (sessao) return <Tela titulo={titulo}>{children}</Tela>;
   return (
     <div className="tela">
       <header className="topo topo-publico">
+        {/* voltar: para a tela anterior; aberto direto pelo endereço, volta para a entrada */}
+        <button className="botao-voltar" aria-label="Voltar" onClick={() => (window.history.length > 1 ? navegar(-1) : navegar('/'))}>
+          <Icone nome="voltar" />
+        </button>
         <Link to="/catalogo" aria-label="Catálogo">
           <img src="/marca/simbolo.png" alt="" width={40} height={42} />
         </Link>

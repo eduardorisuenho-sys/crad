@@ -20,7 +20,7 @@ test('gestora importa o modelo de planilha sem internet e as espécies sobem qua
 
   await page.getByLabel('Buscar espécie').fill('arvore de exemplo');
   await expect(page.getByText('Árvore-de-exemplo')).toBeVisible();
-  await expect(page.getByText('fictícia', { exact: true })).toBeVisible();
+  await expect(page.getByText('fictícia', { exact: true })).toHaveCount(0); // sem selo na lista
 
   await context.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });

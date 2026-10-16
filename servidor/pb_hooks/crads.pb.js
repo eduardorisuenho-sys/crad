@@ -73,10 +73,11 @@ routerAdd("GET", "/api/crads/publico/catalogo", (e) => {
   return e.json(200, crads.catalogoPublico($app));
 });
 
+// Resultados das doações: só para quem entrou no app (não é mais público).
 routerAdd("GET", "/api/crads/publico/transparencia", (e) => {
   const crads = require(`${__hooks}/lib/crads.js`);
   return e.json(200, crads.transparencia($app));
-});
+}, $apis.requireAuth());
 
 routerAdd("GET", "/api/crads/publico/especie/{id}", (e) => {
   const crads = require(`${__hooks}/lib/crads.js`);

@@ -125,7 +125,6 @@ export function DetalheLoteMudas() {
               viveiro: v ? String(v.nome) : undefined,
               data: inicial ? 'Estoque inicial' : lote.data_semeadura ? `Semeado em ${new Date(String(lote.data_semeadura) + 'T12:00').toLocaleDateString('pt-BR')}` : undefined,
               qr: linkRastreio(String(lote.codigo)),
-              ficticia: !!especie?.ficticia,
             };
             return etiquetasPdf(Array.from({ length: n }, () => etiqueta));
           }}

@@ -47,6 +47,51 @@ export function guardarServidor(s: string) {
   }
 }
 
+/** Servidor do piloto (Azure): reserva caso a publicação aponte para um endereço errado. */
+export const SERVIDOR_PILOTO = 'https://crads-to-9hfj.mexicocentral.cloudapp.azure.com';
+
+/** Endereços a tentar, na ordem: o que já funcionou aqui, o da publicação e o do piloto. */
+export function servidoresCandidatos(): string[] {
+  const local = typeof location !== 'undefined' && ehLocal(location.hostname);
+  const lista = [servidorGuardado(), SERVIDOR_PADRAO, ...(local ? [] : [SERVIDOR_PILOTO])].map((x) => x.replace(/\/$/, ''));
+  return [...new Set(lista.filter(Boolean))];
+}
+
+async function responde(servidor: string, ms = 6000): Promise<boolean> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  try {
+    const r = await fetch(`${servidor}/api/health`, { signal: c.signal });
+    return r.ok && /json/.test(r.headers.get('content-type') ?? '');
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+let descoberta: Promise<string> | null = null;
+
+/**
+ * Acha o servidor sozinho (sem a pessoa digitar endereço): o primeiro da lista
+ * que responder fica guardado no aparelho. Sem internet, devolve o primeiro.
+ */
+export function descobrirServidor(forcar = false): Promise<string> {
+  if (descoberta && !forcar) return descoberta;
+  descoberta = (async () => {
+    const lista = servidoresCandidatos();
+    for (const s of lista) {
+      if (await responde(s)) {
+        guardarServidor(s);
+        return s;
+      }
+    }
+    descoberta = null; // sem resposta agora: tenta de novo na próxima vez
+    return lista[0];
+  })();
+  return descoberta;
+}
+
 export async function idDispositivo(db: BancoCrads): Promise<string> {
   let id = await db.lerMeta<string | null>('dispositivo_id', null);
   if (!id) {

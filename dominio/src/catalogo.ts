@@ -58,7 +58,7 @@ export function disponivelPorLote(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimen
 
 /**
  * Espécies com mudas prontas disponíveis, somadas por viveiro. Toda espécie
- * verdadeira com muda pronta aparece (não precisa publicar); fictícias nunca.
+ * com muda pronta aparece (não precisa publicar nem liberar).
  */
 export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
   const disp = disponivelPorLote(d);
@@ -74,7 +74,7 @@ export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
     const q = disp.get(l.id) ?? 0;
     if (q <= 0) continue;
     const e = especies.get(String(l.especie_id));
-    if (!e || e.ficticia) continue;
+    if (!e) continue;
     let item = itens.get(e.id);
     if (!item) {
       const ordemFoto = ['muda', 'arvore', 'flor', 'fruto', 'folha'];
@@ -169,12 +169,12 @@ export function fichaPublica(e: Reg): Record<string, unknown> {
 
 /**
  * Versão das regras do catálogo no servidor. 2 = toda espécie verdadeira com
- * muda pronta aparece (não precisa publicar). O app compara para avisar que o
- * servidor está desatualizado.
+ * muda pronta aparece (não precisa publicar); 3 = todas, sem exceção.
+ * O app compara para avisar que o servidor está desatualizado.
  */
-export const REGRAS_CATALOGO = 2;
+export const REGRAS_CATALOGO = 3;
 
-export type MotivoForaDoCatalogo = 'nao_enviado' | 'em_formacao' | 'reservadas' | 'ficticia' | 'servidor_desatualizado' | 'servidor';
+export type MotivoForaDoCatalogo = 'nao_enviado' | 'em_formacao' | 'reservadas' | 'servidor_desatualizado' | 'servidor';
 
 export interface LoteForaDoCatalogo {
   lote_id: string;
@@ -197,7 +197,6 @@ export function diagnosticoCatalogo(
 ): LoteForaDoCatalogo[] {
   const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
   const disp = disponivelPorLote(d, hoje);
-  const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
   const fora: LoteForaDoCatalogo[] = [];
   for (const l of ativos(d.lotesMudas)) {
     if (l.situacao === 'encerrado') continue;
@@ -205,10 +204,8 @@ export function diagnosticoCatalogo(
     if (saldo <= 0) continue;
     const especie_id = String(l.especie_id);
     if (noCatalogo.has(especie_id)) continue;
-    const e = especies.get(especie_id);
     let motivo: MotivoForaDoCatalogo;
-    if (e?.ficticia) motivo = 'ficticia';
-    else if (l.fase_atual !== 'pronta') motivo = 'em_formacao';
+    if (l.fase_atual !== 'pronta') motivo = 'em_formacao';
     else if ((disp.get(l.id) ?? 0) <= 0) motivo = 'reservadas';
     else if (l.versao === 0 || (movs.get(l.id) ?? []).some((m) => m.versao === 0)) motivo = 'nao_enviado';
     else if ((regrasServidor ?? 1) < REGRAS_CATALOGO) motivo = 'servidor_desatualizado';
@@ -216,4 +213,31 @@ export function diagnosticoCatalogo(
     fora.push({ lote_id: l.id, codigo: String(l.codigo ?? ''), especie_id, saldo, motivo });
   }
   return fora;
+}
+
+/** Contagem dos lotes do servidor por situação (sem dados pessoais): explica um catálogo vazio. */
+export interface ResumoCatalogo {
+  lotes: number;
+  no_catalogo: number;
+  em_formacao: number;
+  sem_mudas: number;
+  reservadas: number;
+}
+
+export function resumoCatalogo(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>, hoje = new Date().toISOString()): ResumoCatalogo {
+  const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
+  const disp = disponivelPorLote(d, hoje);
+  const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
+  const r: ResumoCatalogo = { lotes: 0, no_catalogo: 0, em_formacao: 0, sem_mudas: 0, reservadas: 0 };
+  for (const l of ativos(d.lotesMudas)) {
+    if (l.situacao === 'encerrado') continue;
+    r.lotes++;
+    const e = especies.get(String(l.especie_id));
+    if (saldoMudas((movs.get(l.id) ?? []) as never) <= 0) r.sem_mudas++;
+    else if (!e) r.sem_mudas++;
+    else if (l.fase_atual !== 'pronta') r.em_formacao++;
+    else if ((disp.get(l.id) ?? 0) <= 0) r.reservadas++;
+    else r.no_catalogo++;
+  }
+  return r;
 }

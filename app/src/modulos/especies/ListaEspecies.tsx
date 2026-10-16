@@ -6,7 +6,7 @@ import { buscarNomes } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
-import { criarEspeciesFicticias, criarPerguntasPadrao } from '../assistente/dados';
+import { criarPerguntasPadrao } from '../assistente/dados';
 import { indiceBusca } from './dados';
 
 export function ListaEspecies() {
@@ -64,9 +64,6 @@ export function ListaEspecies() {
             <button className="botao-secundario" onClick={async () => setAviso(`${await criarPerguntasPadrao(db, repo)} pergunta(s) criada(s).`)}>
               Criar perguntas padrão
             </button>
-            <button className="botao-secundario" onClick={async () => setAviso(`${await criarEspeciesFicticias(db, repo)} espécie(s) fictícia(s) criada(s) para treino.`)}>
-              Espécies fictícias de treino
-            </button>
           </div>
           {aviso && <p className="mensagem">{aviso}</p>}
         </details>
@@ -82,7 +79,6 @@ export function ListaEspecies() {
                 </small>
               </div>
               {Boolean(e.revisar) && <span className="selo">revisar</span>}
-              {Boolean(e.ficticia) && <span className="selo">fictícia</span>}
             </Link>
           </li>
         ))}

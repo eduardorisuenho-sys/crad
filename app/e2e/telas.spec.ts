@@ -64,7 +64,7 @@ test('telas públicas abrem sem login', async ({ page }) => {
   await page.goto('/');
   await page.evaluate((url) => localStorage.setItem('crads_servidor', url), PB());
   const lm = (await lerDoServidor('lote_mudas'))[0] as { codigo: string };
-  await passear(page, ['/', '/catalogo', '/transparencia', '/instalar', '/criar-conta', `/rastreio/${lm.codigo}`]);
+  await passear(page, ['/', '/catalogo', '/instalar', '/criar-conta', `/rastreio/${lm.codigo}`]);
 });
 
 test('quem não tem a permissão vê "Sem acesso" ao digitar o endereço', async ({ page }) => {

@@ -26,7 +26,6 @@ export function fichaDaEspecie(d: EspeciePublica, destaque?: string): FichaPdf {
     familia: f.familia ? String(f.familia) : undefined,
     dados,
     destaque,
-    ficticia: !!f.ficticia,
   };
 }
 

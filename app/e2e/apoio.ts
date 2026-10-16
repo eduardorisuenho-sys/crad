@@ -5,8 +5,9 @@ export const PB = () => process.env.CRADS_PB_URL!;
 /** Entra (com internet) e espera o app ficar guardado no aparelho. */
 export async function entrar(page: Page, email: string, saudacao: string) {
   await page.goto('/');
-  await page.getByRole('group').getByText('Endereço do servidor').click();
-  await page.getByLabel('Endereço do servidor').fill(PB());
+  // sem campo de endereço na tela: o servidor de teste fica guardado no aparelho
+  await page.evaluate((url) => localStorage.setItem('crads_servidor', url), PB());
+  await expect(page.getByLabel('Endereço do servidor')).toHaveCount(0);
   await page.getByLabel('E-mail').fill(email);
   await page.getByLabel('Senha').fill('senha-teste-123');
   await page.getByRole('button', { name: 'Entrar' }).click();

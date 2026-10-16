@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icone } from '../../componentes/Icone';
 import { useApp } from '../../contexto';
-import { entrar, servidorGuardado } from '../../dados/sessao';
+import { descobrirServidor, entrar } from '../../dados/sessao';
 import { criarConta, viveirosPublicos, type ViveiroPublico } from './api';
 
 type Escolha = 'solicitante' | 'coletor' | 'viveirista';
@@ -16,7 +16,6 @@ const OPCOES: { valor: Escolha; rotulo: string; dica: string; icone: string }[] 
 export function CriarConta() {
   const { db, definirSessao } = useApp();
   const navegar = useNavigate();
-  const servidor = servidorGuardado();
   const [perfil, setPerfil] = useState<Escolha | null>(null);
   const [viveiros, setViveiros] = useState<ViveiroPublico[] | null>(null);
   const [viveiro, setViveiro] = useState('');
@@ -28,19 +27,21 @@ export function CriarConta() {
 
   useEffect(() => {
     if (!equipe || viveiros) return;
-    viveirosPublicos(servidor)
+    descobrirServidor()
+      .then(viveirosPublicos)
       .then((vs) => {
         setViveiros(vs);
         if (vs.length === 1) setViveiro(vs[0].id);
       })
       .catch((e) => setErro((e as Error).message));
-  }, [equipe, viveiros, servidor]);
+  }, [equipe, viveiros]);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
     setErro('');
     setEnviando(true);
     try {
+      const servidor = await descobrirServidor();
       await criarConta(servidor, { ...dados, email: dados.email.trim(), perfil: perfil!, viveiro_id: equipe ? viveiro : undefined });
       definirSessao(await entrar(db, servidor, dados.email.trim(), dados.senha));
       navegar('/', { replace: true });

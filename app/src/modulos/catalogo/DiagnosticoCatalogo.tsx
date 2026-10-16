@@ -12,7 +12,6 @@ import { nomesEspecies } from '../coleta/dados';
 export const TEXTO_MOTIVO: Record<MotivoForaDoCatalogo, string> = {
   em_formacao: 'Em formação: abra o lote e toque em “Ficou pronta para doação”.',
   reservadas: 'Todas as mudas já estão reservadas para pedidos aprovados.',
-  ficticia: 'Espécie fictícia (de teste): nunca aparece no catálogo.',
   nao_enviado: 'Ainda não foi enviado ao servidor: abra o app com internet e espere “Tudo enviado”.',
   servidor_desatualizado: 'O servidor está desatualizado: rode a atualização do servidor (comando de instalação).',
   servidor: 'O servidor ainda não mostrou este lote: toque em Enviar (barra do alto) e abra o catálogo de novo.',
