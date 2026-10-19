@@ -80,22 +80,24 @@ export function CombinarRetirada({ doacao, viveiro }: { doacao: Registro; viveir
           {contato ? (
             <Contato nome={contato.nome || 'Quem pediu'} telefone={contato.telefone} />
           ) : (
-            <button className="botao-secundario" onClick={() => void verContato()}>
-              Ver telefone de quem pediu
+            <button className="botao-principal botao-telefone" onClick={() => void verContato()}>
+              <Icone nome="telefone" /> Ver telefone de quem pediu
             </button>
           )}
           {erro && <p className="erro">{erro}</p>}
-          <label>
-            Dia combinado
-            <input type="date" value={dia} onChange={(e) => (setDia(e.target.value), setSalvo(false))} />
-          </label>
-          <label>
-            Observação (horário, quem vem buscar…)
-            <input value={obs} onChange={(e) => (setObs(e.target.value), setSalvo(false))} />
-          </label>
-          <button className="botao-principal" onClick={() => void salvar()}>
-            <Icone nome="certo" /> {salvo ? 'Salvo' : 'Salvar dia combinado'}
-          </button>
+          <div className="formulario combinar-campos">
+            <label>
+              Dia combinado
+              <input type="date" value={dia} onChange={(e) => (setDia(e.target.value), setSalvo(false))} />
+            </label>
+            <label>
+              Observação (horário, quem vem buscar…)
+              <input value={obs} onChange={(e) => (setObs(e.target.value), setSalvo(false))} />
+            </label>
+            <button className="botao-secundario" onClick={() => void salvar()}>
+              <Icone nome="certo" /> {salvo ? 'Salvo' : 'Salvar dia combinado'}
+            </button>
+          </div>
         </>
       ) : (
         <>

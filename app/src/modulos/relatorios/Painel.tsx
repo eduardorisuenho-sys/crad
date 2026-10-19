@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { doacoesDoPrograma, escreverCsv, indicadores, type FiltroRelatorio } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
+import { IconeAgua } from '../doacao/BotaoPlantandoAgua';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { mostrarNumero } from '../../plataforma/numero';
@@ -92,7 +93,7 @@ export function PainelRelatorios() {
         </div>
       )}
       <button className={`botao-programa ${soPrograma ? 'ativo' : ''}`} onClick={() => setSoPrograma(!soPrograma)} aria-pressed={soPrograma}>
-        <Icone nome="plantio" tamanho={32} />
+        <IconeAgua tamanho={32} />
         <span>
           <strong>Só Plantando Água</strong>
           <small>{soPrograma ? 'Mostrando só as doações do programa' : 'Toque para ver só o programa'}</small>

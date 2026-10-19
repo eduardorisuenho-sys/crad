@@ -5,10 +5,23 @@ import { useApp } from '../../contexto';
 import { marcarPrograma, PROGRAMA_PLANTANDO_AGUA } from './dados';
 
 export function IconeAgua({ tamanho = 28 }: { tamanho?: number }) {
+  // símbolo do Projeto Plantando Água: a gota entre duas folhas (cores do próprio projeto)
   return (
-    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 2C12 2 5 10 5 14.5A7 7 0 0 0 19 14.5C19 10 12 2 12 2Z" fill="currentColor" />
-      <path d="M7 17c2-1.2 3.5 1.2 5.5 0s3.5-1 4.5-.2" stroke="var(--branco)" strokeWidth="1.4" fill="none" />
+    <svg className="logo-plantando-agua" width={tamanho * 1.14} height={tamanho} viewBox="0 0 114 100" aria-hidden="true">
+      <defs>
+        <linearGradient id="pa-gota" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#22a0dc" />
+          <stop offset="1" stopColor="#0b5ea8" />
+        </linearGradient>
+        <linearGradient id="pa-folha" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stopColor="#a8d92c" />
+          <stop offset="0.55" stopColor="#3f8a12" />
+          <stop offset="1" stopColor="#15600a" />
+        </linearGradient>
+      </defs>
+      <path d="M57 0C47 11 34 27 28 40C42 45 52 53 57 71C62 53 72 45 86 40C80 27 67 11 57 0Z" fill="url(#pa-gota)" />
+      <path d="M4 23C-2 40-2 62 10 78C22 92 40 96 55 99C55 80 53 66 45 56C36 46 16 42 8 34C6 31 5 27 4 23Z" fill="url(#pa-folha)" />
+      <path d="M110 23C116 40 116 62 104 78C92 92 74 96 59 99C59 80 61 66 69 56C78 46 98 42 106 34C108 31 109 27 110 23Z" fill="url(#pa-folha)" />
     </svg>
   );
 }

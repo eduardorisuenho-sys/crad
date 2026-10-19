@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Transparencia as Dados } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
+import { IconeAgua } from '../doacao/BotaoPlantandoAgua';
 import { useApp } from '../../contexto';
 import { mostrarNumero } from '../../plataforma/numero';
 import { lerTransparencia, servidorPublico } from '../catalogo/api';
@@ -53,7 +54,9 @@ export function Transparencia() {
               <span>nos plantios acompanhados</span>
             </li>
             <li>
-              <small>Plantando Água</small>
+              <small className="com-logo">
+                <IconeAgua tamanho={18} /> Plantando Água
+              </small>
               <strong>{mostrarNumero(t.plantando_agua.mudas_doadas)}</strong>
               <span>mudas em {t.plantando_agua.doacoes} doações</span>
             </li>

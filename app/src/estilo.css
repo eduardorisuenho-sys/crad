@@ -346,3 +346,9 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .foto-datada { position: relative; display: inline-block; }
 .carimbo-data { position: absolute; left: 4px; bottom: 4px; background: rgba(51, 97, 141, 0.88); color: #fff; font-size: 0.72rem; font-weight: 600; line-height: 1; padding: 3px 5px; border-radius: 6px; pointer-events: none; }
 .foto-cartao { display: block; }
+/* combinar a retirada: telefone em destaque e campos um embaixo do outro */
+[data-testid='combinar-retirada'] .botao-telefone { width: 100%; margin: 6px 0 4px; }
+.combinar-campos { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--azul-escuro-10); }
+.com-logo { display: inline-flex; align-items: center; gap: 6px; }
+.logo-plantando-agua { flex: none; }
+.botao-programa.ativo .logo-plantando-agua { background: var(--branco); border-radius: 8px; padding: 2px; box-sizing: content-box; }
