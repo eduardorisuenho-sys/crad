@@ -57,7 +57,7 @@ export const PARTES_FOTO: { parte: string; rotulo: string; figura: string }[] = 
   { parte: 'flor', rotulo: 'Flor', figura: 'flor_amarela' },
   { parte: 'fruto', rotulo: 'Fruto', figura: 'fruto_carnoso' },
 ];
-const TIPOS_LOCAL = [
+export const TIPOS_LOCAL = [
   { valor: 'mata', rotulo: 'Mata' },
   { valor: 'app', rotulo: 'Beira de rio (APP)' },
   { valor: 'propriedade_rural', rotulo: 'Propriedade rural' },
@@ -65,7 +65,7 @@ const TIPOS_LOCAL = [
   { valor: 'beira_estrada', rotulo: 'Beira de estrada' },
   { valor: 'outro', rotulo: 'Outro' },
 ];
-const ESTADOS = [
+export const ESTADOS = [
   { valor: 'bom', rotulo: 'Boa, saudável' },
   { valor: 'regular', rotulo: 'Com alguns problemas' },
   { valor: 'ruim', rotulo: 'Doente ou muito danificada' },
@@ -322,7 +322,7 @@ export function NovaMatriz() {
                     setFotos((atuais) => [...atuais, nova]);
                   }}
                 >
-                  {tiradas.length ? <MiniaturaBlob blob={tiradas[tiradas.length - 1].miniatura} alt={p.rotulo} tamanho={72} /> : <FiguraOpcao nome={p.figura} />}
+                  {tiradas.length ? <MiniaturaBlob blob={tiradas[tiradas.length - 1].miniatura} alt={p.rotulo} tamanho={72} data={tiradas[tiradas.length - 1].tirada_em} /> : <FiguraOpcao nome={p.figura} />}
                   <span>
                     {p.rotulo}
                     {obrigatorias.includes(p.parte) && !tiradas.length ? ' *' : ''}

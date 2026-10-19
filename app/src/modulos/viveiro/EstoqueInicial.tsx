@@ -140,7 +140,7 @@ export function EstoqueInicial() {
             <input className="campo-grande" inputMode="numeric" pattern="[0-9]*" value={qtd} onChange={(e) => setQtd(e.target.value.replace(/\D/g, ''))} required autoFocus />
           </label>
           <div className="linha-foto">
-            {foto && <MiniaturaBlob blob={foto.miniatura} alt="Foto das mudas" tamanho={72} />}
+            {foto && <MiniaturaBlob blob={foto.miniatura} alt="Foto das mudas" tamanho={72} data={foto.tirada_em} />}
             <BotaoFoto aoEscolher={async (f) => setFoto(await prepararFoto(f, 'muda', null))} className="botao-secundario">
               <Icone nome="camera" /> {foto ? 'Trocar a foto' : 'Tirar foto das mudas (opcional)'}
             </BotaoFoto>

@@ -27,7 +27,7 @@ export function FotosLote({ loteId, viveiroId }: { loteId: string; viveiroId?: s
       {fotos.length ? (
         <div className="galeria">
           {fotos.map((f) => (
-            <Miniatura key={f.id} fotoId={f.id} alt="Foto das mudas" />
+            <Miniatura key={f.id} fotoId={f.id} alt="Foto das mudas" data={f} />
           ))}
         </div>
       ) : (

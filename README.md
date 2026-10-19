@@ -480,6 +480,30 @@ O que a etapa 1 entrega:
 - **Códigos do lote sem internet**: cada aparelho reserva uma faixa de códigos
   com o botão “Preparar para ir a campo”. Se a faixa acabar, o código fica
   provisório e o servidor troca pelo definitivo, avisando o usuário.
+- **Vários celulares e computadores ao mesmo tempo**: cada aparelho tem a
+  sua fila e a sua faixa de códigos. O servidor grava cada envio numa
+  transação, e a aprovação de pedidos é feita uma de cada vez, então nunca
+  reserva mais mudas do que existem. Edições de campos diferentes do mesmo
+  cadastro, feitas em aparelhos diferentes, se juntam. Se duas pessoas
+  mudam o mesmo campo, vale o servidor e o conflito fica registrado. O teste
+  `servidor/test/concorrencia.test.ts` simula 10 aparelhos enviando juntos,
+  dois gestores aprovando ao mesmo tempo pedidos que disputam as mesmas
+  mudas, e duas pessoas editando a mesma matriz.
+- **Toda foto tem data**: a data em que foi tirada aparece por cima de cada
+  foto (matrizes, coleta, lotes, espécies, plantio e catálogo) e no PDF das
+  fichas. Nas fotos antigas, sem essa data, vale a data do cadastro.
+- **Nova espécie**: só o nome popular é obrigatório. Sem nome científico ou
+  família, o app procura na Wikipédia em português (com os dados do
+  Wikidata ligados à página) assim que tiver internet, preenche só o que
+  estiver vazio e marca a espécie “para revisar”. Se não achar, deixa um
+  aviso e tenta de novo no dia seguinte. O grupo “Referência” não aparece
+  no cadastro de espécie nova.
+- **Botão Editar** em toda matriz, coleta e lote de sementes (a coleta tem
+  ficha própria). Só os campos alterados são enviados e tudo fica na
+  auditoria.
+- **Catálogo**: quando um lote pronto não aparece, o diagnóstico mostra o
+  motivo (inclusive “o servidor não tem este lote” ou “no servidor está em
+  outra espécie”) e oferece **Reenviar ao servidor**.
 - **Perfis por viveiro** (coletor, viveirista, gestor, solicitante). Cada
   pessoa só recebe os dados do seu viveiro.
 - **LGPD**: CPF, documento e telefone ficam numa tabela que só o gestor lê.

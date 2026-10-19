@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { saldoMudas } from '../src/viveiro';
-import { diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio, resumoCatalogo } from '../src/catalogo';
+import { dataDaFoto, diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio, resumoCatalogo } from '../src/catalogo';
 
 const base = {
   especies: [
@@ -202,5 +202,53 @@ describe('diagnóstico cruzado com o servidor', () => {
 
   it('o que o servidor recusou não entra no saldo', () => {
     expect(saldoMudas([{ tipo: 'entrada', quantidade: 10, _rejeitado: true }, { tipo: 'entrada', quantidade: 3 }])).toBe(3);
+  });
+});
+
+describe('o aparelho confere os lotes dele com todos os do servidor', () => {
+  const d = {
+    especies: [{ id: 'a' }, { id: 'b' }],
+    lotesMudas: [
+      { id: 'l1', codigo: 'LM-1', especie_id: 'a', fase_atual: 'pronta', versao: 2 },
+      { id: 'l2', codigo: 'LM-2', especie_id: 'a', fase_atual: 'pronta', versao: 2 },
+    ],
+    movimentos: [
+      { id: 'm1', lote_mudas_id: 'l1', tipo: 'entrada', quantidade: 5, versao: 2 },
+      { id: 'm2', lote_mudas_id: 'l2', tipo: 'entrada', quantidade: 5, versao: 2 },
+    ],
+    reservas: [],
+  };
+  it('lote que o servidor não tem e lote ligado a outra espécie no servidor', () => {
+    const noServidor = new Map([['LM-2', { situacao: 'no_catalogo', especie_id: 'b' }], ['LM-9', { situacao: 'no_catalogo', especie_id: 'b' }]]);
+    const r = diagnosticoCatalogo(d, new Set(['b']), 3, noServidor);
+    expect(Object.fromEntries(r.map((x) => [x.codigo, x.motivo]))).toEqual({ 'LM-1': 'nao_esta_no_servidor', 'LM-2': 'outra_especie' });
+  });
+  it('o resumo do servidor traz todos os lotes', () => {
+    expect(resumoCatalogo(d).lotes_servidor).toEqual([
+      { codigo: 'LM-1', situacao: 'no_catalogo', especie_id: 'a' },
+      { codigo: 'LM-2', situacao: 'no_catalogo', especie_id: 'a' },
+    ]);
+  });
+});
+
+describe('data das fotos', () => {
+  it('usa a data em que foi tirada; nas fotos antigas, a data do cadastro', () => {
+    expect(dataDaFoto({ tirada_em: '2026-05-02T10:00:00Z', criado_no_aparelho_em: '2026-06-01T00:00:00Z' })).toBe('2026-05-02T10:00:00Z');
+    expect(dataDaFoto({ criado_no_aparelho_em: '2026-06-01T00:00:00Z' })).toBe('2026-06-01T00:00:00Z');
+    expect(dataDaFoto({ created: '2026-07-01 08:00:00.000Z' })).toBe('2026-07-01 08:00:00.000Z');
+    expect(dataDaFoto({})).toBe('');
+  });
+
+  it('a foto do catálogo leva a data', () => {
+    const c = montarCatalogo({
+      especies: [{ id: 'e1', nome_cientifico: 'Datia fotografica' }],
+      nomesPopulares: [],
+      viveiros: [{ id: 'v1', nome: 'V' }],
+      lotesMudas: [{ id: 'l1', especie_id: 'e1', fase_atual: 'pronta', viveiro_id: 'v1' }],
+      movimentos: [{ id: 'm1', lote_mudas_id: 'l1', tipo: 'entrada', quantidade: 5 }],
+      reservas: [],
+      fotos: [{ id: 'f1', especie_id: 'e1', parte: 'muda', arquivo: 'a.jpg', miniatura: 'b.jpg', tirada_em: '2026-05-02T10:00:00Z' }],
+    });
+    expect(c[0].foto).toMatchObject({ id: 'f1', data: '2026-05-02T10:00:00Z' });
   });
 });

@@ -21,6 +21,7 @@ import { DetalheMatriz } from './modulos/matrizes/DetalheMatriz';
 import { LerQr } from './modulos/matrizes/LerQr';
 import { ListaMatrizes } from './modulos/matrizes/ListaMatrizes';
 import { NovaMatriz } from './modulos/matrizes/NovaMatriz';
+import { FichaColeta } from './modulos/coleta/FichaColeta';
 import { DetalheLote } from './modulos/coleta/DetalheLote';
 import { InicioColeta } from './modulos/coleta/InicioColeta';
 import { NovaColeta } from './modulos/coleta/NovaColeta';
@@ -99,6 +100,7 @@ function Rotas() {
       <Route path="/coleta/relatorio" element={<RelatorioServico />} />
       <Route path="/coleta/rota" element={<RotaColeta />} />
       <Route path="/coleta/lotes/:id" element={<DetalheLote />} />
+      <Route path="/coleta/:id" element={<FichaColeta />} />
       <Route path="/viveiro" element={<InicioViveiro />} />
       <Route path="/viveiro/semeadura" element={<NovaSemeadura />} />
       <Route path="/viveiro/lotes/:id" element={<DetalheLoteMudas />} />

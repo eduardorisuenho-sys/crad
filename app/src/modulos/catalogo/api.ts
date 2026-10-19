@@ -77,7 +77,7 @@ export const lerCatalogo = (s: string) => lerComCopia<{ itens: ItemCatalogo[]; g
 export interface EspeciePublica {
   ficha: Record<string, unknown> & { id: string; nome_cientifico: string };
   nomes_populares: string[];
-  fotos: { id: string; parte: string; arquivo: string; miniatura: string; credito: string; colecao?: string }[];
+  fotos: { id: string; parte: string; arquivo: string; miniatura: string; credito: string; colecao?: string; data?: string }[];
   lotes: { disponivel: number; viveiro: string; rastreio: RastreioPublico }[];
 }
 export const lerEspecie = (s: string, id: string) => lerComCopia<EspeciePublica>(s, `/api/crads/publico/especie/${encodeURIComponent(id)}`);

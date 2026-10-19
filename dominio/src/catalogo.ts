@@ -26,7 +26,13 @@ export interface ItemCatalogo {
   por_viveiro: { viveiro_id: string; viveiro: string; disponivel: number }[];
   total: number;
   /** colecao = 'foto' quando é foto das mudas de um lote (servida por outra rota) */
-  foto?: { id: string; arquivo: string; miniatura: string; parte: string; colecao?: string };
+  foto?: { id: string; arquivo: string; miniatura: string; parte: string; colecao?: string; data?: string };
+}
+
+/** Quando a foto foi tirada: a data registrada no aparelho ou, em fotos antigas, a do cadastro. */
+export function dataDaFoto(f: Record<string, unknown>): string {
+  for (const k of ['tirada_em', 'criado_no_aparelho_em', 'created']) if (typeof f[k] === 'string' && f[k]) return String(f[k]);
+  return '';
 }
 
 const ativos = (rs: Reg[]) => rs.filter((r) => !r.excluido);
@@ -86,7 +92,7 @@ export function montarCatalogo(d: DadosCatalogo): ItemCatalogo[] {
         nomes_populares: (populares.get(e.id) ?? []).map((n) => String(n.nome)),
         por_viveiro: [],
         total: 0,
-        foto: fs[0] ? { id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String(fs[0].miniatura ?? ''), parte: String(fs[0].parte), ...(fs[0].colecao ? { colecao: String(fs[0].colecao) } : {}) } : undefined,
+        foto: fs[0] ? { id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String(fs[0].miniatura ?? ''), parte: String(fs[0].parte), ...(fs[0].colecao ? { colecao: String(fs[0].colecao) } : {}), ...(dataDaFoto(fs[0]) ? { data: dataDaFoto(fs[0]) } : {}) } : undefined,
       };
       itens.set(e.id, item);
     }
@@ -183,6 +189,8 @@ export type MotivoForaDoCatalogo =
   | 'sem_entrada_no_servidor'
   | 'especie_apagada'
   | 'esgotado_no_servidor'
+  | 'nao_esta_no_servidor'
+  | 'outra_especie'
   | 'servidor';
 
 export interface LoteForaDoCatalogo {
@@ -203,7 +211,7 @@ export function diagnosticoCatalogo(
   d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>,
   noCatalogo: Set<string>,
   regrasServidor: number | undefined,
-  noServidor: Map<string, string> = new Map(),
+  noServidor: Map<string, string | { situacao: string; especie_id?: string }> = new Map(),
   hoje = new Date().toISOString(),
 ): LoteForaDoCatalogo[] {
   const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
@@ -217,7 +225,10 @@ export function diagnosticoCatalogo(
     if (saldo <= 0) continue;
     const especie_id = String(l.especie_id);
     if (noCatalogo.has(especie_id)) continue;
-    const situacao = noServidor.get(String(l.codigo ?? ''));
+    const noSrv = noServidor.get(String(l.codigo ?? ''));
+    const situacao = typeof noSrv === 'string' ? noSrv : noSrv?.situacao;
+    // o servidor manda todos os lotes (versão nova): dá para saber se ele tem este
+    const servidorListaTodos = [...noServidor.values()].some((v) => typeof v === 'object');
     let motivo: MotivoForaDoCatalogo;
     if (l._rejeitado || doLote.some((m) => m._rejeitado)) motivo = 'recusado';
     else if (l.fase_atual !== 'pronta') motivo = 'em_formacao';
@@ -227,6 +238,8 @@ export function diagnosticoCatalogo(
     else if (situacao === 'sem_entrada') motivo = 'sem_entrada_no_servidor';
     else if (situacao === 'sem_especie') motivo = 'especie_apagada';
     else if (situacao === 'esgotado') motivo = 'esgotado_no_servidor';
+    else if (servidorListaTodos && !noSrv) motivo = 'nao_esta_no_servidor';
+    else if (typeof noSrv === 'object' && noSrv.especie_id && noSrv.especie_id !== especie_id) motivo = 'outra_especie';
     else motivo = 'servidor';
     fora.push({ lote_id: l.id, codigo: String(l.codigo ?? ''), especie_id, saldo, motivo });
   }
@@ -248,13 +261,15 @@ export interface ResumoCatalogo {
   sem_especie: number;
   /** situação de cada lote fora do catálogo, pelo código (público, como no rastreio) */
   fora: { codigo: string; situacao: SituacaoNoServidor }[];
+  /** todos os lotes do servidor (código, situação e espécie): o aparelho confere os dele */
+  lotes_servidor: { codigo: string; situacao: SituacaoNoServidor; especie_id: string }[];
 }
 
 export function resumoCatalogo(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos' | 'reservas' | 'especies'>, hoje = new Date().toISOString()): ResumoCatalogo {
   const movs = agrupar(ativos(d.movimentos), 'lote_mudas_id');
   const disp = disponivelPorLote(d, hoje);
   const especies = new Map(ativos(d.especies).map((e) => [e.id, e]));
-  const r: ResumoCatalogo = { lotes: 0, no_catalogo: 0, em_formacao: 0, reservadas: 0, sem_entrada: 0, esgotado: 0, sem_especie: 0, fora: [] };
+  const r: ResumoCatalogo = { lotes: 0, no_catalogo: 0, em_formacao: 0, reservadas: 0, sem_entrada: 0, esgotado: 0, sem_especie: 0, fora: [], lotes_servidor: [] };
   for (const l of ativos(d.lotesMudas)) {
     if (l.situacao === 'encerrado') continue;
     r.lotes++;
@@ -268,6 +283,7 @@ export function resumoCatalogo(d: Pick<DadosCatalogo, 'lotesMudas' | 'movimentos
     else s = 'no_catalogo';
     r[s]++;
     if (s !== 'no_catalogo') r.fora.push({ codigo: String(l.codigo ?? ''), situacao: s });
+    r.lotes_servidor.push({ codigo: String(l.codigo ?? ''), situacao: s, especie_id: String(l.especie_id ?? '') });
   }
   return r;
 }

@@ -1,6 +1,7 @@
 /** Ficha pública da espécie: fotos, como reconhecer, onde tem mudas e rastreio dos lotes. */
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { dataCarimbo } from '../../componentes/Miniatura';
 import { useApp } from '../../contexto';
 import { NOMES_MESES, rotulo } from '../especies/rotulos';
 import { lerEspecie, servidorPublico, urlFoto, type EspeciePublica as Dados } from './api';
@@ -50,6 +51,7 @@ export function EspeciePublica() {
                   <figcaption>
                     {ft.parte}
                     {ft.credito ? ` · ${ft.credito}` : ''}
+                    {dataCarimbo(ft.data) ? <span data-testid="data-foto"> · {dataCarimbo(ft.data)}</span> : null}
                   </figcaption>
                 </figure>
               ))}

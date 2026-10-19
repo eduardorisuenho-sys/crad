@@ -26,6 +26,7 @@ import {
   existeColecao,
   fichaPublica,
   montarCatalogo,
+  dataDaFoto,
   REGRAS_CATALOGO,
   resumoCatalogo,
   montarTransparencia,
@@ -871,7 +872,7 @@ function fotosDasMudas(app: App): Livre[] {
   return todos(app, 'foto')
     .filter((f) => f.entidade === 'lote_mudas' && f.arquivo && lotes.has(String(f.registro_id)))
     .sort((a, b) => String(b.tirada_em ?? b.criado_no_aparelho_em ?? '').localeCompare(String(a.tirada_em ?? a.criado_no_aparelho_em ?? '')))
-    .map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id))!.especie_id, parte: 'muda', arquivo: f.arquivo, miniatura: f.miniatura, credito: 'Viveiro', colecao: 'foto' }));
+    .map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id))!.especie_id, parte: 'muda', arquivo: f.arquivo, miniatura: f.miniatura, credito: 'Viveiro', colecao: 'foto', tirada_em: dataDaFoto(f) }));
 }
 
 /** GET /api/crads/publico/foto/{id}/{arquivo} — foto das mudas de um lote. */
@@ -920,7 +921,7 @@ export function especiePublica(app: App, id: string) {
   return {
     ficha: fichaPublica(e),
     nomes_populares: d.nomesPopulares.filter((n) => n.especie_id === id).map((n) => String(n.nome)),
-    fotos: d.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => ({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: f.credito ?? '', ...(f.colecao ? { colecao: f.colecao } : {}) })),
+    fotos: d.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => ({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: f.credito ?? '', data: dataDaFoto(f), ...(f.colecao ? { colecao: f.colecao } : {}) })),
     lotes,
   };
 }

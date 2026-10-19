@@ -243,7 +243,7 @@ var COLECOES = [
     natureza: "cadastro",
     porViveiro: false,
     campos: [
-      t("nome_cientifico", true),
+      t("nome_cientifico"),
       t("autor"),
       t("familia"),
       t("flora_id"),
@@ -298,7 +298,7 @@ var COLECOES = [
     natureza: "cadastro",
     porViveiro: false,
     publico: true,
-    campos: [r("especie_id", "especie", true), o("parte", PARTES_PLANTA, true), arq("arquivo"), arq("miniatura"), t("credito"), t("licenca")],
+    campos: [r("especie_id", "especie", true), o("parte", PARTES_PLANTA, true), arq("arquivo"), arq("miniatura"), t("credito"), t("licenca"), d("tirada_em")],
     indices: ["especie_id"],
     leitura: "todos",
     escrita: SO_GESTOR
@@ -1167,6 +1167,10 @@ function marcadaNoPrograma(historico, doacaoId, programaId) {
 }
 
 // ../dominio/src/catalogo.ts
+function dataDaFoto(f) {
+  for (const k of ["tirada_em", "criado_no_aparelho_em", "created"]) if (typeof f[k] === "string" && f[k]) return String(f[k]);
+  return "";
+}
 var ativos2 = (rs) => rs.filter((r2) => !r2.excluido);
 function agrupar(rs, campo) {
   var _a;
@@ -1218,7 +1222,7 @@ function montarCatalogo(d2) {
         nomes_populares: ((_d = populares.get(e.id)) != null ? _d : []).map((n2) => String(n2.nome)),
         por_viveiro: [],
         total: 0,
-        foto: fs[0] ? __spreadValues({ id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String((_e = fs[0].miniatura) != null ? _e : ""), parte: String(fs[0].parte) }, fs[0].colecao ? { colecao: String(fs[0].colecao) } : {}) : void 0
+        foto: fs[0] ? __spreadValues(__spreadValues({ id: fs[0].id, arquivo: String(fs[0].arquivo), miniatura: String((_e = fs[0].miniatura) != null ? _e : ""), parte: String(fs[0].parte) }, fs[0].colecao ? { colecao: String(fs[0].colecao) } : {}), dataDaFoto(fs[0]) ? { data: dataDaFoto(fs[0]) } : {}) : void 0
       };
       itens.set(e.id, item);
     }
@@ -1286,11 +1290,11 @@ function fichaPublica(e) {
 }
 var REGRAS_CATALOGO = 3;
 function resumoCatalogo(d2, hoje = (/* @__PURE__ */ new Date()).toISOString()) {
-  var _a, _b, _c;
+  var _a, _b, _c, _d, _e;
   const movs = agrupar(ativos2(d2.movimentos), "lote_mudas_id");
   const disp = disponivelPorLote(d2, hoje);
   const especies = new Map(ativos2(d2.especies).map((e) => [e.id, e]));
-  const r2 = { lotes: 0, no_catalogo: 0, em_formacao: 0, reservadas: 0, sem_entrada: 0, esgotado: 0, sem_especie: 0, fora: [] };
+  const r2 = { lotes: 0, no_catalogo: 0, em_formacao: 0, reservadas: 0, sem_entrada: 0, esgotado: 0, sem_especie: 0, fora: [], lotes_servidor: [] };
   for (const l of ativos2(d2.lotesMudas)) {
     if (l.situacao === "encerrado") continue;
     r2.lotes++;
@@ -1304,6 +1308,7 @@ function resumoCatalogo(d2, hoje = (/* @__PURE__ */ new Date()).toISOString()) {
     else s = "no_catalogo";
     r2[s]++;
     if (s !== "no_catalogo") r2.fora.push({ codigo: String((_c = l.codigo) != null ? _c : ""), situacao: s });
+    r2.lotes_servidor.push({ codigo: String((_d = l.codigo) != null ? _d : ""), situacao: s, especie_id: String((_e = l.especie_id) != null ? _e : "") });
   }
   return r2;
 }
@@ -2258,7 +2263,7 @@ function fotosDasMudas(app) {
   return todos(app, "foto").filter((f) => f.entidade === "lote_mudas" && f.arquivo && lotes.has(String(f.registro_id))).sort((a, b2) => {
     var _a, _b, _c, _d;
     return String((_b = (_a = b2.tirada_em) != null ? _a : b2.criado_no_aparelho_em) != null ? _b : "").localeCompare(String((_d = (_c = a.tirada_em) != null ? _c : a.criado_no_aparelho_em) != null ? _d : ""));
-  }).map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id)).especie_id, parte: "muda", arquivo: f.arquivo, miniatura: f.miniatura, credito: "Viveiro", colecao: "foto" }));
+  }).map((f) => ({ id: f.id, especie_id: lotes.get(String(f.registro_id)).especie_id, parte: "muda", arquivo: f.arquivo, miniatura: f.miniatura, credito: "Viveiro", colecao: "foto", tirada_em: dataDaFoto(f) }));
 }
 function fotoMudaPublica(app, id, arquivo) {
   const f = buscar(app, "foto", id);
@@ -2306,7 +2311,7 @@ function especiePublica(app, id) {
     nomes_populares: d2.nomesPopulares.filter((n2) => n2.especie_id === id).map((n2) => String(n2.nome)),
     fotos: d2.fotos.filter((f) => f.especie_id === id && f.arquivo).map((f) => {
       var _a;
-      return __spreadValues({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: (_a = f.credito) != null ? _a : "" }, f.colecao ? { colecao: f.colecao } : {});
+      return __spreadValues({ id: f.id, parte: f.parte, arquivo: f.arquivo, miniatura: f.miniatura, credito: (_a = f.credito) != null ? _a : "", data: dataDaFoto(f) }, f.colecao ? { colecao: f.colecao } : {});
     }),
     lotes
   };

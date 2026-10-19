@@ -78,6 +78,8 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, li
   await v.getByLabel('Quantas mudas?').fill('40');
   await v.locator('label', { hasText: 'Tirar foto das mudas' }).locator('input').setInputFiles(fileURLToPath(new URL('./fixtures/foto.jpg', import.meta.url)));
   await expect(v.getByRole('img', { name: 'Foto das mudas' })).toBeVisible();
+  // toda foto mostra a data em que foi tirada
+  await expect(v.getByTestId('data-foto')).toHaveText(new Date().toLocaleDateString('pt-BR'));
   await v.getByRole('button', { name: 'Salvar' }).click();
   await expect(v.getByTestId('fora-do-catalogo')).toHaveCount(0);
   await expect.poll(() => noCatalogo('Árvore-do-estoque'), { timeout: 20_000 }).toBe(40);
@@ -93,7 +95,8 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, li
   await expect
     .poll(async () => ((await (await fetch(`${PB()}/api/crads/publico/catalogo`)).json()).itens as { nomes_populares: string[]; foto?: { colecao?: string } }[]).find((i) => i.nomes_populares.includes('Árvore-do-estoque'))?.foto?.colecao, { timeout: 20_000 })
     .toBe('foto');
-  const item = ((await (await fetch(`${PB()}/api/crads/publico/catalogo`)).json()).itens as { nomes_populares: string[]; foto: { id: string; arquivo: string } }[]).find((i) => i.nomes_populares.includes('Árvore-do-estoque'))!;
+  const item = ((await (await fetch(`${PB()}/api/crads/publico/catalogo`)).json()).itens as { nomes_populares: string[]; foto: { id: string; arquivo: string; data?: string } }[]).find((i) => i.nomes_populares.includes('Árvore-do-estoque'))!;
+  expect(item.foto.data).toMatch(/^\d{4}-\d{2}-\d{2}/);
   const img = await fetch(`${PB()}/api/crads/publico/foto/${item.foto.id}/${item.foto.arquivo}`);
   expect(img.status).toBe(200);
   expect(img.headers.get('content-type')).toMatch(/image/);

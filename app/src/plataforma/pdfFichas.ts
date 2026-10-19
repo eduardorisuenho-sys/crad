@@ -18,6 +18,8 @@ export interface FichaPdf {
   destaque?: string;
   /** foto já em data URL (JPEG) */
   foto?: string | null;
+  /** data em que a foto foi tirada (dd/mm/aaaa) */
+  dataFoto?: string;
 }
 
 export interface EtiquetaPdf {
@@ -127,6 +129,11 @@ export async function fichasPdf(titulo: string, subtitulo: string, fichas: Ficha
         pdf.addImage(f.foto, 'JPEG', 15, y0, 60, 60);
       } catch {
         /* imagem ilegível: segue sem foto */
+      }
+      if (f.dataFoto) {
+        pdf.setFontSize(8);
+        pdf.setTextColor(...CINZA);
+        pdf.text(`Foto de ${f.dataFoto}`, 15, y0 + 64);
       }
     } else {
       pdf.setDrawColor(200, 210, 220);

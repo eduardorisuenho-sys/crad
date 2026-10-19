@@ -91,3 +91,38 @@ test('sem a lista no servidor, o app mostra o motivo e pede para baixar agora', 
   await expect(page.getByTestId('situacao-flora')).toContainText('baixando');
   await expect(page.getByTestId('situacao-flora')).toContainText('Motivo:', { timeout: 30_000 });
 });
+
+test('nova espécie só com o nome popular: o app completa nome científico e família pela Wikipédia', async ({ page, context }) => {
+  // Wikipédia e Wikidata de mentira (o teste não sai para a internet)
+  await context.route('https://pt.wikipedia.org/**', (r) =>
+    r.fulfill({ contentType: 'application/json', body: JSON.stringify({ query: { pages: { '1': { title: 'Árvore-wiki-teste', extract: 'É uma árvore nativa do Cerrado.', pageprops: { wikibase_item: 'Q901' } } } } }) }),
+  );
+  const arvore: Record<string, Record<string, unknown>> = {
+    Q901: { P225: 'Wikiana testea', P105: 'Q7432', P171: 'Q902' },
+    Q902: { P225: 'Wikiana', P105: 'Q34740', P171: 'Q903' },
+    Q903: { P225: 'Testaceae', P105: 'Q35409', P171: 'Q25314' },
+    Q25314: { P225: 'Angiospermae' },
+  };
+  await context.route('https://www.wikidata.org/**', (r) => {
+    const id = new URL(r.request().url()).searchParams.get('ids')!;
+    const e = arvore[id] ?? {};
+    const claims: Record<string, unknown[]> = {};
+    for (const [p, v] of Object.entries(e)) claims[p] = [{ mainsnak: { datavalue: { value: p === 'P225' ? v : { id: v } } } }];
+    return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ entities: { [id]: { claims } } }) });
+  });
+  await entrarComoGestora(page);
+  await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
+  await page.goto('/especies/nova');
+  await expect(page.getByRole('heading', { name: 'Referência' })).toHaveCount(0); // sem referências na espécie nova
+  await expect(page.getByTestId('dica-wikipedia')).toContainText('Só o nome popular é obrigatório');
+  // sem nome popular não salva
+  await page.getByRole('button', { name: 'Salvar ficha' }).click();
+  await expect(page.getByText('Escreva pelo menos um nome popular.')).toBeVisible();
+  await page.getByTestId('nomes-populares').getByLabel('Novo nome popular').fill('Árvore-wiki-teste');
+  await page.getByRole('button', { name: 'Salvar ficha' }).click();
+  await expect(page).toHaveURL(/\/especies\/[a-z0-9]{10,}/);
+  await expect(page.getByLabel('Nome científico')).toHaveValue('Wikiana testea', { timeout: 20_000 });
+  await expect(page.getByLabel('Família')).toHaveValue('Testaceae');
+  await expect(page.getByText(/Revisar: Nome científico e família preenchidos pela Wikipédia \(https:\/\/pt\.wikipedia\.org\/wiki\//)).toBeVisible();
+  await expect.poll(async () => (await lerDoServidor('especie')).find((e) => e.nome_cientifico === 'Wikiana testea')?.familia, { timeout: 20_000 }).toBe('Testaceae');
+});

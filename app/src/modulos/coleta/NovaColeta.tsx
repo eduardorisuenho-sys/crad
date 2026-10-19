@@ -226,7 +226,7 @@ export function NovaColeta() {
           {cabecalhoMatriz}
           <h2 className="pergunta">Foto do que foi colhido</h2>
           <BotaoFoto className={`opcao ${foto ? 'ativa' : ''}`} aoEscolher={async (f) => setFoto(await prepararFoto(f, material === 'fruto' ? 'fruto' : 'semente', gps))}>
-            {foto ? <MiniaturaBlob blob={foto.miniatura} alt="Material colhido" tamanho={96} /> : <FiguraOpcao nome="fruto_carnoso" />}
+            {foto ? <MiniaturaBlob blob={foto.miniatura} alt="Material colhido" tamanho={96} data={foto.tirada_em} /> : <FiguraOpcao nome="fruto_carnoso" />}
             <span>{foto ? 'Trocar foto' : 'Tirar foto'}</span>
           </BotaoFoto>
           <button className="botao-principal" onClick={() => setEtapa('conferir')}>

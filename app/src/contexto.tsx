@@ -1,4 +1,5 @@
 /** Estado global do app: banco local, sessão, viveiro atual e sincronização. */
+import { completarEspeciesPelaWikipedia } from './modulos/especies/completarWikipedia';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { matrizDe, notificacaoPara, temPermissao, type MatrizPermissoes, type Notificacao, type Perfil } from '@crads/dominio';
@@ -148,6 +149,14 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
       window.clearInterval(t);
     };
   }, [sessao?.id, sincronizar]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Espécies sem nome científico ou família: com internet, completa pela Wikipédia (quem cuida das espécies).
+  const podeEspecies = !!sessao && temPermissao({ ...sessao, permissoes: matrizRef.current }, 'especies', undefined);
+  useEffect(() => {
+    if (!sessao || !podeEspecies || !online) return;
+    const t = window.setTimeout(() => void completarEspeciesPelaWikipedia(db, repo).catch(() => undefined), 8_000);
+    return () => window.clearTimeout(t);
+  }, [sessao?.id, podeEspecies, online, ultimaSync]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!sessao || !pendentes || !navigator.onLine) return;

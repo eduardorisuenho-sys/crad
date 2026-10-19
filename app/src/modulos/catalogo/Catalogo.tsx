@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { normalizarBusca, type ItemCatalogo, type ResumoCatalogo } from '@crads/dominio';
 import { BotaoPdf } from '../../componentes/BotaoPdf';
 import { Icone } from '../../componentes/Icone';
+import { dataCarimbo } from '../../componentes/Miniatura';
 import { gerarFichasPdf } from './fichasPdf';
 import { useApp } from '../../contexto';
 import { lerCatalogo, servidorPublico, urlFoto } from './api';
@@ -43,7 +44,11 @@ export function Catalogo() {
     for (const i of itens ?? []) for (const v of i.por_viveiro) m.set(v.viveiro_id, v.viveiro);
     return [...m.entries()];
   }, [itens]);
-  const noServidor = useMemo(() => new Map((resumo?.fora ?? []).map((f) => [f.codigo, f.situacao as string])), [resumo]);
+  // situação de cada lote no servidor (a versão nova manda todos; a antiga, só os de fora)
+  const noServidor = useMemo(
+    () => new Map<string, string | { situacao: string; especie_id?: string }>(resumo?.lotes_servidor ? resumo.lotes_servidor.map((l) => [l.codigo, { situacao: l.situacao, especie_id: l.especie_id }]) : (resumo?.fora ?? []).map((f) => [f.codigo, f.situacao as string])),
+    [resumo],
+  );
   const noCatalogo = useMemo(() => new Set((itens ?? []).map((i) => i.especie_id)), [itens]);
   const lista = (itens ?? []).filter((i) => {
     if (viveiro && !i.por_viveiro.some((v) => v.viveiro_id === viveiro)) return false;
@@ -86,7 +91,16 @@ export function Catalogo() {
           return (
             <li key={i.especie_id}>
               <Link to={`/catalogo/${i.especie_id}`} className="cartao-especie">
-                {i.foto ? <img src={urlFoto(servidor, i.foto)} alt="" loading="lazy" /> : <span className="sem-foto"><Icone nome="muda" tamanho={48} /></span>}
+                {i.foto ? (
+                  <span className="foto-datada foto-cartao">
+                    <img src={urlFoto(servidor, i.foto)} alt="" loading="lazy" />
+                    {dataCarimbo(i.foto.data) && (
+                      <span className="carimbo-data" data-testid="data-foto">
+                        {dataCarimbo(i.foto.data)}
+                      </span>
+                    )}
+                  </span>
+                ) : <span className="sem-foto"><Icone nome="muda" tamanho={48} /></span>}
                 <strong>{i.nomes_populares[0] ?? i.nome_cientifico}</strong>
                 <small>
                   <i>{i.nome_cientifico}</i>

@@ -1,7 +1,7 @@
 /**
  * Módulo 2: coleta em campo. Cada coleta vira um lote de sementes sozinha
- * (no servidor); tocar na coleta abre a ficha do lote (pesar, semear,
- * teste de germinação, descarte, etiqueta).
+ * (no servidor); tocar na coleta abre a ficha dela (editar, excluir) com o
+ * caminho para o lote (pesar, semear, teste de germinação, descarte, etiqueta).
  */
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -68,13 +68,10 @@ export function InicioColeta() {
               );
               return (
                 <li key={c.id}>
-                  {lote ? (
-                    <Link to={`/coleta/lotes/${lote}`} className="item-lista">
-                      {conteudo}
-                    </Link>
-                  ) : (
-                    <div className="item-lista">{conteudo}</div>
-                  )}
+                  <Link to={`/coleta/${c.id}`} className="item-lista">
+                    {conteudo}
+                    {lote && <span className="selo">lote</span>}
+                  </Link>
                 </li>
               );
             })}

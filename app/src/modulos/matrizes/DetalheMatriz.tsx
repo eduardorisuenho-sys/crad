@@ -13,6 +13,8 @@ import { fotoGuardadaOuBaixada } from '../../dados/arquivos';
 import { EscolherEspecie } from '../especies/EscolherEspecie';
 import { ROTULO_CERTEZA } from './ListaMatrizes';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
+import { EditarRegistro } from '../../componentes/EditarRegistro';
+import { ESTADOS, TIPOS_LOCAL } from './NovaMatriz';
 
 const ROTULO_FASE: Record<string, string> = { folha: 'Só folhas', flor: 'Flor', fruto_verde: 'Fruto verde', fruto_maduro: 'Fruto maduro', sem_folha: 'Sem folhas' };
 
@@ -152,7 +154,7 @@ export function DetalheMatriz() {
           <div className="galeria">
             {fotos.map((f) => (
               <figure key={f.id}>
-                <Miniatura fotoId={f.id} alt={String(f.parte)} />
+                <Miniatura fotoId={f.id} alt={String(f.parte)} data={f} />
                 <figcaption>{String(f.parte)}</figcaption>
               </figure>
             ))}
@@ -210,6 +212,25 @@ export function DetalheMatriz() {
           </button>
         </section>
       )}
+      <EditarRegistro
+        colecao="matriz"
+        registro={m}
+        rotulo="Editar a matriz"
+        podeEditar={!!sessao && (sessao.gestorGeral || pode('cadastrar_matriz', m.viveiro_id) || m.criado_por === sessao.id)}
+        campos={[
+          { nome: 'especie_id', rotulo: 'Espécie', tipo: 'especie' },
+          { nome: 'grau_certeza', rotulo: 'Certeza da espécie', tipo: 'opcao', opcoes: Object.entries(ROTULO_CERTEZA).map(([valor, rotulo]) => ({ valor, rotulo })) },
+          { nome: 'situacao', rotulo: 'Situação da árvore', tipo: 'opcao', opcoes: [{ valor: 'ativa', rotulo: 'Viva (ativa)' }, { valor: 'inativa', rotulo: 'Inativa (não coletar)' }, { valor: 'morta', rotulo: 'Morta' }] },
+          { nome: 'gps', rotulo: 'Local (GPS)', tipo: 'gps' },
+          { nome: 'descricao_local', rotulo: 'Como chegar / referência do local', tipo: 'textoLongo' },
+          { nome: 'tipo_local', rotulo: 'Tipo de local', tipo: 'opcao', opcoes: TIPOS_LOCAL },
+          { nome: 'altura_m', rotulo: 'Altura (m)', tipo: 'numero' },
+          { nome: 'dap_cm', rotulo: 'DAP (cm)', tipo: 'numero' },
+          { nome: 'cap_cm', rotulo: 'CAP (cm)', tipo: 'numero' },
+          { nome: 'estado_fitossanitario', rotulo: 'Saúde da árvore', tipo: 'opcao', opcoes: ESTADOS },
+          { nome: 'observacao', rotulo: 'Observação', tipo: 'textoLongo' },
+        ]}
+      />
       <BotaoExcluir colecao="matriz" registro={m} voltarPara="/matrizes" />
     </Tela>
   );

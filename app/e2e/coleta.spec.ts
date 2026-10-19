@@ -84,6 +84,8 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   await expect(page.getByRole('link', { name: 'Lotes de sementes' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Armazenamento' })).toHaveCount(0);
   await page.locator('a.item-lista', { hasText: 'MT-9001' }).filter({ hasText: '2,5 kg' }).click();
+  await expect(page.getByTestId('ficha-coleta')).toContainText('2,5 quilos (kg) de frutos');
+  await page.getByRole('link', { name: 'Abrir o lote de sementes' }).click();
   await expect(page).toHaveURL(new RegExp(`/coleta/lotes/${loteId}$`));
 
   // o lote automático (de frutos) pede o peso das sementes limpas

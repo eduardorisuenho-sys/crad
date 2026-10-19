@@ -146,7 +146,7 @@ export function DetalhePlantio() {
               const aviso = conferirFoto({ lat: f.lat, lon: f.lon }, local, distMax);
               return (
                 <figure key={f.id}>
-                  <Miniatura fotoId={f.id} alt="Foto do plantio" />
+                  <Miniatura fotoId={f.id} alt="Foto do plantio" data={f} />
                   <figcaption className={aviso ? 'alerta-texto' : ''} data-testid="legenda-foto">
                     {aviso ? `conferir: ${aviso}` : data(f.tirada_em)}
                   </figcaption>

@@ -22,7 +22,7 @@ export function FotosEspecie({ especieId, editavel }: { especieId: string; edita
 
   async function adicionar(arquivo: File, parte: string) {
     const c = await comprimirFoto(arquivo);
-    const reg = await repo.salvar('especie_foto', { especie_id: especieId, parte });
+    const reg = await repo.salvar('especie_foto', { especie_id: especieId, parte, tirada_em: new Date().toISOString() });
     await db._miniaturas.put({ id: reg.id, blob: c.miniatura });
     await repo.anexarArquivo('especie_foto', reg.id, 'arquivo', c.foto, `${parte}.jpg`);
     await repo.anexarArquivo('especie_foto', reg.id, 'miniatura', c.miniatura, `${parte}-mini.jpg`);
@@ -35,7 +35,7 @@ export function FotosEspecie({ especieId, editavel }: { especieId: string; edita
         <div className="galeria">
           {fotos.map((f) => (
             <figure key={f.id}>
-              <Miniatura fotoId={f.id} alt={String(f.parte)} />
+              <Miniatura fotoId={f.id} alt={String(f.parte)} data={f} />
               <figcaption>
                 {String(f.parte)}
                 {editavel && (

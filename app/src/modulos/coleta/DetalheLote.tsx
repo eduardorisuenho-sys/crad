@@ -10,6 +10,7 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from './dados';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
+import { EditarRegistro } from '../../componentes/EditarRegistro';
 
 const TIPOS = [
   { valor: 'teste', rotulo: 'Teste de germinação', saida: true },
@@ -235,6 +236,21 @@ export function DetalheLote() {
           ))}
         </ul>
       </section>
+      <EditarRegistro
+        colecao="lote_sementes"
+        registro={lote}
+        rotulo="Editar o lote de sementes"
+        podeEditar={pode('lotes_sementes', lote.viveiro_id)}
+        campos={[
+          { nome: 'validade', rotulo: 'Validade', tipo: 'data' },
+          { nome: 'sementes_estimadas', rotulo: 'Número de sementes (estimado)', tipo: 'numero' },
+          { nome: 'umidade_pct', rotulo: 'Umidade (%)', tipo: 'numero' },
+          { nome: 'germinacao_teste_pct', rotulo: 'Teste de germinação (%)', tipo: 'numero' },
+          { nome: 'observacao_origem', rotulo: 'De onde vieram', tipo: 'textoLongo' },
+          { nome: 'observacao', rotulo: 'Observação', tipo: 'textoLongo' },
+        ]}
+        depois={<p className="dica">O peso (saldo) muda pelo “Registrar” acima (ajuste, descarte, teste), para ficar no histórico.</p>}
+      />
       <BotaoExcluir colecao="lote_sementes" registro={lote} voltarPara="/coleta" />
     </Tela>
   );

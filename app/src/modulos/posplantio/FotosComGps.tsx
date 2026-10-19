@@ -11,7 +11,7 @@ export function FotosComGps({ fotos, aoMudar, gps, parte = 'outro' }: { fotos: F
       <div className="galeria">
         {fotos.map((f, i) => (
           <figure key={i}>
-            <MiniaturaBlob blob={f.miniatura} alt={`Foto ${i + 1}`} />
+            <MiniaturaBlob blob={f.miniatura} alt={`Foto ${i + 1}`} data={f.tirada_em} />
             <figcaption>{f.gps ? `GPS ±${f.gps.precisao_m} m` : 'sem GPS'}</figcaption>
           </figure>
         ))}

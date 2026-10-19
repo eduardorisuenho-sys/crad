@@ -9,6 +9,7 @@ import { useApp } from '../../contexto';
 import { CaracteresAssistente } from './CaracteresAssistente';
 import { FotosEspecie } from './FotosEspecie';
 import { adicionarNomePopular, nomesPopularesDe } from './dados';
+import { completarEspeciesPelaWikipedia } from './completarWikipedia';
 import { GRUPOS_FICHA, NOMES_MESES, rotulo } from './rotulos';
 
 /** Junta os nomes já escolhidos com os digitados (separados por vírgula ou ;), sem repetir. */
@@ -38,20 +39,39 @@ export function FichaEspecie() {
   // nomes populares de uma espécie nova: gravados junto com ela
   const [nomesNovos, setNomesNovos] = useState<string[]>([]);
   const [salvo, setSalvo] = useState(false);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
     if (especie) setForm(especie);
   }, [especie?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // O que a busca na Wikipédia completou chega sem apagar o que a pessoa está digitando.
+  useEffect(() => {
+    if (!especie) return;
+    setForm((f) => ({
+      ...f,
+      ...(String(f.nome_cientifico ?? '').trim() ? {} : { nome_cientifico: especie.nome_cientifico }),
+      ...(String(f.familia ?? '').trim() ? {} : { familia: especie.familia }),
+      revisar: especie.revisar,
+      nota_revisao: especie.nota_revisao,
+    }));
+  }, [especie?.nome_cientifico, especie?.familia, especie?.nota_revisao]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
+    setErro('');
+    // só o nome popular é obrigatório; o resto o app procura na Wikipédia
+    if (nova && !juntarNomes(nomesNovos, novoNome).length) return setErro('Escreva pelo menos um nome popular.');
     const dados: Record<string, unknown> = {};
     for (const g of GRUPOS_FICHA) for (const c of g.campos) if (c in form) dados[c] = form[c];
     const r = await repo.salvar('especie', nova ? { fonte_cadastro: 'manual', ...dados } : dados, nova ? undefined : id);
     if (nova) for (const n of juntarNomes(nomesNovos, novoNome)) await adicionarNomePopular(repo, r.id, n);
     setNovoNome('');
     setSalvo(true);
-    if (nova) navegar(`/especies/${r.id}`, { replace: true });
+    if (nova) {
+      // sem nome científico ou família: procura na Wikipédia (agora, se houver internet; senão, quando conectar)
+      if ((!String(dados.nome_cientifico ?? '').trim() || !String(dados.familia ?? '').trim()) && navigator.onLine) void completarEspeciesPelaWikipedia(db, repo).catch(() => undefined);
+      navegar(`/especies/${r.id}`, { replace: true });
+    }
   }
 
   const set = (c: string, v: unknown) => {
@@ -171,12 +191,18 @@ export function FichaEspecie() {
       {!nova && id && <FotosEspecie especieId={id} editavel={gestor} />}
       {!nova && id && <CaracteresAssistente especieId={id} editavel={gestor} />}
       <form onSubmit={salvar} className="formulario">
-        {GRUPOS_FICHA.map((g) => (
+        {GRUPOS_FICHA.filter((g) => !(nova && g.titulo === 'Referência')).map((g) => (
           <section key={g.titulo} className="cartao">
             <h2>{g.titulo}</h2>
             <div className="formulario">{g.campos.map(campo)}</div>
           </section>
         ))}
+        {nova && (
+          <p className="dica" data-testid="dica-wikipedia">
+            Só o nome popular é obrigatório. Se deixar o nome científico ou a família em branco, o app procura na Wikipédia (pt.wikipedia.org) assim que houver internet e marca a ficha para você conferir.
+          </p>
+        )}
+        {erro && <p className="erro">{erro}</p>}
         {gestor && (
           <button className="botao-principal">
             <Icone nome="certo" /> {salvo ? 'Salvo' : 'Salvar ficha'}

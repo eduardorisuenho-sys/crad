@@ -98,6 +98,31 @@ export class Repositorio {
   }
 
   /** Exclusão lógica. Se o registro nunca chegou ao servidor, some da fila. */
+  /**
+   * Manda de novo para o servidor um cadastro que ele não tem (ex.: lote que
+   * se perdeu no caminho): entra na fila como criação, com todos os campos.
+   */
+  async reenviar(nomeColecao: string, id: string): Promise<boolean> {
+    const col = buscarColecao(nomeColecao);
+    const r = await this.db.colecao(nomeColecao).get(id);
+    if (!r || r.excluido) return false;
+    if (await this.operacaoAberta(id)) return false; // já está na fila
+    const dados: Record<string, unknown> = {};
+    for (const k of nomesCampos(col)) if (r[k] !== undefined) dados[k] = r[k];
+    await this.db._fila.add({
+      op_id: gerarId(),
+      colecao: nomeColecao,
+      registro_id: id,
+      tipo: 'criar',
+      dados,
+      base: {},
+      base_versao: 0,
+      criado_no_aparelho_em: agora(),
+      dispositivo_id: this.ctx().dispositivoId,
+    });
+    return true;
+  }
+
   async excluir(nomeColecao: string, id: string): Promise<void> {
     const col = buscarColecao(nomeColecao);
     const tabela = this.db.colecao(nomeColecao);

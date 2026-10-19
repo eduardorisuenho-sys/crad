@@ -165,7 +165,7 @@ export function RelatorioServico() {
               <ul className="lista">
                 {servico.matrizes.map((m) => (
                   <li key={m.id} className="item-lista">
-                    {(servico.fotosPorMatriz.get(m.id) ?? [])[0] ? <Miniatura fotoId={servico.fotosPorMatriz.get(m.id)![0].id} alt="" tamanho={56} /> : <Icone nome="arvore" />}
+                    {(servico.fotosPorMatriz.get(m.id) ?? [])[0] ? <Miniatura fotoId={servico.fotosPorMatriz.get(m.id)![0].id} alt="" tamanho={56} data={servico.fotosPorMatriz.get(m.id)![0]} /> : <Icone nome="arvore" />}
                     <div>
                       <strong>{String(m.codigo)}</strong>
                       <small>{nomes?.get(String(m.especie_id)) ?? 'a identificar'}</small>

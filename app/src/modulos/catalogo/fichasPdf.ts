@@ -1,5 +1,6 @@
 /** Monta as fichas em PDF a partir da ficha pública de cada espécie (com cópia guardada para sem internet). */
 import type { ItemCatalogo } from '@crads/dominio';
+import { dataCarimbo } from '../../componentes/Miniatura';
 import { fichasPdf, fotoParaPdf, type FichaPdf } from '../../plataforma/pdfFichas';
 import { NOMES_MESES, rotulo } from '../especies/rotulos';
 import { lerEspecie, urlFoto, type EspeciePublica } from './api';
@@ -51,6 +52,7 @@ export async function gerarFichasPdf(servidor: string, titulo: string, subtitulo
       const ficha = fichaDaEspecie(d, p.destaque);
       const foto = d.fotos[0];
       ficha.foto = foto ? await fotoParaPdf(urlFoto(servidor, foto, true)) : null;
+      ficha.dataFoto = foto ? dataCarimbo(foto.data) : '';
       fichas.push(ficha);
     } catch {
       if (p.reserva) fichas.push(fichaDoItem(p.reserva, p.destaque));

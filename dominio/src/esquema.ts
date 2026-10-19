@@ -217,7 +217,7 @@ export const COLECOES: Colecao[] = [
     natureza: 'cadastro',
     porViveiro: false,
     campos: [
-      t('nome_cientifico', true),
+      t('nome_cientifico'),
       t('autor'),
       t('familia'),
       t('flora_id'),
@@ -271,7 +271,7 @@ export const COLECOES: Colecao[] = [
     natureza: 'cadastro',
     porViveiro: false,
     publico: true,
-    campos: [r('especie_id', 'especie', true), o('parte', PARTES_PLANTA, true), arq('arquivo'), arq('miniatura'), t('credito'), t('licenca')],
+    campos: [r('especie_id', 'especie', true), o('parte', PARTES_PLANTA, true), arq('arquivo'), arq('miniatura'), t('credito'), t('licenca'), d('tirada_em')],
     indices: ['especie_id'],
     leitura: 'todos',
     escrita: SO_GESTOR,
