@@ -238,7 +238,12 @@ export function DetalheLoteMudas() {
           { nome: 'canteiro', rotulo: 'Canteiro', tipo: 'texto' },
           { nome: 'observacao_origem', rotulo: 'Observação', tipo: 'textoLongo' },
         ]}
-        depois={<p className="dica">A quantidade de mudas muda por perda ou inventário, e a fase pelos botões acima, para ficar no histórico.</p>}
+        depois={
+          <>
+            <FotosLote loteId={lote.id} viveiroId={String(lote.viveiro_id ?? '')} editando />
+            <p className="dica">A quantidade de mudas muda por perda ou inventário, e a fase pelos botões acima, para ficar no histórico.</p>
+          </>
+        }
       />
       <BotaoExcluir colecao="lote_mudas" registro={lote} voltarPara="/viveiro" />
     </Tela>

@@ -7,7 +7,8 @@ import { Miniatura } from '../../componentes/Miniatura';
 import { useApp } from '../../contexto';
 import { gravarFoto, prepararFoto } from '../matrizes/fotos';
 
-export function FotosLote({ loteId, viveiroId }: { loteId: string; viveiroId?: string }) {
+/** `editando`: dentro do "Editar o lote de mudas", com o botão de apagar cada foto (vai para a lixeira). */
+export function FotosLote({ loteId, viveiroId, editando = false }: { loteId: string; viveiroId?: string; editando?: boolean }) {
   const { db, repo } = useApp();
   const [salvando, setSalvando] = useState(false);
   const fotos = useLiveQuery(async () => (await db.colecao('foto').where('registro_id').equals(loteId).toArray()).filter((f) => !f.excluido && f.entidade === 'lote_mudas'), [loteId]) ?? [];
@@ -21,21 +22,36 @@ export function FotosLote({ loteId, viveiroId }: { loteId: string; viveiroId?: s
     }
   }
 
+  async function apagar(fotoId: string) {
+    if (!confirm('Apagar esta foto? Ela sai do lote e do catálogo (fica na lixeira).')) return;
+    await repo.excluir('foto', fotoId);
+  }
+
+  const Caixa = editando ? 'div' : 'section';
   return (
-    <section className="cartao" data-testid="fotos-lote">
-      <h2>Fotos das mudas</h2>
+    <Caixa className={editando ? 'fotos-edicao' : 'cartao'} data-testid={editando ? 'fotos-lote-edicao' : 'fotos-lote'}>
+      {editando ? <strong>Fotos das mudas</strong> : <h2>Fotos das mudas</h2>}
       {fotos.length ? (
         <div className="galeria">
-          {fotos.map((f) => (
-            <Miniatura key={f.id} fotoId={f.id} alt="Foto das mudas" data={f} />
-          ))}
+          {fotos.map((f) =>
+            editando ? (
+              <figure key={f.id}>
+                <Miniatura fotoId={f.id} alt="Foto das mudas" data={f} />
+                <button type="button" className="link apagar-foto" onClick={() => void apagar(f.id)}>
+                  <Icone nome="lixo" tamanho={16} /> Apagar
+                </button>
+              </figure>
+            ) : (
+              <Miniatura key={f.id} fotoId={f.id} alt="Foto das mudas" data={f} />
+            ),
+          )}
         </div>
       ) : (
         <p className="dica">Tire uma foto das mudas: ela aparece no catálogo para quem pede mudas.</p>
       )}
       <BotaoFoto aoEscolher={(f) => void tirar(f)} className="botao-secundario">
-        <Icone nome="camera" /> {salvando ? 'Guardando…' : 'Tirar foto das mudas'}
+        <Icone nome="camera" /> {salvando ? 'Guardando…' : editando ? 'Inserir foto das mudas' : 'Tirar foto das mudas'}
       </BotaoFoto>
-    </section>
+    </Caixa>
   );
 }

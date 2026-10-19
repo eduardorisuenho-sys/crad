@@ -352,3 +352,9 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .com-logo { display: inline-flex; align-items: center; gap: 6px; }
 .logo-plantando-agua { flex: none; }
 .botao-programa.ativo .logo-plantando-agua { background: var(--branco); border-radius: 8px; padding: 2px; box-sizing: content-box; }
+/* fotos dentro do "Editar o lote de mudas" */
+.fotos-edicao { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--azul-escuro-10); }
+.fotos-edicao figure { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.apagar-foto { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; }
+[data-testid='editar-registro'] textarea { min-height: 96px; }
+.fotos-edicao label[role='button'] { flex-direction: row; justify-content: center; align-items: center; gap: 8px; }

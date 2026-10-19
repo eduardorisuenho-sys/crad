@@ -346,8 +346,9 @@ var COLECOES = [
   },
   {
     // Foto genérica (matriz, coleta, lote, retirada, monitoramento…).
+    // Cadastro (não evento): foto errada pode ir para a lixeira e voltar.
     nome: "foto",
-    natureza: "evento",
+    natureza: "cadastro",
     porViveiro: true,
     campos: [t("entidade", true), t("registro_id", true), o("parte", PARTES_PLANTA), arq("arquivo"), arq("miniatura"), n("lat"), n("lon"), d("tirada_em")],
     indices: ["registro_id"],

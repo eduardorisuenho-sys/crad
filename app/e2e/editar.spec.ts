@@ -1,4 +1,5 @@
 /** Botão "Editar" nas matrizes, coletas, lotes de sementes e lotes de mudas (funciona sem internet). */
+import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { entrarComoGestora, lerDoServidor, PB } from './apoio';
 
@@ -57,6 +58,16 @@ test('editar matriz, coleta e lote de sementes, sem internet', async ({ page, co
   await fm.getByLabel('Canteiro').fill('B7');
   await fm.getByLabel('Recipiente').selectOption({ label: 'Saquinho' });
   await fm.getByLabel('Sementes semeadas').fill('120');
+  // fotos das mudas: insere duas e apaga uma (vai para a lixeira)
+  const fotoTeste = fileURLToPath(new URL('./fixtures/foto.jpg', import.meta.url));
+  const fotos = fm.getByTestId('fotos-lote-edicao');
+  await fotos.locator('label', { hasText: 'Inserir foto das mudas' }).locator('input').setInputFiles(fotoTeste);
+  await expect(fotos.getByRole('img', { name: 'Foto das mudas' })).toHaveCount(1);
+  await fotos.locator('label', { hasText: 'Inserir foto das mudas' }).locator('input').setInputFiles(fotoTeste);
+  await expect(fotos.getByRole('img', { name: 'Foto das mudas' })).toHaveCount(2);
+  page.once('dialog', (d) => void d.accept());
+  await fotos.getByRole('button', { name: 'Apagar' }).first().click();
+  await expect(fotos.getByRole('img', { name: 'Foto das mudas' })).toHaveCount(1);
   await fm.getByRole('button', { name: 'Salvar alterações' }).click();
   await expect(page.getByText('Alterações salvas.')).toBeVisible();
   await expect(page.getByText('canteiro B7')).toBeVisible();
@@ -68,6 +79,15 @@ test('editar matriz, coleta e lote de sementes, sem internet', async ({ page, co
   await expect.poll(async () => (await lerDoServidor('coleta')).find((x) => x.id === c.id), { timeout: 20_000 }).toMatchObject({ quantidade: 7, observacao: 'pesado de novo' });
   await expect.poll(async () => (await lerDoServidor('lote_sementes')).find((x) => x.id === ls.id), { timeout: 20_000 }).toMatchObject({ sementes_estimadas: 1500, validade: expect.stringMatching(/^2027-10-01/) });
   await expect.poll(async () => (await lerDoServidor('lote_mudas')).find((x) => x.id === lm.id), { timeout: 20_000 }).toMatchObject({ canteiro: 'B7', recipiente: 'saquinho', sementes_semeadas: 120 });
+  // a foto inserida e apagada sem internet nem chegou a sair do aparelho
+  await expect.poll(async () => (await lerDoServidor('foto')).filter((x) => x.registro_id === lm.id).map((x) => x.excluido), { timeout: 20_000 }).toEqual([false]);
+  // com internet, apaga a que já estava no servidor: vai para a lixeira
+  await page.goto(`/viveiro/lotes/${lm.id}`);
+  await page.getByRole('button', { name: 'Editar o lote de mudas' }).click();
+  page.once('dialog', (d) => void d.accept());
+  await page.getByTestId('fotos-lote-edicao').getByRole('button', { name: 'Apagar' }).click();
+  await expect(page.getByTestId('fotos-lote-edicao').getByRole('img')).toHaveCount(0);
+  await expect.poll(async () => (await lerDoServidor('foto')).filter((x) => x.registro_id === lm.id).map((x) => x.excluido), { timeout: 20_000 }).toEqual([true]);
   // nada foi recusado pelo servidor
   await expect(page.getByTestId('barra-sync')).not.toContainText('aviso');
 });
