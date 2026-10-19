@@ -358,3 +358,8 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .apagar-foto { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; }
 [data-testid='editar-registro'] textarea { min-height: 96px; }
 .fotos-edicao label[role='button'] { flex-direction: row; justify-content: center; align-items: center; gap: 8px; }
+/* ofício à SEMARH: destaque logo abaixo de "Pedido registrado" */
+.aviso-oficio { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding: 14px; border: 3px solid var(--verde); border-radius: 12px; background: var(--branco); color: var(--azul-escuro); }
+.aviso-oficio h2 { margin: 0; color: var(--verde); font-size: 1.15rem; }
+.aviso-oficio p { margin: 0; line-height: 1.45; }
+.aviso-oficio a { color: var(--azul-escuro); word-break: break-all; }

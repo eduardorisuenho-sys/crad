@@ -44,6 +44,10 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await termo.getByLabel('Li e aceito o termo de compromisso e declaração').check();
   await s.getByRole('button', { name: 'Enviar pedido' }).click();
   await expect(s.getByText('Pedido registrado')).toBeVisible();
+  // em destaque: enviar o ofício à SEMARH com a solicitação em anexo
+  const oficio = s.getByTestId('aviso-oficio');
+  await expect(oficio).toContainText('Próximo passo: envie o ofício à SEMARH');
+  await expect(oficio.getByRole('link', { name: 'protocolo@semarh.to.gov.br' })).toHaveAttribute('href', /^mailto:protocolo@semarh\.to\.gov\.br\?subject=Solicita/);
   // o próprio app gera a solicitação em PDF
   const pdfSolicitacao = s.waitForEvent('download');
   await s.getByRole('button', { name: 'Baixar a solicitação em PDF' }).click();
@@ -54,6 +58,9 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await expect(s.getByTestId('termo-aceito')).toContainText('Termo de compromisso aceito em');
   await expect.poll(async () => String((await lerDoServidor('doacao')).find((d) => d.codigo === codigo)?.termo_texto ?? ''), { timeout: 20_000 }).toContain(`${ESPECIE}: 30`);
   expect(codigo).toMatch(/^DO-\d{4}-\d{3}$/);
+  // enquanto aguarda análise, o aviso continua na ficha do pedido
+  await s.goto(s.url().split('?')[0]);
+  await expect(s.getByTestId('aviso-oficio')).toBeVisible();
   await cs.close();
 
   // ---- 2. gestora marca no Plantando Água e aprova em parte (com internet)
@@ -70,6 +77,8 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await g.getByRole('button', { name: 'Aprovar e reservar' }).click();
   await expect(g.getByText('Pedido aprovado e mudas reservadas.')).toBeVisible();
   await expect(g.getByTestId('resumo-pedido')).toContainText('aprovado em parte');
+  // aprovado: o aviso do ofício sai da ficha
+  await expect(g.getByTestId('aviso-oficio')).toHaveCount(0);
   expect(await noCatalogo(ESPECIE)).toBe(75);
   await cg.close();
 

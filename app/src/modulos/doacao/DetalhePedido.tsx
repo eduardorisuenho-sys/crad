@@ -12,6 +12,7 @@ import { CombinarRetirada } from './CombinarRetirada';
 import { BotaoPdf } from '../../componentes/BotaoPdf';
 import { gerarFichasPdf } from '../catalogo/fichasPdf';
 import { servidorPublico } from '../catalogo/api';
+import { AvisoOficio } from './AvisoOficio';
 import { disponivelLocal, doacoesNoPrograma, itensDoPedido, ROTULO_SITUACAO } from './dados';
 import { abrirPdf, relatorioPedido, termoDoacao, type DadosPdf } from './pdf';
 
@@ -105,15 +106,23 @@ export function DetalhePedido() {
     }
   }
 
+  const botaoSolicitacao = (
+    <button className="botao-principal" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
+      <Icone nome="baixar" /> Baixar a solicitação em PDF
+    </button>
+  );
+
   return (
     <Tela titulo={`Pedido ${String(doacao.codigo)}`}>
       {params.get('novo') && (
         <section className="cartao" data-testid="pedido-registrado">
           <p className="mensagem">Pedido registrado.{doacao.versao === 0 ? ' Ele vai para análise quando houver sinal.' : ''}</p>
-          <p className="dica">Baixe a solicitação: ela já é o documento do pedido.</p>
-          <button className="botao-principal" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
-            <Icone nome="baixar" /> Baixar a solicitação em PDF
-          </button>
+          <AvisoOficio codigo={String(doacao.codigo)}>{botaoSolicitacao}</AvisoOficio>
+        </section>
+      )}
+      {!params.get('novo') && situacao === 'enviada' && (
+        <section className="cartao">
+          <AvisoOficio codigo={String(doacao.codigo)}>{botaoSolicitacao}</AvisoOficio>
         </section>
       )}
       {params.get('retirado') && (
@@ -244,7 +253,7 @@ export function DetalhePedido() {
       )}
 
       <div className="acoes">
-        {!params.get('novo') && (
+        {!params.get('novo') && situacao !== 'enviada' && (
           <button className="botao-secundario" onClick={async () => abrirPdf(await relatorioPedido(dadosPdf()), `solicitacao-${String(doacao.codigo)}.pdf`)}>
             <Icone nome="baixar" /> Solicitação de mudas (PDF)
           </button>

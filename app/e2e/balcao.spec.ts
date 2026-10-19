@@ -43,6 +43,7 @@ test('pedido no balcão: registrar, aprovar e dar baixa no mesmo aparelho', asyn
   await page.getByLabel('Li e aceito o termo de compromisso e declaração').check();
   await page.getByRole('button', { name: 'Enviar pedido' }).click();
   await expect(page.getByText('Pedido registrado')).toBeVisible();
+  await expect(page.getByTestId('aviso-oficio')).toContainText('protocolo@semarh.to.gov.br');
   await expect.poll(async () => (await page.getByRole('heading', { level: 1 }).innerText()).trim(), { timeout: 20_000 }).toMatch(/^Pedido DO-\d{4}-\d{3}$/);
   const codigo = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Pedido ', '').trim();
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });

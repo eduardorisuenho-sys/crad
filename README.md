@@ -108,6 +108,11 @@ Relatório do plantio (PDF):
 
 Termo de compromisso e declaração:
 
+- Pedido registrado (no app ou no balcão): aviso em destaque para **enviar
+  o ofício de solicitação de mudas ao Secretário** pelo e-mail
+  protocolo@semarh.to.gov.br, com a solicitação em PDF do app em anexo. O
+  aviso fica na ficha enquanto o pedido aguarda análise; o gestor autoriza
+  ou não pelo app.
 - No fim do pedido de mudas, quem pede vê o **Termo de compromisso e
   declaração**: pode tocar em **Ler o termo** ou só marcar **Li e aceito**.
   Sem aceitar, o botão **Enviar pedido** fica desligado (no balcão, a equipe
