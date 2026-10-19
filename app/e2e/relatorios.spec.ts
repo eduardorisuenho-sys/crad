@@ -40,7 +40,7 @@ test('gestora vê os indicadores e baixa planilha e mapa sem internet; rastreia 
   await ctx.close();
 });
 
-test('transparência: só com login (sem login não há link nem dados) e guarda cópia para ver sem internet', async ({ browser }) => {
+test('transparência: só para a equipe (sem login ou só pedindo mudas não há link) e guarda cópia para ver sem internet', async ({ browser }) => {
   // sem login: nenhum link, o endereço leva à entrada e o servidor não entrega os dados
   const cv = await browser.newContext();
   const visitante = await cv.newPage();
@@ -55,9 +55,19 @@ test('transparência: só com login (sem login não há link nem dados) e guarda
   expect((await fetch(`${PB()}/api/crads/publico/transparencia`)).status).toBe(401);
   await cv.close();
 
+  // quem só pede mudas também não vê os resultados das doações no catálogo
+  const cs = await browser.newContext();
+  const solicitante = await cs.newPage();
+  await entrarComoSolicitante(solicitante);
+  await solicitante.goto('/catalogo');
+  await expect(solicitante.getByText('Rastrear um lote')).toBeVisible();
+  await expect(solicitante.getByRole('link', { name: /transparência/ })).toHaveCount(0);
+  await cs.close();
+
+  // a equipe vê
   const ctx = await browser.newContext();
   const p = await ctx.newPage();
-  await entrarComoSolicitante(p);
+  await entrarComoGestora(p);
   await p.goto('/catalogo');
   await p.getByRole('link', { name: /transparência/ }).click();
   const t = p.getByTestId('transparencia');

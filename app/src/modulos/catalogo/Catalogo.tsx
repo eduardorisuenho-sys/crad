@@ -158,7 +158,8 @@ export function Catalogo() {
         </label>
         <button className="botao-secundario">Ver de onde vieram as sementes</button>
       </form>
-      {sessao && (
+      {/* quem só pede mudas não vê os resultados das doações; a equipe vê */}
+      {sessao && perfis.some((p) => p !== 'solicitante') && (
         <Link to="/transparencia" className="botao-grande">
           <Icone nome="relatorio" /> Resultados das doações (transparência)
         </Link>
