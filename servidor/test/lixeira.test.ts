@@ -89,6 +89,46 @@ describe.skipIf(!temPocketBase)('lixeira e exclusão pelo administrador', () => 
     expect((await chamar(s, admin.token, 'POST', `/api/crads/lixeira/matriz/${outra}/apagar`)).dados.message).toMatch(/Exclua primeiro/);
   });
 
+  it('pedido retirado, lote e espécie de teste: apaga tudo de vez, na ordem (retiradas, inventário e reservas vão junto)', async () => {
+    const criar = async (col: string, dados: object) => {
+      const r = await chamar(s, s.admin, 'POST', `/api/collections/${col}/records`, { versao: 1, excluido: false, viveiro_id: VIV, ...dados });
+      expect(r.status).toBe(200);
+      return r.dados.id as string;
+    };
+    const esp = await criar('especie', { nome_cientifico: 'Lixeiria demonstrativa' });
+    const lote = await criar('lote_mudas', { codigo: 'LM-2026-I-905', especie_id: esp, fase_atual: 'pronta', origem: 'estoque_inicial' });
+    await criar('movimento_estoque_mudas', { lote_mudas_id: lote, tipo: 'entrada', quantidade: 3 });
+    const inv = await criar('inventario', { data: '2026-10-12' });
+    await criar('inventario_item', { inventario_id: inv, lote_mudas_id: lote, contado: 3, saldo_sistema: 3 });
+    const pessoa = await criar('pessoa', { nome: 'Pedido de teste' });
+    const doacao = await criar('doacao', { codigo: 'DO-2026-905', solicitante_pessoa_id: pessoa, situacao: 'retirada' });
+    const item = await criar('doacao_item', { doacao_id: doacao, especie_id: esp, qtd_pedida: 1, qtd_aprovada: 1 });
+    await criar('reserva', { doacao_item_id: item, lote_mudas_id: lote, quantidade: 1, situacao: 'consumida' });
+    await criar('doacao_item_lote', { doacao_item_id: item, lote_mudas_id: lote, quantidade: 1 });
+    for (let i = 0; i < 3; i++) await criar('retirada', { doacao_id: doacao, data: '2026-10-16', recebedor_nome: 'Teste' });
+    // vão para a lixeira
+    for (const [col, id] of [['especie', esp], ['lote_mudas', lote], ['doacao', doacao]]) {
+      expect((await chamar(s, s.admin, 'PATCH', `/api/collections/${col}/records/${id}`, { excluido: true })).status).toBe(200);
+    }
+    // a espécie ainda está no item do pedido: a mensagem diz
+    expect((await chamar(s, admin.token, 'POST', `/api/crads/lixeira/especie/${esp}/apagar`)).dados.message).toMatch(/1 em item de pedido/);
+    // na ordem certa, tudo sai
+    for (const [col, id] of [['doacao', doacao], ['lote_mudas', lote], ['especie', esp]]) {
+      const r = await chamar(s, admin.token, 'POST', `/api/crads/lixeira/${col}/${id}/apagar`);
+      expect(r.status, `${col}: ${JSON.stringify(r.dados)}`).toBe(200);
+    }
+    for (const col of ['retirada', 'reserva', 'doacao_item_lote', 'doacao_item', 'inventario_item', 'movimento_estoque_mudas']) {
+      const r = await chamar(s, s.admin, 'GET', `/api/collections/${col}/records?filter=${encodeURIComponent(col === 'retirada' ? `doacao_id='${doacao}'` : col === 'doacao_item' ? `doacao_id='${doacao}'` : `lote_mudas_id='${lote}'`)}`);
+      expect(r.dados.items, col).toEqual([]);
+    }
+  });
+
+  it('reserva ativa segura o lote (pedido aprovado em aberto)', async () => {
+    const lote = (await chamar(s, s.admin, 'POST', '/api/collections/lote_mudas/records', { codigo: 'LM-2026-I-906', especie_id: 'x', fase_atual: 'pronta', viveiro_id: VIV, versao: 1, excluido: true })).dados.id;
+    await chamar(s, s.admin, 'POST', '/api/collections/reserva/records', { doacao_item_id: 'y', lote_mudas_id: lote, quantidade: 2, situacao: 'ativa', viveiro_id: VIV, versao: 1 });
+    expect((await chamar(s, admin.token, 'POST', `/api/crads/lixeira/lote_mudas/${lote}/apagar`)).dados.message).toMatch(/1 em reserva/);
+  });
+
   it('pessoa apagada de vez some com os dados pessoais e não fica no histórico', async () => {
     const p = gerarId();
     await enviar(admin.token, [

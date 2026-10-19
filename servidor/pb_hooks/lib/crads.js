@@ -1473,7 +1473,7 @@ function referenciasPara(nomeColecao) {
   return out;
 }
 function rotuloRegistro(colecao2, r2) {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e;
   const dia4 = (v) => String(v != null ? v : "").slice(0, 10).split("-").reverse().join("/");
   switch (colecao2) {
     case "especie":
@@ -1481,38 +1481,50 @@ function rotuloRegistro(colecao2, r2) {
     case "pessoa":
     case "viveiro":
       return String((_b = r2.nome) != null ? _b : r2.id);
+    case "retirada":
+      return `Retirada de ${dia4((_c = r2.data) != null ? _c : r2.criado_no_aparelho_em)}`;
     case "coleta":
     case "fenologia":
     case "plantio":
     case "monitoramento":
-      return `${colecao2 === "monitoramento" ? "Acompanhamento" : colecao2 === "plantio" ? "Plantio" : colecao2 === "fenologia" ? "Flor e fruto" : "Coleta"} de ${dia4((_c = r2.data) != null ? _c : r2.criado_no_aparelho_em)}`;
+      return `${colecao2 === "monitoramento" ? "Acompanhamento" : colecao2 === "plantio" ? "Plantio" : colecao2 === "fenologia" ? "Flor e fruto" : "Coleta"} de ${dia4((_d = r2.data) != null ? _d : r2.criado_no_aparelho_em)}`;
     default:
-      return String((_d = r2.codigo) != null ? _d : r2.id);
+      return String((_e = r2.codigo) != null ? _e : r2.id);
   }
 }
 var APAGA_JUNTO = {
   matriz: ["fenologia"],
   lote_sementes: ["lote_sementes_coleta", "movimento_sementes"],
-  lote_mudas: ["movimento_estoque_mudas", "evento_lote_mudas"],
-  doacao: ["doacao_item", "doacao_programa", "doacao_programa_historico"],
+  lote_mudas: ["movimento_estoque_mudas", "evento_lote_mudas", "inventario_item", "reserva"],
+  doacao: ["doacao_item", "doacao_programa", "doacao_programa_historico", "retirada"],
+  doacao_item: ["reserva", "doacao_item_lote"],
   plantio: ["plantio_item", "monitoramento"],
   monitoramento: ["monitoramento_item"],
   especie: ["nome_popular", "sinonimo", "especie_ocorrencia", "especie_municipio", "especie_opcao", "especie_foto", "especie_confusao"],
   pessoa: ["dados_pessoais"]
+};
+var SEMPRE_BLOQUEIA = {
+  reserva: (r2) => r2.situacao === "ativa"
 };
 function dependentesAtivos(nomeColecao, id, registrosDe) {
   var _a, _b;
   const contagem = /* @__PURE__ */ new Map();
   const junto = new Set((_a = APAGA_JUNTO[nomeColecao]) != null ? _a : []);
   for (const { colecao: colecao2, campo } of referenciasPara(nomeColecao)) {
-    if (junto.has(colecao2.nome)) continue;
-    const n2 = registrosDe(colecao2.nome, campo, id).filter((r2) => !r2.excluido).length;
-    if (n2) contagem.set(colecao2.nome, ((_b = contagem.get(colecao2.nome)) != null ? _b : 0) + n2);
+    const sempre = SEMPRE_BLOQUEIA[colecao2.nome];
+    if (junto.has(colecao2.nome) && !sempre) continue;
+    const ativos5 = registrosDe(colecao2.nome, campo, id).filter((r2) => !r2.excluido && (!sempre || sempre(r2)));
+    if (ativos5.length) contagem.set(colecao2.nome, [...(_b = contagem.get(colecao2.nome)) != null ? _b : [], ...ativos5]);
   }
-  return [...contagem].map(([colecao2, quantidade]) => ({ colecao: colecao2, quantidade }));
+  return [...contagem].map(([colecao2, regs]) => ({ colecao: colecao2, quantidade: regs.length, exemplos: regs.slice(0, 3).map((r2) => rotuloRegistro(colecao2, r2)) }));
 }
 function mensagemDependentes(d2) {
-  return `Ainda h\xE1 registros ligados a este: ${d2.map((x) => `${x.quantidade} em ${x.colecao.replace(/_/g, " ")}`).join(", ")}. Exclua ou corrija esses antes.`;
+  const nome = (c) => c.replace(/_/g, " ").replace("lote mudas", "lote de mudas").replace("lote sementes", "lote de sementes").replace("inventario item", "item de invent\xE1rio").replace("doacao item", "item de pedido").replace("doacao", "pedido");
+  const exemplos = (x) => {
+    var _a;
+    return ((_a = x.exemplos) == null ? void 0 : _a.length) && x.exemplos.some((e) => e && !/^[a-z0-9]{15}$/.test(e)) ? `: ${x.exemplos.join(", ")}${x.quantidade > x.exemplos.length ? "\u2026" : ""}` : "";
+  };
+  return `Ainda h\xE1 registros ligados a este: ${d2.map((x) => `${x.quantidade} em ${nome(x.colecao)}${exemplos(x)}`).join("; ")}. Exclua ou corrija esses antes.`;
 }
 
 // ../dominio/src/notificacoes.ts
@@ -2085,7 +2097,7 @@ function lixeiraApagar(app, auth, nome, id) {
     var _a, _b;
     const { reg } = registroDaLixeira(tx, nome, id);
     if (!reg.excluido) throw new Error("Exclua primeiro (mande para a lixeira) e depois apague de vez.");
-    const deps = dependentesAtivos(nome, id, (c, campo, valor) => tx.findRecordsByFilter(c, `${campo} = {:v}`, "", 0, 0, { v: valor }).map((r2) => ({ id: r2.id, excluido: r2.getBool("excluido") })));
+    const deps = dependentesAtivos(nome, id, (c, campo, valor) => tx.findRecordsByFilter(c, `${campo} = {:v}`, "", 0, 0, { v: valor }).map((r2) => paraObjeto(colecao(c), r2)));
     if (deps.length) throw new Error(mensagemDependentes(deps));
     rotulo = nome === "pessoa" ? "(dados pessoais apagados)" : rotuloRegistro(nome, reg);
     const filhos = [];

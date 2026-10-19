@@ -194,6 +194,14 @@ Relatório de serviço do coletor (Coleta e sementes → Relatório de serviço)
 - O gestor escolhe de qual coletor quer o relatório.
 
 Corrigir cadastros e lixeira (administrador, bloco **Lixeira** na tela inicial):
+- **Apagar de vez** leva junto os detalhes: o pedido leva os itens, as
+  reservas, as baixas e as **retiradas**; o lote leva as movimentações, os
+  eventos, as linhas de **inventário** e as reservas já usadas. Só uma
+  **reserva ativa** (pedido aprovado ainda não retirado) segura o lote.
+- Marcando vários, o app apaga na ordem certa: pedidos e plantios primeiro,
+  depois lotes, coletas e matrizes, e por fim espécies e pessoas.
+- Quando algo ainda segura o cadastro, a mensagem diz **qual** é (ex.: "1 em
+  lote de mudas: LM-2026-I-007").
 
 - **Excluir cadastros** preenchidos errado (matriz, coleta, lote, doação,
   plantio, espécie, pessoa, viveiro), **um por um ou vários de uma vez**

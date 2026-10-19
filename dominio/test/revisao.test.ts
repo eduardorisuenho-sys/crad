@@ -70,7 +70,7 @@ describe('estoque inicial não vira permissão de produção', () => {
 describe('lixeira', () => {
   it('viveiro com matrizes ativas não é apagado de vez', () => {
     const deps = dependentesAtivos('viveiro', 'v1', (c, campo) => (c === 'matriz' && campo === 'viveiro_id' ? [{ id: 'm1', excluido: false }] : []));
-    expect(deps).toEqual([{ colecao: 'matriz', quantidade: 1 }]);
+    expect(deps).toMatchObject([{ colecao: 'matriz', quantidade: 1 }]);
   });
 });
 

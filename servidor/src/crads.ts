@@ -680,7 +680,7 @@ export function lixeiraApagar(app: App, auth: RecordPB, nome: string, id: string
   app.runInTransaction((tx: App) => {
     const { reg } = registroDaLixeira(tx, nome, id);
     if (!reg.excluido) throw new Error('Exclua primeiro (mande para a lixeira) e depois apague de vez.');
-    const deps = dependentesAtivos(nome, id, (c, campo, valor) => tx.findRecordsByFilter(c, `${campo} = {:v}`, '', 0, 0, { v: valor }).map((r: RecordPB) => ({ id: r.id, excluido: r.getBool('excluido') })));
+    const deps = dependentesAtivos(nome, id, (c, campo, valor) => tx.findRecordsByFilter(c, `${campo} = {:v}`, '', 0, 0, { v: valor }).map((r: RecordPB) => paraObjeto(colecao(c), r)));
     if (deps.length) throw new Error(mensagemDependentes(deps));
     rotulo = nome === 'pessoa' ? '(dados pessoais apagados)' : rotuloRegistro(nome, reg);
     const filhos: string[] = [];

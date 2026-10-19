@@ -39,6 +39,8 @@ export function rotuloRegistro(colecao: string, r: Reg): string {
     case 'pessoa':
     case 'viveiro':
       return String(r.nome ?? r.id);
+    case 'retirada':
+      return `Retirada de ${dia(r.data ?? r.criado_no_aparelho_em)}`;
     case 'coleta':
     case 'fenologia':
     case 'plantio':
@@ -56,8 +58,9 @@ export function rotuloRegistro(colecao: string, r: Reg): string {
 export const APAGA_JUNTO: Record<string, string[]> = {
   matriz: ['fenologia'],
   lote_sementes: ['lote_sementes_coleta', 'movimento_sementes'],
-  lote_mudas: ['movimento_estoque_mudas', 'evento_lote_mudas'],
-  doacao: ['doacao_item', 'doacao_programa', 'doacao_programa_historico'],
+  lote_mudas: ['movimento_estoque_mudas', 'evento_lote_mudas', 'inventario_item', 'reserva'],
+  doacao: ['doacao_item', 'doacao_programa', 'doacao_programa_historico', 'retirada'],
+  doacao_item: ['reserva', 'doacao_item_lote'],
   plantio: ['plantio_item', 'monitoramento'],
   monitoramento: ['monitoramento_item'],
   especie: ['nome_popular', 'sinonimo', 'especie_ocorrencia', 'especie_municipio', 'especie_opcao', 'especie_foto', 'especie_confusao'],
@@ -67,20 +70,41 @@ export const APAGA_JUNTO: Record<string, string[]> = {
 export interface Dependente {
   colecao: string;
   quantidade: number;
+  /** quais são (código ou nome), para a pessoa achar e resolver */
+  exemplos?: string[];
+}
+
+/** Ligados que bloqueiam mesmo indo junto: reserva ativa segura mudas de um pedido aprovado. */
+const SEMPRE_BLOQUEIA: Record<string, (r: Reg) => boolean> = {
+  reserva: (r) => r.situacao === 'ativa',
+};
+
+/**
+ * Ordem para apagar vários de uma vez: primeiro o que aponta para os outros
+ * (pedidos, plantios), depois lotes, coletas, matrizes e por fim espécies e pessoas.
+ */
+export const ORDEM_APAGAR = ['monitoramento', 'plantio', 'doacao', 'retirada', 'lote_mudas', 'lote_sementes', 'coleta', 'matriz', 'especie', 'pessoa', 'viveiro'];
+export function ordemParaApagar(colecao: string): number {
+  const i = ORDEM_APAGAR.indexOf(colecao);
+  return i < 0 ? ORDEM_APAGAR.indexOf('lote_mudas') : i;
 }
 
 /** Registros ativos que ainda apontam para este (impedem apagar de vez). */
 export function dependentesAtivos(nomeColecao: string, id: string, registrosDe: (colecao: string, campo: string, id: string) => Reg[]): Dependente[] {
-  const contagem = new Map<string, number>();
+  const contagem = new Map<string, Reg[]>();
   const junto = new Set(APAGA_JUNTO[nomeColecao] ?? []);
   for (const { colecao, campo } of referenciasPara(nomeColecao)) {
-    if (junto.has(colecao.nome)) continue;
-    const n = registrosDe(colecao.nome, campo, id).filter((r) => !r.excluido).length;
-    if (n) contagem.set(colecao.nome, (contagem.get(colecao.nome) ?? 0) + n);
+    const sempre = SEMPRE_BLOQUEIA[colecao.nome];
+    if (junto.has(colecao.nome) && !sempre) continue;
+    // reserva já usada ou cancelada não segura nada: só a ativa bloqueia
+    const ativos = registrosDe(colecao.nome, campo, id).filter((r) => !r.excluido && (!sempre || sempre(r)));
+    if (ativos.length) contagem.set(colecao.nome, [...(contagem.get(colecao.nome) ?? []), ...ativos]);
   }
-  return [...contagem].map(([colecao, quantidade]) => ({ colecao, quantidade }));
+  return [...contagem].map(([colecao, regs]) => ({ colecao, quantidade: regs.length, exemplos: regs.slice(0, 3).map((r) => rotuloRegistro(colecao, r)) }));
 }
 
 export function mensagemDependentes(d: Dependente[]): string {
-  return `Ainda há registros ligados a este: ${d.map((x) => `${x.quantidade} em ${x.colecao.replace(/_/g, ' ')}`).join(', ')}. Exclua ou corrija esses antes.`;
+  const nome = (c: string) => c.replace(/_/g, ' ').replace('lote mudas', 'lote de mudas').replace('lote sementes', 'lote de sementes').replace('inventario item', 'item de inventário').replace('doacao item', 'item de pedido').replace('doacao', 'pedido');
+  const exemplos = (x: Dependente) => (x.exemplos?.length && x.exemplos.some((e) => e && !/^[a-z0-9]{15}$/.test(e)) ? `: ${x.exemplos.join(', ')}${x.quantidade > x.exemplos.length ? '…' : ''}` : '');
+  return `Ainda há registros ligados a este: ${d.map((x) => `${x.quantidade} em ${nome(x.colecao)}${exemplos(x)}`).join('; ')}. Exclua ou corrija esses antes.`;
 }

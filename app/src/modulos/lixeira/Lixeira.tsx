@@ -9,6 +9,7 @@ import { COLECOES_LIXEIRA, normalizarBusca, rotuloRegistro } from '@crads/domini
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
+import { ordemParaApagar } from '@crads/dominio';
 import { apagarDeVez, lerLixeira, restaurar, type ItemLixeira } from './api';
 import { bloqueioExclusao } from '../../componentes/BotaoExcluir';
 
@@ -75,7 +76,8 @@ export function Lixeira() {
 
   /** Restaura ou apaga de vez os itens marcados da lixeira, um por um. */
   async function naLixeira(acao: 'restaurar' | 'apagar') {
-    const alvo = (itens ?? []).filter((i) => marcados.has(`${i.colecao}:${i.id}`));
+    // pedidos antes dos lotes, lotes antes das espécies: o que aponta para os outros sai primeiro
+    const alvo = (itens ?? []).filter((i) => marcados.has(`${i.colecao}:${i.id}`)).sort((a, b) => ordemParaApagar(a.colecao) - ordemParaApagar(b.colecao));
     if (!alvo.length) return;
     if (acao === 'apagar' && !confirm(`Apagar ${alvo.length} item(ns) de vez? Não dá para desfazer.`)) return;
     setOcupado(true);
