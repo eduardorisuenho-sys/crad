@@ -490,6 +490,22 @@ O que a etapa 1 entrega:
 - **Códigos do lote sem internet**: cada aparelho reserva uma faixa de códigos
   com o botão “Preparar para ir a campo”. Se a faixa acabar, o código fica
   provisório e o servidor troca pelo definitivo, avisando o usuário.
+- **Número vermelho de pendências** no canto do botão de cada módulo, na
+  tela inicial (funciona sem internet). Conta só o que a pessoa pode
+  resolver com as permissões que tem:
+  - **Doação de mudas**: pedido para analisar; aprovado aguardando a retirada
+    (para quem entrega e para quem vai buscar); retirado sem as mudas terem
+    saído do estoque.
+  - **Pós-plantio**: mudas retiradas sem o plantio registrado (quem pediu);
+    plantio sem vistoria técnica (equipe).
+  - **Matrizes**: sem espécie ou com a espécie ainda não confirmada.
+  - **Coleta e sementes**: lote sem o peso das sementes limpas; lote vencido
+    ainda com sementes (testar ou descartar).
+  - **Viveiro**: lote com mudas atrasado (passou da data prevista sem ficar
+    pronto); inventário aberto.
+  - **Espécies**: marcadas para revisar (ex.: nome vindo da Wikipédia).
+  - **Equipe**: pedidos de acesso esperando aprovação.
+  O vermelho é exceção às cores da logo, pedida para chamar atenção.
 - **Vários celulares e computadores ao mesmo tempo**: cada aparelho tem a
   sua fila e a sua faixa de códigos. O servidor grava cada envio numa
   transação, e a aprovação de pedidos é feita uma de cada vez, então nunca

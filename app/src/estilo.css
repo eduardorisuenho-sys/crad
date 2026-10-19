@@ -363,3 +363,6 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .aviso-oficio h2 { margin: 0; color: var(--verde); font-size: 1.15rem; }
 .aviso-oficio p { margin: 0; line-height: 1.45; }
 .aviso-oficio a { color: var(--azul-escuro); word-break: break-all; }
+/* número de pendências no canto do botão do módulo (vermelho, como pedido pelo usuário) */
+.bloco .circulo { position: relative; }
+.contador-pendencias { position: absolute; top: -4px; right: -6px; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 13px; background: #d32f2f; color: #fff; font-size: 0.85rem; font-weight: 800; line-height: 26px; text-align: center; border: 2px solid var(--branco); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }

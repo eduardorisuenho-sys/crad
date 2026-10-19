@@ -68,6 +68,10 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   const g = await cg.newPage();
   await entrarComoGestora(g);
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
+  // tela inicial: número vermelho de pendências no botão "Doação de mudas"
+  await g.goto('/');
+  await expect(g.getByTestId('pendencias-doacao')).toHaveText(/^\d+\+?$/);
+  if (process.env.CRADS_FOTO_PENDENCIAS) await g.locator('.grade-blocos').screenshot({ path: process.env.CRADS_FOTO_PENDENCIAS });
   await g.goto('/doacao');
   await g.locator('.item-lista', { hasText: codigo }).click();
   await g.getByTestId('plantando-agua').click();

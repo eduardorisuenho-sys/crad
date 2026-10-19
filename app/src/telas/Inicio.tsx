@@ -5,6 +5,7 @@ import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
+import { usePendencias } from '../dados/usePendencias';
 
 interface Bloco {
   rota: string;
@@ -35,6 +36,7 @@ export const BLOCOS: Bloco[] = [
 export function Inicio() {
   const { sessao, perfis, viveiroId, db, pode, sincronizar, estadoSync } = useApp();
   const viveiro = useLiveQuery(() => (viveiroId ? db.colecao('viveiro').get(viveiroId) : undefined), [viveiroId]);
+  const pendentes = usePendencias();
   const visiveis = BLOCOS.filter((b) => b.perfis === 'todos' || b.perfis.some((p) => perfis.includes(p)) || (b.permissoes ?? []).some((k) => pode(k)));
   // Conta nova de coletor/viveirista: ainda sem viveiro, aguardando o gestor.
   const semAcesso = !!sessao && !sessao.gestorGeral && !sessao.solicitante && !Object.keys(sessao.perfisPorViveiro ?? {}).length;
@@ -78,9 +80,15 @@ export function Inicio() {
       )}
       <nav className="grade-blocos">
         {visiveis.map((b) => (
-          <Link key={b.rota} to={b.rota} className="bloco">
+          <Link key={b.rota} to={b.rota} className="bloco" title={pendentes[b.rota as keyof typeof pendentes] ? `${pendentes[b.rota as keyof typeof pendentes]} pendente(s)` : undefined}>
             <span className="circulo">
               <Icone nome={b.icone} tamanho={42} />
+              {!!pendentes[b.rota as keyof typeof pendentes] && (
+                <span className="contador-pendencias" data-testid={`pendencias-${b.rota.slice(1)}`} aria-hidden="true">
+                  {Math.min(99, pendentes[b.rota as keyof typeof pendentes]!)}
+                  {pendentes[b.rota as keyof typeof pendentes]! > 99 ? '+' : ''}
+                </span>
+              )}
             </span>
             <span>{b.rotulo}</span>
           </Link>
