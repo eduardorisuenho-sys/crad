@@ -20,8 +20,11 @@ async function pedir(s: Page, itens: [string, number][], finalidade = 'Escola ou
   await s.getByRole('button', { name: /Continuar/ }).click();
   await s.getByRole('button', { name: finalidade }).click();
   await s.getByLabel('Município').fill('Palmas');
+  await s.getByLabel('Endereço ou como chegar').fill('Sítio Boa Vista');
+  await s.getByLabel('Área aproximada (hectares)').fill('0,5');
   await s.getByRole('button', { name: 'Continuar' }).click();
-  await s.getByLabel('CPF').fill('000.000.000-00');
+  await s.getByLabel(/Instituição/).fill('particular');
+  await s.getByLabel('CPF').fill('529.982.247-25');
   await s.getByLabel('Telefone').fill('63 90000-0009');
   await s.getByRole('button', { name: 'Continuar' }).click();
   // aceita o termo sem abrir o texto

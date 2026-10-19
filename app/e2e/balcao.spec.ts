@@ -31,10 +31,14 @@ test('pedido no balcão: registrar, aprovar e dar baixa no mesmo aparelho', asyn
   await page.getByRole('button', { name: /Continuar/ }).click();
   await page.getByRole('button', { name: 'Reserva legal' }).click();
   await page.getByLabel('Município').fill('Palmas');
+  await page.getByLabel('Endereço ou como chegar').fill('Sítio Boa Vista');
+  await page.getByLabel('Área aproximada (hectares)').fill('0,5');
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: 'Instituição' }).click();
   await page.getByLabel('Nome completo').fill('Meliponativa');
   await page.getByLabel(/Instituição \(escola/).fill('Associação');
+  await page.getByLabel('CNPJ').fill('11.222.333/0001-81');
+  await page.getByLabel('Telefone').fill('63 90000-0010');
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByLabel('Li e aceito o termo de compromisso e declaração').check();
   await page.getByRole('button', { name: 'Enviar pedido' }).click();

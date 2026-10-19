@@ -18,10 +18,18 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await s.getByRole('button', { name: 'Continuar (30 mudas)' }).click();
   await s.getByRole('button', { name: 'Beira de rio ou nascente' }).click();
   await s.getByLabel('Município').fill('Palmas');
+  await s.getByLabel('Endereço ou como chegar').fill('Sítio Boa Vista');
+  await s.getByLabel('Área aproximada (hectares)').fill('0,5');
   await s.getByRole('button', { name: 'Continuar' }).click();
-  await s.getByLabel('CPF').fill('000.000.000-00');
+  await s.getByLabel(/Instituição/).fill('particular');
+  await s.getByLabel('CPF').fill('529.982.247-25');
   await s.getByLabel('Telefone').fill('63 90000-0003');
   await expect(s.getByText(/Ofício/)).toHaveCount(0); // não precisa anexar ofício
+  // todos os campos são obrigatórios: CPF errado não passa
+  await s.getByLabel('CPF').fill('111.111.111-11');
+  await s.getByRole('button', { name: 'Continuar' }).click();
+  await expect(s.getByTestId('faltas')).toContainText('CPF incompleto ou com número errado.');
+  await s.getByLabel('CPF').fill('529.982.247-25');
   await s.getByRole('button', { name: 'Continuar' }).click();
   // termo de compromisso: sem aceitar, não envia; o texto vem preenchido com o pedido
   const termo = s.getByTestId('termo');
@@ -137,7 +145,12 @@ test('o administrador muda o texto do termo e os próximos pedidos usam o novo',
   await s.getByRole('button', { name: /Continuar/ }).click();
   await s.getByRole('button', { name: 'Escola ou quintal' }).click();
   await s.getByLabel('Município').fill('Palmas');
+  await s.getByLabel('Endereço ou como chegar').fill('Sítio Boa Vista');
+  await s.getByLabel('Área aproximada (hectares)').fill('0,5');
   await s.getByRole('button', { name: 'Continuar' }).click();
+  await s.getByLabel(/Instituição/).fill('particular');
+  await s.getByLabel('CPF').fill('529.982.247-25');
+  await s.getByLabel('Telefone').fill('63 90000-0003');
   await s.getByRole('button', { name: 'Continuar' }).click();
   await s.getByTestId('termo').getByRole('button', { name: 'Ler o termo' }).click();
   await expect(s.getByTestId('texto-termo')).toHaveText(`TERMO DO CRAD\n\nEu, Solicitante Teste, vou plantar ${ESPECIE}: 2; total 2 mudas.`);

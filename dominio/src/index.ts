@@ -29,3 +29,4 @@ export * from './lixeira';
 export * from './servico-coletor';
 export * from './notificacoes';
 export * from './termo';
+export * from './pedido-campos';

@@ -301,6 +301,11 @@ O que o Módulo 6 entrega (tudo funciona sem internet):
 O que o Módulo 5 entrega:
 
 - **Pedido de mudas**, uma coisa por tela, inclusive sem internet:
+  - **todos os campos são obrigatórios**: finalidade, município, endereço,
+    área (hectares), nome completo, instituição (ou “particular”), CPF ou
+    CNPJ (conferido pelos dígitos) e telefone com DDD. Falta algo, a tela
+    diz o quê, sem perder o que já foi escrito. O ponto do GPS segue
+    opcional, porque muita gente pede de casa;
   - o solicitante pede pelo app, a partir do catálogo; a equipe registra o
     pedido do balcão;
   - o pedido traz espécies e quantidades, finalidade, município, local (com

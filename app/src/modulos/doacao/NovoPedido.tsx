@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
-import { bloqueiosPedido, parametro, preencherTermo } from '@crads/dominio';
+import { bloqueiosPedido, faltaNaPessoa, faltaNoPlantio, parametro, preencherTermo } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -30,6 +30,15 @@ export function NovoPedido() {
   const [pessoa, setPessoa] = useState({ nome: equipe ? '' : sessao?.nome ?? '', instituicao: '', tipo: 'fisica', documento: '', telefone: '' });
   const [programa, setPrograma] = useState(false);
   const [erros, setErros] = useState<string[]>([]);
+  // todos os campos do pedido são obrigatórios: o que falta em cada etapa
+  const [faltas, setFaltas] = useState<string[]>([]);
+  const listaFaltas = faltas.length > 0 && (
+    <ul className="erro" data-testid="faltas">
+      {faltas.map((f) => (
+        <li key={f}>{f}</li>
+      ))}
+    </ul>
+  );
   const [salvando, setSalvando] = useState(false);
   // termo de compromisso: pode ler antes; aceitar é obrigatório para enviar
   const [aceito, setAceito] = useState(false);
@@ -107,7 +116,7 @@ export function NovoPedido() {
   }
 
   const voltar = (para: Etapa) => (
-    <button type="button" className="botao-secundario" onClick={() => setEtapa(para)}>
+    <button type="button" className="botao-secundario" onClick={() => (setFaltas([]), setEtapa(para))}>
       <Icone nome="voltar" /> Voltar
     </button>
   );
@@ -192,7 +201,9 @@ export function NovoPedido() {
           className="formulario"
           onSubmit={(e) => {
             e.preventDefault();
-            setEtapa('pessoa');
+            const f = faltaNoPlantio({ ...plantio, area: lerNumero(plantio.area) });
+            setFaltas(f);
+            if (!f.length) setEtapa('pessoa');
           }}
         >
           <h2 className="pergunta">Onde vão ser plantadas?</h2>
@@ -215,7 +226,7 @@ export function NovoPedido() {
           </datalist>
           <label>
             Endereço ou como chegar
-            <input value={plantio.local} onChange={(e) => setPlantio({ ...plantio, local: e.target.value })} />
+            <input required value={plantio.local} onChange={(e) => setPlantio({ ...plantio, local: e.target.value })} />
           </label>
           {/* no balcão a pessoa está no viveiro: o GPS marcaria o viveiro, não o local do plantio */}
           {!equipe && (
@@ -233,9 +244,10 @@ export function NovoPedido() {
           </button>
           )}
           <label>
-            Área aproximada (hectares, opcional)
-            <input {...CAMPO_DECIMAL} value={plantio.area} onChange={(e) => setPlantio({ ...plantio, area: e.target.value })} />
+            Área aproximada (hectares)
+            <input required {...CAMPO_DECIMAL} value={plantio.area} onChange={(e) => setPlantio({ ...plantio, area: e.target.value })} />
           </label>
+          {listaFaltas}
           <button className="botao-principal">Continuar</button>
           {voltar('mudas')}
         </form>
@@ -246,7 +258,9 @@ export function NovoPedido() {
           className="formulario"
           onSubmit={(e) => {
             e.preventDefault();
-            setEtapa('conferir');
+            const f = faltaNaPessoa(pessoa);
+            setFaltas(f);
+            if (!f.length) setEtapa('conferir');
           }}
         >
           <h2 className="pergunta">{equipe ? 'Quem está pedindo?' : 'Seus dados'}</h2>
@@ -263,18 +277,19 @@ export function NovoPedido() {
             <input required value={pessoa.nome} onChange={(e) => setPessoa({ ...pessoa, nome: e.target.value })} />
           </label>
           <label>
-            Instituição (escola, associação, prefeitura…)
-            <input value={pessoa.instituicao} onChange={(e) => setPessoa({ ...pessoa, instituicao: e.target.value })} />
+            {pessoa.tipo === 'juridica' ? 'Instituição (escola, associação, prefeitura…)' : 'Instituição (ou escreva “particular”)'}
+            <input required value={pessoa.instituicao} onChange={(e) => setPessoa({ ...pessoa, instituicao: e.target.value })} />
           </label>
           <label>
             {pessoa.tipo === 'juridica' ? 'CNPJ' : 'CPF'}
-            <input inputMode="numeric" value={pessoa.documento} onChange={(e) => setPessoa({ ...pessoa, documento: e.target.value })} />
+            <input required inputMode="numeric" value={pessoa.documento} onChange={(e) => setPessoa({ ...pessoa, documento: e.target.value })} />
           </label>
           <label>
             Telefone
-            <input type="tel" inputMode="tel" value={pessoa.telefone} onChange={(e) => setPessoa({ ...pessoa, telefone: e.target.value })} />
+            <input required type="tel" inputMode="tel" placeholder="63 99999-0000" value={pessoa.telefone} onChange={(e) => setPessoa({ ...pessoa, telefone: e.target.value })} />
           </label>
           <p className="dica">CPF, CNPJ e telefone só são vistos pelo gestor.</p>
+          {listaFaltas}
           <button className="botao-principal">Continuar</button>
           {voltar('plantio')}
         </form>

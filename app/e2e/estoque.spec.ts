@@ -118,8 +118,11 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, li
   await s.getByRole('button', { name: 'Continuar (10 mudas)' }).click();
   await s.getByRole('button', { name: 'Escola ou quintal' }).click();
   await s.getByLabel('Município').fill('Palmas');
+  await s.getByLabel('Endereço ou como chegar').fill('Sítio Boa Vista');
+  await s.getByLabel('Área aproximada (hectares)').fill('0,5');
   await s.getByRole('button', { name: 'Continuar' }).click();
-  await s.getByLabel('CPF').fill('000.000.000-00');
+  await s.getByLabel(/Instituição/).fill('particular');
+  await s.getByLabel('CPF').fill('529.982.247-25');
   await s.getByLabel('Telefone').fill('63 90000-0004');
   await s.getByRole('button', { name: 'Continuar' }).click();
   // aceita o termo sem abrir o texto
