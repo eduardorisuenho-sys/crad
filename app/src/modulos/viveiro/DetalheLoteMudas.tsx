@@ -10,6 +10,7 @@ import { CAMPO_DECIMAL, lerNumero, mostrarNumero } from '../../plataforma/numero
 import { nomesEspecies } from '../coleta/dados';
 import { RECIPIENTES, ROTULO_FASE } from './dados';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
+import { EditarRegistro } from '../../componentes/EditarRegistro';
 import { FotosLote } from './FotosLote';
 import { BotaoPdf } from '../../componentes/BotaoPdf';
 import { etiquetasPdf } from '../../plataforma/pdfFichas';
@@ -225,6 +226,20 @@ export function DetalheLoteMudas() {
           ))}
         </ul>
       </section>
+      <EditarRegistro
+        colecao="lote_mudas"
+        registro={lote}
+        rotulo="Editar o lote de mudas"
+        podeEditar={podeCuidar}
+        campos={[
+          { nome: 'especie_id', rotulo: 'Espécie', tipo: 'especie' },
+          ...(inicial ? [] : [{ nome: 'data_semeadura', rotulo: 'Data da semeadura', tipo: 'data' as const }, { nome: 'sementes_semeadas', rotulo: 'Sementes semeadas', tipo: 'numero' as const }]),
+          { nome: 'recipiente', rotulo: 'Recipiente', tipo: 'opcao', opcoes: RECIPIENTES },
+          { nome: 'canteiro', rotulo: 'Canteiro', tipo: 'texto' },
+          { nome: 'observacao_origem', rotulo: 'Observação', tipo: 'textoLongo' },
+        ]}
+        depois={<p className="dica">A quantidade de mudas muda por perda ou inventário, e a fase pelos botões acima, para ficar no histórico.</p>}
+      />
       <BotaoExcluir colecao="lote_mudas" registro={lote} voltarPara="/viveiro" />
     </Tela>
   );

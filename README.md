@@ -498,8 +498,8 @@ O que a etapa 1 entrega:
   estiver vazio e marca a espécie “para revisar”. Se não achar, deixa um
   aviso e tenta de novo no dia seguinte. O grupo “Referência” não aparece
   no cadastro de espécie nova.
-- **Botão Editar** em toda matriz, coleta e lote de sementes (a coleta tem
-  ficha própria). Só os campos alterados são enviados e tudo fica na
+- **Botão Editar** em toda matriz, coleta, lote de sementes e lote de mudas (espécie, data da semeadura, sementes semeadas, recipiente, canteiro e observação; quantidade e fase seguem pelos registros, para ficar no histórico). A coleta tem
+  ficha própria. Só os campos alterados são enviados e tudo fica na
   auditoria.
 - **Catálogo**: quando um lote pronto não aparece, o diagnóstico mostra o
   motivo (inclusive “o servidor não tem este lote” ou “no servidor está em
