@@ -23,7 +23,7 @@
       "tipo": "tela",
       "imagem": "lista.png",
       "titulo": "Seu pedido",
-      "fala": "Escolha o seu pedido."
+      "fala": "Toque {no seu pedido}."
     },
     {
       "tipo": "tela",

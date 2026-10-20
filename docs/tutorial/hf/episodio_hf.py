@@ -371,7 +371,8 @@ def montar(roteiro, telas: Path, alvos: dict, mapa, duracoes, inicios, total: fl
         caixas = [caixa_tela(a, escala, tela_a) for a in (info.get('alvos') or ([info['alvo']] if info.get('alvo') else []))]
         if c.get('destaque') == 'uniao' and caixas:
             caixas = [(min(b[0] for b in caixas), min(b[1] for b in caixas), max(b[2] for b in caixas), max(b[3] for b in caixas))]
-        com_dedo = c.get('dedo', True) and bool(caixas)
+        # o dedo só toca quando a fala cita um botão [..] ou um toque {..}; senão, só o destaque
+        com_dedo = c.get('dedo', bool(re.search(r'\[[^\]]+\]|\{[^}]+\}', c['fala']))) and bool(caixas)
         legenda, tweens_leg, botoes = legenda_html(cid, mapa[n], ini + fala_ini)
         spot = dedo = ''
         if caixas:

@@ -23,7 +23,7 @@
       "tipo": "tela",
       "imagem": "lista.png",
       "titulo": "Escolha a coleta",
-      "fala": "Escolha a coleta na lista."
+      "fala": "Toque {na coleta da lista}."
     },
     {
       "tipo": "tela",

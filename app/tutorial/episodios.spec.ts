@@ -78,7 +78,8 @@ test('01 · Criar conta e entrar', async ({ browser }) => {
   await p.reload();
   await g.cena('entrar', link(p, 'Criar conta'));
   await link(p, 'Criar conta').click();
-  await g.cena('perfil', botao(p, /Vou coletar sementes/));
+  await g.cena('perfil', botao(p, /Quero pedir mudas/), botao(p, /Vou coletar sementes/));
+  await g.cena('perfil-2', botao(p, /Vou trabalhar no viveiro/), botao(p, /Grupo Gestor/));
   await botao(p, /Vou coletar sementes/).click();
   await p.getByLabel('Nome completo').fill('Marcos Rocha');
   await p.getByLabel('E-mail').fill('marcos@crad.local');

@@ -22,8 +22,16 @@
     {
       "tipo": "tela",
       "imagem": "perfil.png",
-      "titulo": "Escolha o que vai fazer",
-      "fala": "Escolha o que você vai fazer: pedir mudas, coletar sementes, trabalhar no viveiro ou o grupo gestor."
+      "titulo": "Quem é quem",
+      "fala": "Escolha o seu perfil. [Quero pedir mudas] é o solicitante. [Vou coletar sementes] é o coletor.",
+      "dedo": false
+    },
+    {
+      "tipo": "tela",
+      "imagem": "perfil-2.png",
+      "titulo": "Quem é quem",
+      "fala": "[Vou trabalhar no viveiro] é o viveirista. E o [Grupo Gestor] é o gestor.",
+      "dedo": false
     },
     {
       "tipo": "tela",
