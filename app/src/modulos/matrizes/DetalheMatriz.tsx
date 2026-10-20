@@ -15,6 +15,7 @@ import { ROTULO_CERTEZA } from './ListaMatrizes';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 import { EditarRegistro } from '../../componentes/EditarRegistro';
 import { ESTADOS, TIPOS_LOCAL } from './NovaMatriz';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 const ROTULO_FASE: Record<string, string> = { folha: 'Só folhas', flor: 'Flor', fruto_verde: 'Fruto verde', fruto_maduro: 'Fruto maduro', sem_folha: 'Sem folhas' };
 
@@ -22,6 +23,8 @@ export function DetalheMatriz() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const { db, repo, pode, viveiroId, sessao } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto(id && `matriz:${id}:`);
   const [escolhendoSugerida, setEscolhendoSugerida] = useState(false);
   const m = useLiveQuery(() => db.colecao('matriz').get(id!), [id]);
   const gestor = pode('validar_matriz', m?.viveiro_id);

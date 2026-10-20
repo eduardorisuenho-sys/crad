@@ -13,6 +13,7 @@ import { fotoGuardadaOuBaixada } from '../../dados/arquivos';
 import { doacoesNoPrograma } from '../doacao/dados';
 import { emailDoTermo, fotoDoBlob, relatorioPlantio } from './relatorioPdf';
 import { mostrarNumero } from '../../plataforma/numero';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 const data = (s: unknown) => (s ? new Date(String(s).slice(0, 10) + 'T12:00').toLocaleDateString('pt-BR') : '');
 
@@ -20,6 +21,8 @@ export function DetalhePlantio() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const { db, pode, sessao } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto(id && `plantio:${id}:`);
   const plantio = useLiveQuery(() => db.colecao('plantio').get(id!), [id]);
   const doacao = useLiveQuery(() => (plantio ? db.colecao('doacao').get(String(plantio.doacao_id)) : undefined), [plantio?.doacao_id]);
   const resumo = useLiveQuery(() => resumoPlantio(db, id!), [id]);

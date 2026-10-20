@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pedidosQueEsperam, pendencias, type DadosPendencias } from '../src/pendencias';
+import { itensPendentes, pedidosQueEsperam, pendencias, type DadosPendencias } from '../src/pendencias';
 
 const vazio: DadosPendencias = { doacoes: [], itens: [], baixas: [], plantios: [], matrizes: [], especies: [], pedidosAcesso: [], lotesSementes: [], movimentosSementes: [], lotesMudas: [], movimentosMudas: [], inventarios: [], monitoramentos: [], hoje: '2026-10-19' };
 const tudo = () => true;
@@ -105,5 +105,15 @@ describe('pendências (número no botão do módulo)', () => {
       { id: 'b', lote_sementes_id: 's', tipo: 'semeadura', quantidade_unid: 100 },
     ];
     expect(pendencias({ ...vazio, lotesSementes, movimentosSementes }, { usuarioId: 'v', pode: tudo })).toEqual({});
+  });
+
+  it('pendência já vista não conta; se o motivo muda (aprovado → retirada), volta a contar', () => {
+    const q = { usuarioId: 'g', pode: tudo };
+    const enviada = [{ id: 'p1', situacao: 'enviada', viveiro_id: 'v', solicitante_usuario_id: 'x' }];
+    const chaves = itensPendentes({ ...vazio, doacoes: enviada }, q)['/doacao']!;
+    expect(chaves).toEqual(['doacao:p1:enviada']);
+    expect(pendencias({ ...vazio, doacoes: enviada }, q, new Set(chaves))).toEqual({});
+    const aprovada = [{ ...enviada[0], situacao: 'aprovada' }];
+    expect(pendencias({ ...vazio, doacoes: aprovada }, q, new Set(chaves))).toEqual({ '/doacao': 1 });
   });
 });

@@ -509,6 +509,12 @@ O que a etapa 1 entrega:
   Para quem cuida de mais de um viveiro, conta só o viveiro escolhido, como
   as listas. Na lista de pedidos, cada pedido que espera a pessoa vem
   marcado com **Precisa de você**. Zerou, o número some.
+  **Depois de vista, a pendência sai do número**: ao abrir o item (o pedido,
+  a matriz, o lote, a espécie, a vistoria, a lista de pedidos de acesso, os
+  avisos), ele deixa de contar. Se o motivo mudar (ex.: o pedido aprovado
+  agora espera a retirada), volta a contar como novo. O "visto" fica
+  guardado no aparelho, para cada pessoa. A marca "Precisa de você" na
+  lista continua até a ação ser feita.
   Segue o padrão dos "badges" (Material Design): até "99+", vermelho de erro
   com borda branca, aparece com uma animação curta (sem animação para quem
   pediu menos movimento no celular). O leitor de tela ouve o número no nome

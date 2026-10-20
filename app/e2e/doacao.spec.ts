@@ -71,6 +71,7 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   // tela inicial: número vermelho de pendências no botão "Doação de mudas"
   await g.goto('/');
   await expect(g.getByTestId('pendencias-doacao')).toHaveText(/^\d+\+?$/);
+  const antes = Number(await g.getByTestId('pendencias-doacao').innerText());
   // leitor de tela ouve o número no nome do botão; o total vai no título (e no ícone do app, onde houver)
   await expect(g.locator('.grade-blocos').getByRole('link', { name: /^Doação de mudas, \d+ pendências?$/ })).toBeVisible();
   await expect(g).toHaveTitle(/^\(\d+\+?\) CRAD$/);
@@ -79,6 +80,11 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   // na lista, o pedido que espera a gestora vem marcado
   await expect(g.locator('.item-lista', { hasText: codigo }).getByTestId('precisa-de-voce')).toBeVisible();
   await g.locator('.item-lista', { hasText: codigo }).click();
+  // abriu a pendência: ela sai do número vermelho (se era a única, o número some)
+  await expect(g.getByTestId('plantando-agua')).toBeVisible();
+  await g.goto('/');
+  await expect.poll(async () => ((await g.getByTestId('pendencias-doacao').count()) ? Number(await g.getByTestId('pendencias-doacao').innerText()) : 0)).toBe(antes - 1);
+  await g.goBack();
   await g.getByTestId('plantando-agua').click();
   await expect(g.getByTestId('plantando-agua')).toHaveAttribute('aria-pressed', 'true');
   await g.getByRole('button', { name: 'Analisar pedido' }).click();

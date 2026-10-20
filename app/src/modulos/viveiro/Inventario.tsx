@@ -7,9 +7,12 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
 import { lotesDeMudas, ROTULO_FASE } from './dados';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 export function Inventario() {
   const { repo, db, sessao } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto('inventario:');
   // lote zerado não entra no inventário (só no histórico); o recusado pelo servidor entra para recontar
   const lotes = useLiveQuery(async () => (await lotesDeMudas(repo)).filter((l) => l.lote.situacao !== 'encerrado' && (l.saldo > 0 || l.recusado)), [repo]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);

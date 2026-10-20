@@ -6,11 +6,14 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { apagarConta } from '../lixeira/api';
 import { cadastrarPessoa, lerEquipe, removerAcesso, responderPedido, ROTULO_PERFIL, type DadosEquipe } from './api';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 const PERFIS_EQUIPE = ['coletor', 'viveirista', 'gestor'];
 
 export function Equipe() {
   const { sessao, online, sincronizar } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto('pedido_acesso:');
   const [dados, setDados] = useState<DadosEquipe | null>(null);
   const [erro, setErro] = useState('');
   const [msg, setMsg] = useState('');

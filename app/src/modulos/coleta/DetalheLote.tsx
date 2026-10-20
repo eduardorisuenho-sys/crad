@@ -11,6 +11,7 @@ import { useApp } from '../../contexto';
 import { nomesEspecies } from './dados';
 import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 import { EditarRegistro } from '../../componentes/EditarRegistro';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 const TIPOS = [
   { valor: 'teste', rotulo: 'Teste de germinação', saida: true },
@@ -25,6 +26,8 @@ export function DetalheLote() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const { db, repo, viveiroId, pode } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto(id && `lote_sementes:${id}:`);
   const lote = useLiveQuery(() => db.colecao('lote_sementes').get(id!), [id]);
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const movs = useLiveQuery(async () => (await db.colecao('movimento_sementes').where('lote_sementes_id').equals(id!).toArray()).sort((a, b) => String(b.data).localeCompare(String(a.data))), [id]) ?? [];

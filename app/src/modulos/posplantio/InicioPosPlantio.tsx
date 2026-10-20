@@ -6,9 +6,12 @@ import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { resumoPlantio } from './dados';
 import { mostrarNumero } from '../../plataforma/numero';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 export function InicioPosPlantio() {
   const { db, perfis, sessao, viveiroId } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto('plantar:');
   const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
   const linhas = useLiveQuery(async () => {
     const doacoes = (await db.colecao('doacao').toArray()).filter(

@@ -5,11 +5,14 @@ import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
 import type { Aviso } from '../dados/db';
+import { useMarcarVisto } from '../dados/usePendencias';
 
 const mostrar = (v: unknown) => (v === null || v === undefined || v === '' ? '(vazio)' : typeof v === 'object' ? JSON.stringify(v) : String(v));
 
 export function Avisos() {
   const { db, repo } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto('aviso:');
   const avisos = useLiveQuery(() => db._avisos.filter((a) => !a.resolvido).toArray(), [db]) ?? [];
 
   const resolver = (a: Aviso) => db._avisos.update(a.id, { resolvido: true });

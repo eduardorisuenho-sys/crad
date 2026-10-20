@@ -15,6 +15,7 @@ import { servidorPublico } from '../catalogo/api';
 import { AvisoOficio } from './AvisoOficio';
 import { disponivelLocal, doacoesNoPrograma, itensDoPedido, ROTULO_SITUACAO } from './dados';
 import { abrirPdf, relatorioPedido, termoDoacao, type DadosPdf } from './pdf';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 const data = (s: unknown) => (s ? new Date(String(s).slice(0, 10) + 'T12:00').toLocaleDateString('pt-BR') : '');
 
@@ -22,6 +23,8 @@ export function DetalhePedido() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const { db, repo, perfis, pode, sessao, sincronizar, online } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto(id && `doacao:${id}:`);
   const doacao = useLiveQuery(() => db.colecao('doacao').get(id!), [id]);
   const itens = useLiveQuery(() => itensDoPedido(db, id!), [id]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);

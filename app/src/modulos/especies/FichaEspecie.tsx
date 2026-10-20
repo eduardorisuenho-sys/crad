@@ -11,6 +11,7 @@ import { FotosEspecie } from './FotosEspecie';
 import { adicionarNomePopular, nomesPopularesDe } from './dados';
 import { completarEspeciesPelaWikipedia } from './completarWikipedia';
 import { GRUPOS_FICHA, NOMES_MESES, rotulo } from './rotulos';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 /** Junta os nomes já escolhidos com os digitados (separados por vírgula ou ;), sem repetir. */
 export function juntarNomes(atuais: string[], digitado: string): string[] {
@@ -30,6 +31,8 @@ export function FichaEspecie() {
   const { id } = useParams();
   const nova = id === 'nova';
   const { db, repo, pode } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto(id && `especie:${id}:`);
   const navegar = useNavigate();
   const gestor = pode('especies');
   const especie = useLiveQuery(() => (nova || !id ? undefined : db.colecao('especie').get(id)), [id]);

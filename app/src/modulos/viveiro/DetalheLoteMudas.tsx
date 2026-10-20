@@ -15,6 +15,7 @@ import { FotosLote } from './FotosLote';
 import { BotaoPdf } from '../../componentes/BotaoPdf';
 import { etiquetasPdf } from '../../plataforma/pdfFichas';
 import { linkRastreio } from '../../plataforma/rastreio';
+import { useMarcarVisto } from '../../dados/usePendencias';
 
 type Acao = '' | 'contagem' | 'perda' | 'pronta' | 'medicao';
 const CAUSAS = ['Seca', 'Praga ou formiga', 'Doença', 'Descarte', 'Outra'];
@@ -32,6 +33,8 @@ export function DetalheLoteMudas() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const { db, repo, pode } = useApp();
+  // abrir esta tela tira a pendência do número vermelho
+  useMarcarVisto(id && `lote_mudas:${id}:`);
   const lote = useLiveQuery(() => db.colecao('lote_mudas').get(id!), [id]);
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const especie = useLiveQuery(() => (lote ? db.colecao('especie').get(String(lote.especie_id)) : undefined), [lote?.especie_id]);
