@@ -82,31 +82,73 @@ def _ler_audio(arq: Path):
     return dados.astype(np.float32) / 32768, taxa
 
 
+CACHE_VOZ = Path.home() / '.cache' / 'crads-voz'
+
+
+def _chave(ref, texto: str) -> Path:
+    import hashlib
+
+    h = hashlib.sha1(Path(ref).read_bytes() + texto.encode('utf-8')).hexdigest()[:20]
+    return CACHE_VOZ / f'{h}.wav'
+
+
 def _clonar(textos, ref, python_voz, whisper):
     """Chatterbox (ambiente próprio): uma chamada para todas as frases. Com --whisper, confere cada frase
-    com o reconhecedor de fala e refaz (outra semente) a que sair diferente do texto, até duas vezes."""
+    com o reconhecedor de fala e refaz (outra semente) a que sair diferente do texto, até duas vezes.
+    Frase aprovada fica guardada (mesma referência + mesmo texto = mesmo áudio): ajustar o vídeo não refaz a voz."""
     import tempfile
 
+    CACHE_VOZ.mkdir(parents=True, exist_ok=True)
     pasta = Path(tempfile.mkdtemp(prefix='voz-'))
-    pendentes = {f'f{k:03d}': (t, 1) for k, t in enumerate(textos)}
-    prontas = {}
-    conferir = mv.reconhecedor(whisper) if whisper else None
+    prontas = {k: _ler_audio(_chave(ref, t)) for k, t in enumerate(textos) if _chave(ref, t).exists()}
+    pendentes = {f'f{k:03d}': (t, 1) for k, t in enumerate(textos) if k not in prontas}
+    conferir = mv.reconhecedor(whisper) if whisper and pendentes else None
     for rodada in range(3):
+        if not pendentes:
+            break
         pedido = pasta / 'pedido.json'
         pedido.write_text(json.dumps([{'id': i, 'texto': t, 'semente': sem} for i, (t, sem) in pendentes.items()], ensure_ascii=False))
         subprocess.run([python_voz, str(AQUI / 'voz_chatterbox.py'), '--ref', str(ref), '--pedido', str(pedido), '--saida', str(pasta)], check=True)
         refazer = {}
         for i, (t, sem) in pendentes.items():
-            prontas[i] = _ler_audio(pasta / f'{i}.wav')
+            audio = _ler_audio(pasta / f'{i}.wav')
             if conferir and rodada < 2:
-                erro = mv.taxa_de_erro(t, conferir(*prontas[i]))
+                erro = mv.taxa_de_erro(t, conferir(*audio))
                 if erro > 0.2:
                     print(f'  refazendo ({erro:.0%} diferente): {t}')
                     refazer[i] = (t, sem + 1)
+                    continue
+            prontas[int(i[1:])] = audio
+            shutil.copy(pasta / f'{i}.wav', _chave(ref, t))
         pendentes = refazer
-        if not pendentes:
-            break
-    return [prontas[f'f{k:03d}'] for k in range(len(textos))]
+    return [prontas[k] for k in range(len(textos))]
+
+
+def _enxugar(s: np.ndarray, taxa: int, pausa_max: float = 0.3, ritmo: float = 1.08) -> np.ndarray:
+    """Voz clonada: encurta pausas internas longas (vírgulas) e acelera um pouco sem mudar o tom."""
+    n = int(taxa * 0.02)
+    energia = np.sqrt((s[: len(s) // n * n].reshape(-1, n) ** 2).mean(1))
+    quieto = energia < 0.005
+    manter = np.ones(len(s), dtype=bool)
+    k, limite = 0, int(pausa_max / 0.02)
+    while k < len(quieto):
+        if quieto[k]:
+            j = k
+            while j < len(quieto) and quieto[j]:
+                j += 1
+            if j - k > limite:
+                corte = (j - k - limite) * n
+                ini = k * n + (limite // 2) * n
+                manter[ini: ini + corte] = False
+            k = j
+        else:
+            k += 1
+    s = s[manter]
+    if abs(ritmo - 1) < 1e-3:
+        return s
+    r = subprocess.run(['ffmpeg', '-v', 'error', '-f', 'f32le', '-ar', str(taxa), '-ac', '1', '-i', '-', '-af', f'atempo={ritmo}',
+                        '-f', 'f32le', '-'], input=s.astype(np.float32).tobytes(), capture_output=True, check=True)
+    return np.frombuffer(r.stdout, dtype=np.float32).copy()
 
 
 def gerar_voz(cenas, voz, falante, velocidade, python_voz='python3', whisper=None):
@@ -115,7 +157,7 @@ def gerar_voz(cenas, voz, falante, velocidade, python_voz='python3', whisper=Non
     frases = [[f for f in frases_da(c['fala'])] for c in cenas]
     textos = [mv.para_falar(mv.sem_colchetes(f)) for fs in frases for f in fs]
     if str(voz).endswith('.wav'):
-        audios = _clonar(textos, voz, python_voz, whisper)
+        audios = [(_enxugar(a, t), t) for a, t in _clonar(textos, voz, python_voz, whisper)]
     else:
         falar = carregar_voz(voz, falante, velocidade)
         audios = [falar(t) for t in textos]
