@@ -71,6 +71,9 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   // tela inicial: número vermelho de pendências no botão "Doação de mudas"
   await g.goto('/');
   await expect(g.getByTestId('pendencias-doacao')).toHaveText(/^\d+\+?$/);
+  // leitor de tela ouve o número no nome do botão; o total vai no título (e no ícone do app, onde houver)
+  await expect(g.locator('.grade-blocos').getByRole('link', { name: /^Doação de mudas, \d+ pendências?$/ })).toBeVisible();
+  await expect(g).toHaveTitle(/^\(\d+\+?\) CRAD$/);
   if (process.env.CRADS_FOTO_PENDENCIAS) await g.locator('.grade-blocos').screenshot({ path: process.env.CRADS_FOTO_PENDENCIAS });
   await g.goto('/doacao');
   // na lista, o pedido que espera a gestora vem marcado

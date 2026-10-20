@@ -38,19 +38,27 @@ Tudo gratuito e de código aberto.
 # 1) telas do app (sobe o servidor de teste e percorre o caminho do coletor)
 cd app && CRADS_TUTORIAL_DIR=/tmp/telas npx playwright test e2e/tutorial.spec.ts
 
-# 2) voz sintética Piper (código aberto, roda sem internet)
-pip install piper-tts
-curl -LO https://github.com/rhasspy/piper/releases/download/v0.0.2/voice-pt-br-edresson-low.tar.gz
-tar xzf voice-pt-br-edresson-low.tar.gz
+# 2) voz neural Kokoro (código aberto, roda sem internet), voz "Dora" em português do Brasil
+pip install sherpa-onnx numpy pillow
+curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2 | tar xj
 
 # 3) monta o vídeo
-python3 docs/tutorial/montar_video.py --telas /tmp/telas --voz pt-br-edresson-low.onnx
+python3 docs/tutorial/montar_video.py --telas /tmp/telas --voz kokoro-multi-lang-v1_0
 ```
 
-### Com a voz de uma pessoa (recomendado para crianças)
+### A voz
 
-A voz sintética é compreensível, mas robótica. Para uma narração mais
-acolhedora, grave cada fala do `roteiro.json` (pelo celular mesmo) como
+Comparamos 7 vozes neurais gratuitas em português (Piper faber, cadu, jeff,
+dii e Kokoro dora, alex, santa): cada uma leu as frases do roteiro e um
+reconhecedor de fala (Whisper) transcreveu o que ouviu. A Kokoro "Dora" foi
+a mais clara (2% de palavras erradas, contra 5% a 21% das outras) e a única
+que falou "CRAD" certo. Ela fala um pouco mais devagar que o normal
+(`--velocidade 0.92`) e com pausa entre as frases. Outras vozes:
+`--falante 43` (Alex) ou `--falante 44` (Santa).
+
+### Com a voz de uma pessoa
+
+Para uma narração ainda mais humana, grave cada fala do `roteiro.json` (pelo celular mesmo) como
 `cena-01.wav`, `cena-02.wav`… numa pasta e rode:
 
 ```bash

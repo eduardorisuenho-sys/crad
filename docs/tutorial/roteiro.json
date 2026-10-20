@@ -6,18 +6,18 @@
   "cenas": [
     { "tipo": "abertura", "titulo": "Coleta de sementes", "subtitulo": "Passo a passo no app do CRAD", "fala": "Vai a campo coletar sementes? Em poucos minutos, você aprende a usar o aplicativo do Crad. E ele funciona mesmo sem internet." },
 
-    { "tipo": "capitulo", "capitulo": 1, "fala": "Parte um: antes de sair." },
+    { "tipo": "capitulo", "capitulo": 1, "fala": "Primeira parte: antes de sair." },
     { "tipo": "tela", "capitulo": 1, "imagem": "01-inicio.png", "titulo": "Tela inicial", "fala": "Esta é a tela inicial. Cada botão redondo abre uma parte do trabalho." },
     { "tipo": "tela", "capitulo": 1, "imagem": "03-preparar.png", "titulo": "Prepare o celular", "fala": "Ainda com internet, abra [Ajustes] e toque em [Preparar para ir a campo]." },
     { "tipo": "tela", "capitulo": 1, "imagem": "04-pronto.png", "titulo": "Pronto para o campo", "fala": "Pronto. Agora o celular trabalha sem internet, e guarda tudo o que você fizer." },
 
-    { "tipo": "capitulo", "capitulo": 2, "fala": "Parte dois: cadastrar a árvore matriz." },
+    { "tipo": "capitulo", "capitulo": 2, "fala": "Segunda parte: cadastrar a árvore matriz." },
     { "tipo": "explicacao", "capitulo": 2, "titulo": "O que é uma matriz?", "texto": "Uma árvore saudável, que dá boas sementes para fazer mudas.", "fala": "Matriz é uma árvore saudável, que dá boas sementes para fazer mudas. Cada matriz é cadastrada uma vez só." },
     { "tipo": "tela", "capitulo": 2, "imagem": "06-cadastrar.png", "titulo": "Nova matriz", "fala": "Toque em [Matrizes], e depois em [Cadastrar matriz]." },
     { "tipo": "tela", "capitulo": 2, "imagem": "07-gps.png", "titulo": "1. O lugar", "fala": "Fique ao lado da árvore. O celular marca o ponto. Toque em [Usar este ponto]." },
     { "tipo": "tela", "capitulo": 2, "imagem": "08-especie.png", "titulo": "2. A espécie", "fala": "Sabe o nome da árvore? Toque em [Já sei o nome]. Se não souber, o aplicativo ajuda com perguntas." },
     { "tipo": "tela", "capitulo": 2, "imagem": "09-especie-nome.png", "titulo": "2. A espécie", "fala": "Escreva o começo do nome e escolha na lista." },
-    { "tipo": "tela", "capitulo": 2, "imagem": "10-certeza.png", "titulo": "2. A espécie", "fala": "Tem certeza? Toque em [Tenho certeza]. Se tiver dúvida, escolha [Acho que é]." },
+    { "tipo": "tela", "capitulo": 2, "imagem": "10-certeza.png", "titulo": "2. A espécie", "fala": "Tem certeza? Então escolha [Tenho certeza]. Se tiver dúvida, escolha [Acho que é]." },
     { "tipo": "tela", "capitulo": 2, "imagem": "11-fotos.png", "titulo": "3. As fotos", "fala": "Tire as fotos. A [Árvore inteira] e as [Folhas] são obrigatórias." },
     { "tipo": "tela", "capitulo": 2, "imagem": "13-arvore.png", "titulo": "4. A árvore", "fala": "Informe a altura, a medida do tronco, e se a árvore está saudável." },
     { "tipo": "tela", "capitulo": 2, "imagem": "14-dono.png", "titulo": "5. O dono da área", "fala": "Escreva o nome do dono da área e marque que ele autorizou a coleta." },
@@ -25,7 +25,7 @@
     { "tipo": "tela", "capitulo": 2, "imagem": "16-plaqueta.png", "titulo": "Código e plaqueta", "fala": "A matriz ganha um código e uma plaqueta com Q R Code. Imprima e prenda na árvore." },
     { "tipo": "tela", "capitulo": 2, "imagem": "17-visita.png", "titulo": "A cada visita", "fala": "A cada visita, marque se tem flor ou fruto, e toque em [Registrar visita]." },
 
-    { "tipo": "capitulo", "capitulo": 3, "fala": "Parte três: colher as sementes." },
+    { "tipo": "capitulo", "capitulo": 3, "fala": "Terceira parte: colher as sementes." },
     { "tipo": "tela", "capitulo": 3, "imagem": "19-rota-botao.png", "titulo": "Como chegar", "fala": "Em [Coleta e sementes], toque em [Rota de coleta]." },
     { "tipo": "tela", "capitulo": 3, "imagem": "20-rota.png", "titulo": "Como chegar", "fala": "Escolha a árvore. O aplicativo mostra a distância e a direção." },
     { "tipo": "tela", "capitulo": 3, "imagem": "21-registrar.png", "titulo": "Registrar a coleta", "fala": "Chegou? Toque em [Registrar coleta]." },

@@ -509,6 +509,13 @@ O que a etapa 1 entrega:
   Para quem cuida de mais de um viveiro, conta só o viveiro escolhido, como
   as listas. Na lista de pedidos, cada pedido que espera a pessoa vem
   marcado com **Precisa de você**. Zerou, o número some.
+  Segue o padrão dos "badges" (Material Design): até "99+", vermelho de erro
+  com borda branca, aparece com uma animação curta (sem animação para quem
+  pediu menos movimento no celular). O leitor de tela ouve o número no nome
+  do botão ("Doação de mudas, 3 pendências"). O total vai também para o
+  título da aba, "(3) CRAD", e para o ícone do app instalado (Badging API:
+  iPhone/iPad com notificações permitidas, Windows e macOS; no Android o
+  sistema mostra a bolinha quando chega notificação).
   O vermelho é exceção às cores da logo, pedida para chamar atenção.
 - **Vídeo-tutorial do coletor** em `docs/tutorial` (vertical, narrado, para
   WhatsApp), com roteiro e o montador para refazer quando o app mudar.

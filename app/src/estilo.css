@@ -365,6 +365,13 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .aviso-oficio a { color: var(--azul-escuro); word-break: break-all; }
 /* número de pendências no canto do botão do módulo (vermelho, como pedido pelo usuário) */
 .bloco .circulo { position: relative; }
-.contador-pendencias { position: absolute; top: -4px; right: -6px; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 13px; background: #d32f2f; color: #fff; font-size: 0.85rem; font-weight: 800; line-height: 26px; text-align: center; border: 2px solid var(--branco); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
-.selo-pendente { background: #d32f2f; color: #fff; }
-.aviso-pendente { border: 3px solid #d32f2f; }
+:root { --erro: #b3261e; } /* vermelho de erro do Material Design 3 (exceção às cores da logo, pedida para as pendências) */
+.contador-pendencias {
+  position: absolute; top: -2px; right: -4px; box-sizing: border-box; min-width: 28px; height: 28px; padding: 0 7px; border-radius: 14px;
+  background: var(--erro); color: #fff; font-size: 0.9rem; font-weight: 800; line-height: 24px; text-align: center; font-variant-numeric: tabular-nums;
+  border: 2px solid var(--branco); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28); animation: contador-entra 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+@keyframes contador-entra { from { transform: scale(0); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .contador-pendencias { animation: none; } }
+.selo-pendente { background: var(--erro); color: #fff; }
+.aviso-pendente { border: 3px solid var(--erro); }

@@ -27,7 +27,9 @@ export async function lerDoServidor(colecao: string) {
 
 /** Abre um módulo pelo ícone da tela inicial. */
 export async function abrirModulo(page: Page, nome: string) {
-  await page.locator('.grade-blocos').getByRole('link', { name: nome, exact: true }).click();
+  // o nome pode vir com as pendências: "Pós-plantio, 1 pendência"
+  const exato = new RegExp(`^${nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(,|$)`);
+  await page.locator('.grade-blocos').getByRole('link', { name: exato }).click();
 }
 
 /** Quantas mudas o catálogo público mostra para uma espécie. */

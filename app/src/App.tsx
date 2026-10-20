@@ -8,6 +8,7 @@ import { Avisos } from './telas/Avisos';
 import { Configuracoes } from './telas/Configuracoes';
 import { Guarda } from './componentes/Guarda';
 import { Notificacoes } from './componentes/Notificacoes';
+import { EmblemaDoApp } from './componentes/EmblemaDoApp';
 import { Entrar } from './telas/Entrar';
 import { EscolherViveiro, useViveirosDoUsuario } from './telas/EscolherViveiro';
 import { Inicio } from './telas/Inicio';
@@ -82,6 +83,7 @@ function Rotas() {
   return (
     <>
     <Notificacoes />
+    <EmblemaDoApp />
     <Guarda>
     <Routes>
       {publicas}

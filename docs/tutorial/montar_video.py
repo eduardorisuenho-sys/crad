@@ -3,7 +3,7 @@
 Monta o vídeo-tutorial (vertical 1080x1920, para celular) a partir de:
   - roteiro.json (capítulos, cenas e narração);
   - as telas do app geradas por app/e2e/tutorial.spec.ts (pasta com cenas.json);
-  - a narração: voz sintética Piper (código aberto, sem internet) ou gravações
+  - a narração: voz neural Kokoro (código aberto, sem internet) ou gravações
     de uma pessoa (cena-01.wav, cena-02.wav... na pasta --gravacoes, na ordem
     das cenas do roteiro).
 
@@ -14,10 +14,10 @@ transições suaves e trilha sonora própria (gerada aqui, sem direitos
 autorais), que abaixa quando a narração fala.
 
 Uso:
-  python3 montar_video.py --telas <pasta das telas> --voz <modelo .onnx do Piper>
+  python3 montar_video.py --telas <pasta das telas> --voz <pasta kokoro-multi-lang-v1_0>
   python3 montar_video.py --telas <pasta> --gravacoes <pasta com cena-NN.wav>
 
-Precisa de: Python 3 com Pillow e numpy, ffmpeg e (para a voz sintética) piper-tts.
+Precisa de: Python 3 com Pillow e numpy, ffmpeg e (para a voz sintética) sherpa-onnx.
 """
 import argparse
 import json
@@ -254,9 +254,30 @@ def preparar_voz(origem: Path, destino: Path):
                     '-ac', '1', '-ar', str(TAXA), '-c:a', 'pcm_s16le', str(destino)], check=True)
 
 
-def falar(texto: str, voz: str, saida: Path):
-    subprocess.run([sys.executable, '-m', 'piper', '-m', voz, '-f', str(saida), '--length-scale', '1.08', '--sentence-silence', '0.3'],
-                   input=texto.encode('utf-8'), check=True, capture_output=True)
+_TTS = {}
+
+
+def falar(texto: str, voz: str, saida: Path, falante: int, velocidade: float):
+    """Voz neural Kokoro (código aberto, roda sem internet) pelo sherpa-onnx."""
+    import sherpa_onnx
+
+    if voz not in _TTS:
+        d = Path(voz)
+        modelo = sherpa_onnx.OfflineTtsKokoroModelConfig(model=str(d / 'model.onnx'), voices=str(d / 'voices.bin'), tokens=str(d / 'tokens.txt'),
+                                                          data_dir=str(d / 'espeak-ng-data'), lexicon='', lang='pt-br')
+        _TTS[voz] = sherpa_onnx.OfflineTts(sherpa_onnx.OfflineTtsConfig(model=sherpa_onnx.OfflineTtsModelConfig(kokoro=modelo, num_threads=4)))
+    tts = _TTS[voz]
+    # frase por frase, com uma pausa curta entre elas: fala mais calma e clara
+    partes = []
+    for frase in re.split(r'(?<=[.!?])\s+', texto.strip()):
+        a = tts.generate(frase, sid=falante, speed=velocidade)
+        partes += [np.array(a.samples, dtype=np.float32), np.zeros(int(a.sample_rate * 0.28), dtype=np.float32)]
+    som = np.concatenate(partes[:-1])
+    with wave.open(str(saida), 'w') as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(a.sample_rate)
+        w.writeframes((np.clip(som, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
 def trilha(segundos: float) -> np.ndarray:
@@ -296,7 +317,9 @@ def suavizar(x: np.ndarray, segundos: float) -> np.ndarray:
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--telas', required=True, type=Path)
-    p.add_argument('--voz', help='modelo .onnx do Piper (voz sintética)')
+    p.add_argument('--voz', help='pasta do modelo Kokoro do sherpa-onnx (kokoro-multi-lang-v1_0)')
+    p.add_argument('--falante', type=int, default=42, help='voz do Kokoro: 42 = pf_dora (feminina, pt-BR), 43 = pm_alex, 44 = pm_santa')
+    p.add_argument('--velocidade', type=float, default=0.92, help='1 = normal; menos que 1 = mais devagar')
     p.add_argument('--gravacoes', type=Path, help='pasta com cena-01.wav, cena-02.wav... (voz gravada; tem prioridade)')
     p.add_argument('--roteiro', type=Path, default=AQUI / 'roteiro.json')
     p.add_argument('--saida', type=Path, default=AQUI / 'tutorial-coleta-de-sementes.mp4')
@@ -318,7 +341,7 @@ def main():
             if gravada and gravada.exists():
                 bruta = gravada
             elif a.voz:
-                falar(sem_colchetes(c['fala']), a.voz, bruta)
+                falar(sem_colchetes(c['fala']), a.voz, bruta, a.falante, a.velocidade)
             else:
                 sys.exit(f'Falta a narração da cena {n}: use --voz ou --gravacoes.')
             preparar_voz(bruta, pronta)

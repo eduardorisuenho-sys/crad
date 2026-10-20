@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Perfil } from '@crads/dominio';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { BotaoInstalar } from '../componentes/BotaoInstalar';
+import { Contador, rotuloComPendencias } from '../componentes/Contador';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
@@ -79,29 +80,23 @@ export function Inicio() {
         </Link>
       )}
       <nav className="grade-blocos">
-        {visiveis.map((b) => (
-          <Link key={b.rota} to={b.rota} className="bloco" title={pendentes[b.rota as keyof typeof pendentes] ? `${pendentes[b.rota as keyof typeof pendentes]} pendente(s)` : undefined}>
-            <span className="circulo">
-              <Icone nome={b.icone} tamanho={42} />
-              {!!pendentes[b.rota as keyof typeof pendentes] && (
-                <span className="contador-pendencias" data-testid={`pendencias-${b.rota.slice(1)}`} aria-hidden="true">
-                  {Math.min(99, pendentes[b.rota as keyof typeof pendentes]!)}
-                  {pendentes[b.rota as keyof typeof pendentes]! > 99 ? '+' : ''}
-                </span>
-              )}
-            </span>
-            <span>{b.rotulo}</span>
-          </Link>
-        ))}
-        <Link to="/configuracoes" className="bloco bloco-secundario" title={avisosAbertos ? `${avisosAbertos} aviso(s) da sincronização` : undefined}>
+        {visiveis.map((b) => {
+          const n = pendentes[b.rota as keyof typeof pendentes] ?? 0;
+          return (
+            <Link key={b.rota} to={b.rota} className="bloco" aria-label={rotuloComPendencias(b.rotulo, n)}>
+              <span className="circulo">
+                <Icone nome={b.icone} tamanho={42} />
+                <Contador valor={n} testId={`pendencias-${b.rota.slice(1)}`} />
+              </span>
+              <span>{b.rotulo}</span>
+            </Link>
+          );
+        })}
+        <Link to="/configuracoes" className="bloco bloco-secundario" aria-label={rotuloComPendencias('Ajustes', avisosAbertos, 'aviso')}>
           <span className="circulo">
             <Icone nome="configuracoes" tamanho={42} />
             {/* avisos da sincronização (algo que o servidor recusou) esperam a pessoa resolver */}
-            {avisosAbertos > 0 && (
-              <span className="contador-pendencias" data-testid="pendencias-ajustes" aria-hidden="true">
-                {Math.min(99, avisosAbertos)}
-              </span>
-            )}
+            <Contador valor={avisosAbertos} testId="pendencias-ajustes" />
           </span>
           <span>Ajustes</span>
         </Link>
