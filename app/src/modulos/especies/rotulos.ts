@@ -22,3 +22,18 @@ export function rotulo(campo: string): string {
 }
 
 export const NOMES_MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+/** Nome de cada parte da planta para mostrar na tela (com acento). */
+export const ROTULO_PARTE: Record<string, string> = {
+  arvore: 'árvore',
+  tronco: 'tronco',
+  casca: 'casca',
+  folha: 'folha',
+  ramo: 'ramo',
+  flor: 'flor',
+  fruto: 'fruto',
+  semente: 'semente',
+  muda: 'muda',
+  outro: 'outro',
+};
+export const rotuloParte = (parte: unknown) => ROTULO_PARTE[String(parte)] ?? String(parte ?? '');

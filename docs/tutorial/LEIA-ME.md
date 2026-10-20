@@ -68,3 +68,29 @@ Um episódio só: `montar_serie.py ... 03-matriz`.
 Grave cada fala do roteiro (pelo celular mesmo) como `cena-01.wav`,
 `cena-02.wav`… (na ordem das cenas, contando a abertura e o fim) e rode
 `montar_video.py --roteiro episodios/03-matriz.json --telas /tmp/telas/03-matriz --gravacoes <pasta>`.
+
+## Versão profissional (HyperFrames)
+
+`hf/episodio_hf.py` transforma um roteiro numa composição
+[HyperFrames](https://github.com/heygen-com/hyperframes) (HTML + animação,
+renderizada em vídeo): celular grande, o resto da tela escurece, o botão
+fica em destaque, o dedo animado toca no botão no momento em que a narração
+fala o nome dele, legenda palavra por palavra e cartões de abertura e de
+"Próximo episódio". Áudio: voz Kokoro, trilha calma que abaixa sob a voz e
+volume final em -14 LUFS (padrão de plataformas de vídeo).
+
+No roteiro, cada cena pode ter vários botões (`alvos` na gravação das telas),
+`"dedo": false` (só destaque, sem toque) e `"destaque": "uniao"` (um
+destaque só em volta de vários campos).
+
+```bash
+cd docs/tutorial/hf && npm install
+python3 episodio_hf.py --roteiro ../episodios/03-matriz.json --telas /tmp/telas/03-matriz \
+  --voz kokoro-multi-lang-v1_0 --projeto /tmp/hf-ep03
+npx hyperframes check /tmp/hf-ep03          # erros, contraste (WCAG AA)
+npx hyperframes render /tmp/hf-ep03 -o ep03.mp4 --fps 30
+```
+
+O HyperFrames é de código aberto. A animação usa o GSAP, que é gratuito mas
+não é de código aberto; ele fica só aqui, na produção dos vídeos, e não entra
+no app.

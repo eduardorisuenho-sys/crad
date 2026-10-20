@@ -5,6 +5,7 @@ import { Icone } from '../../componentes/Icone';
 import { Miniatura } from '../../componentes/Miniatura';
 import { useApp } from '../../contexto';
 import { comprimirFoto } from '../../plataforma/imagem';
+import { rotuloParte } from './rotulos';
 
 const PARTES = [
   { parte: 'muda', rotulo: 'Muda' },
@@ -35,9 +36,9 @@ export function FotosEspecie({ especieId, editavel }: { especieId: string; edita
         <div className="galeria">
           {fotos.map((f) => (
             <figure key={f.id}>
-              <Miniatura fotoId={f.id} alt={String(f.parte)} data={f} />
+              <Miniatura fotoId={f.id} alt={rotuloParte(f.parte)} data={f} />
               <figcaption>
-                {String(f.parte)}
+                {rotuloParte(f.parte)}
                 {editavel && (
                   <button type="button" className="link" onClick={() => void repo.excluir('especie_foto', f.id)}>
                     {' '}

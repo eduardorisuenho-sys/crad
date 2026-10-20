@@ -17,8 +17,10 @@ const SITIO = { latitude: -10.2491, longitude: -48.3243, accuracy: 6 };
 test.skip(!PASTA, 'só gera as telas com CRADS_TUTORIAL_DIR');
 test.describe.configure({ mode: 'serial' });
 
+type Caixa = { x: number; y: number; w: number; h: number };
+
 class Gravador {
-  private cenas: { id: string; imagem: string; alvo: { x: number; y: number; w: number; h: number } | null }[] = [];
+  private cenas: { id: string; imagem: string; alvo: Caixa | null; alvos: Caixa[] }[] = [];
   private dir: string;
   constructor(
     private page: Page,
@@ -30,15 +32,23 @@ class Gravador {
   trocar(page: Page) {
     this.page = page;
   }
-  async cena(id: string, alvo?: Locator) {
+  /** `alvo` = o que tocar; `mais` = outros alvos da mesma tela, na ordem da fala. */
+  async cena(id: string, alvo?: Locator, ...mais: Locator[]) {
     if (alvo) await alvo.first().scrollIntoViewIfNeeded();
     else await this.page.evaluate(() => window.scrollTo(0, 0));
+    // sem foco nem cursor em cima de botão: a captura não mostra "toque" antes da hora
+    await this.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await this.page.mouse.move(1, 1);
     await this.page.waitForTimeout(450);
     const escala = await this.page.evaluate(() => window.devicePixelRatio);
-    const caixa = alvo ? await alvo.first().boundingBox() : null;
+    const caixas: Caixa[] = [];
+    for (const l of alvo ? [alvo, ...mais] : []) {
+      const c = await l.first().boundingBox();
+      if (c) caixas.push({ x: c.x * escala, y: c.y * escala, w: c.width * escala, h: c.height * escala });
+    }
     const imagem = `${id}.png`;
     await this.page.screenshot({ path: join(this.dir, imagem) });
-    this.cenas.push({ id, imagem, alvo: caixa && { x: caixa.x * escala, y: caixa.y * escala, w: caixa.width * escala, h: caixa.height * escala } });
+    this.cenas.push({ id, imagem, alvo: caixas[0] ?? null, alvos: caixas });
   }
   salvar() {
     writeFileSync(join(this.dir, 'cenas.json'), JSON.stringify({ cenas: this.cenas }, null, 2));
@@ -156,7 +166,7 @@ test('03 · Cadastrar uma matriz', async ({ browser }) => {
   await botao(p, /Ipê-amarelo/).click();
   await g.cena('certeza', botao(p, 'Tenho certeza'));
   await botao(p, 'Tenho certeza').click();
-  await g.cena('fotos', p.locator('label', { hasText: 'Árvore inteira' }));
+  await g.cena('fotos', p.locator('label', { hasText: 'Árvore inteira' }), p.locator('label', { hasText: 'Folhas' }));
   await p.locator('label', { hasText: 'Árvore inteira' }).locator('input').setInputFiles(foto);
   await p.locator('label', { hasText: 'Folhas' }).locator('input').setInputFiles(foto);
   await expect(p.locator('label.opcao.ativa')).toHaveCount(2);
@@ -166,7 +176,7 @@ test('03 · Cadastrar uma matriz', async ({ browser }) => {
   await p.getByLabel('DAP (centímetros)').fill('38');
   await botao(p, 'Boa, saudável').click();
   await botao(p, 'Mata').click();
-  await g.cena('arvore', p.getByLabel('Altura (metros, aproximada)'));
+  await g.cena('arvore', p.getByLabel('Altura (metros, aproximada)'), p.getByLabel('DAP (centímetros)'), botao(p, 'Boa, saudável'));
   await botao(p, 'Continuar').click();
   await p.getByLabel('Nome').fill('Maria da Silva');
   await p.getByLabel('O dono autorizou a entrada e a coleta').check();
@@ -177,8 +187,8 @@ test('03 · Cadastrar uma matriz', async ({ browser }) => {
   await expect(p.getByTestId('matriz-salva')).toBeVisible();
   matriz = (await p.locator('.codigo-grande').innerText()).trim();
   await g.cena('plaqueta', p.getByTestId('plaqueta'));
+  await g.cena('visita', p.getByRole('button', { name: 'Flor', exact: true }), botao(p, 'Fruto maduro'), botao(p, 'Registrar visita'));
   await botao(p, 'Fruto maduro').click();
-  await g.cena('visita', botao(p, 'Registrar visita'));
   await botao(p, 'Registrar visita').click();
   await expect(p.getByText('Fenologia registrada.')).toBeVisible();
   await ctx.setOffline(false);

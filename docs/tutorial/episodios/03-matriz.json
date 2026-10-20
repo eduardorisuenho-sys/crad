@@ -56,7 +56,9 @@
       "tipo": "tela",
       "imagem": "arvore.png",
       "titulo": "4. A árvore",
-      "fala": "Informe a altura, o tronco e se a árvore está saudável."
+      "fala": "Informe a altura, o tronco e se a árvore está saudável.",
+      "destaque": "uniao",
+      "dedo": false
     },
     {
       "tipo": "tela",
@@ -74,13 +76,14 @@
       "tipo": "tela",
       "imagem": "plaqueta.png",
       "titulo": "Código e plaqueta",
-      "fala": "A matriz ganha um código e uma plaqueta com QR Code para colocar na árvore."
+      "fala": "A matriz ganha um código e uma plaqueta com QR Code para colocar na árvore.",
+      "dedo": false
     },
     {
       "tipo": "tela",
       "imagem": "visita.png",
       "titulo": "A cada visita",
-      "fala": "A cada visita, marque se tem flor ou fruto."
+      "fala": "A cada visita, marque [Flor] ou [Fruto maduro], e toque em [Registrar visita]."
     },
     {
       "tipo": "fim",

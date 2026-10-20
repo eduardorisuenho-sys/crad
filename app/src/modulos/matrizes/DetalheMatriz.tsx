@@ -16,6 +16,7 @@ import { BotaoExcluir } from '../../componentes/BotaoExcluir';
 import { EditarRegistro } from '../../componentes/EditarRegistro';
 import { ESTADOS, TIPOS_LOCAL } from './NovaMatriz';
 import { useMarcarVisto } from '../../dados/usePendencias';
+import { rotuloParte } from '../especies/rotulos';
 
 const ROTULO_FASE: Record<string, string> = { folha: 'Só folhas', flor: 'Flor', fruto_verde: 'Fruto verde', fruto_maduro: 'Fruto maduro', sem_folha: 'Sem folhas' };
 
@@ -157,8 +158,8 @@ export function DetalheMatriz() {
           <div className="galeria">
             {fotos.map((f) => (
               <figure key={f.id}>
-                <Miniatura fotoId={f.id} alt={String(f.parte)} data={f} />
-                <figcaption>{String(f.parte)}</figcaption>
+                <Miniatura fotoId={f.id} alt={rotuloParte(f.parte)} data={f} />
+                <figcaption>{rotuloParte(f.parte)}</figcaption>
               </figure>
             ))}
           </div>
