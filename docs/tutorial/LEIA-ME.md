@@ -28,9 +28,12 @@ do app.
 - O resto da tela escurece e o botão a tocar fica em destaque, com toque animado.
 - Cores da logomarca, transições curtas e trilha calma criada pelo próprio
   montador (sem direitos autorais), que abaixa quando a narração fala.
-- Voz neural Kokoro "Dora" (pt-BR, código aberto, sem internet), escolhida
-  por teste com reconhecedor de fala (Whisper) entre 7 vozes: foi a mais
-  clara. Também dá para gravar as falas com voz humana (veja abaixo).
+- Voz neural Piper "Miro" (pt-BR, código aberto, sem internet), escolhida
+  ouvindo 7 vozes (Kokoro, Supertonic 3 e Piper). A voz é tratada antes da
+  mixagem: RNNoise (`ruido-voz.rnnn`) e redução espectral tiram o chiado,
+  um filtro corta a faixa de ruído acima de 9,8 kHz, e um de-esser e um
+  compressor suavizam o "s" e o volume. Também dá para gravar as falas com
+  voz humana (veja abaixo); a gravação passa pelo mesmo tratamento.
 
 As telas são do app de verdade, com um viveiro de exemplo ("CRAD Palmas"),
 quatro pessoas de exemplo e espécies reais: Ipê-amarelo (*Handroanthus
@@ -85,8 +88,9 @@ destaque só em volta de vários campos).
 
 ```bash
 cd docs/tutorial/hf && npm install
+curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-pt_BR-miro-high.tar.bz2 | tar xj
 python3 episodio_hf.py --roteiro ../episodios/03-matriz.json --telas /tmp/telas/03-matriz \
-  --voz kokoro-multi-lang-v1_0 --projeto /tmp/hf-ep03
+  --voz vits-piper-pt_BR-miro-high --falante 0 --velocidade 1.1 --projeto /tmp/hf-ep03
 npx hyperframes check /tmp/hf-ep03          # erros, contraste (WCAG AA)
 npx hyperframes render /tmp/hf-ep03 -o ep03.mp4 --fps 30
 ```
