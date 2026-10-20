@@ -142,9 +142,19 @@ def masterizar(voz: np.ndarray, taxa_voz: int, total_s: float, pasta: Path) -> P
     with wave.open(str(crua), 'w') as w:
         w.setnchannels(1), w.setsampwidth(2), w.setframerate(mv.TAXA)
         w.writeframes((mix * 32767).astype(np.int16).tobytes())
-    med = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(crua), '-af', 'loudnorm=I=-14:TP=-1:LRA=11:print_format=json', '-f', 'null', '-'],
-                         capture_output=True, text=True).stderr
-    m = json.loads(med[med.rindex('{'): med.rindex('}') + 1])
+    def medir(arq):
+        med = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(arq), '-af', 'loudnorm=I=-14:TP=-1:LRA=11:print_format=json', '-f', 'null', '-'],
+                             capture_output=True, text=True).stderr
+        return json.loads(med[med.rindex('{'): med.rindex('}') + 1])
+    # sobe o volume até perto do alvo segurando os picos num limitador; a passada linear depois só acerta o detalhe
+    ganho = -14 - float(medir(crua)['input_i'])
+    limitada = pasta / 'mix-lim.wav'
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', str(crua), '-af',
+                    f'aresample=176400,volume={ganho:.2f}dB,alimiter=limit=0.8:attack=2:release=60:level=false,aresample={mv.TAXA}',
+                    '-c:a', 'pcm_s16le', str(limitada)], check=True)
+    crua.unlink()
+    crua = limitada
+    m = medir(crua)
     final = pasta / 'trilha.wav'
     filtro = (f"loudnorm=I=-14:TP=-1:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:measured_LRA={m['input_lra']}"
               f":measured_thresh={m['input_thresh']}:offset={m['target_offset']}:linear=true,aresample=44100")

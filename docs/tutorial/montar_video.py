@@ -249,10 +249,25 @@ def ler_wav(caminho: Path) -> np.ndarray:
     return dados
 
 
+# modelo RNNoise "beguiling-drafter" (github.com/GregorR/rnnoise-models, sem direitos autorais):
+# feito para tirar ruído de gravação mantendo a voz
+RUIDO = Path(__file__).resolve().parent / 'ruido-voz.rnnn'
+
+
 def preparar_voz(origem: Path, destino: Path):
-    # tira o grave do vento, suaviza o volume e passa para 44,1 kHz
-    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', str(origem), '-af',
-                    'highpass=f=80,acompressor=threshold=0.08:ratio=3:attack=5:release=120:makeup=2,aresample=44100',
+    """Trata a voz (sintética ou gravada): tira o grave, o chiado de fundo (RNNoise + redução espectral)
+    e a faixa de ruído acima de 9,8 kHz, suaviza o "s" e o volume e passa para 44,1 kHz."""
+    filtros = ','.join([
+        'aresample=48000:resampler=soxr',  # o RNNoise trabalha em 48 kHz
+        'highpass=f=70',
+        f"arnndn=m='{RUIDO}'",
+        'afftdn=nr=24:nf=-42:tn=0',
+        'lowpass=f=9800', 'lowpass=f=9800',
+        'deesser=i=0.3',
+        'acompressor=threshold=-24dB:ratio=2.5:attack=8:release=150:makeup=3dB',
+        f'aresample={TAXA}:resampler=soxr',
+    ])
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', str(origem), '-af', filtros,
                     '-ac', '1', '-ar', str(TAXA), '-c:a', 'pcm_s16le', str(destino)], check=True)
 
 
