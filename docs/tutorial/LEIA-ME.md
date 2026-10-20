@@ -1,17 +1,18 @@
 # Vídeo-tutorial: Coleta de sementes
 
-Para quem vai a campo coletar, de 10 a 80 anos. Didático e direto: uma
-ideia por cena, frases curtas, telas de verdade do app e narração.
+Para quem vai a campo coletar, de 10 a 80 anos. Curto e direto: cerca de
+1 minuto, uma frase por tela, telas de verdade do app e narração.
 
 - **Vídeo:** `tutorial-coleta-de-sementes.mp4` (vertical, para celular, cerca
-  de 4 minutos). Pode ser enviado pelo WhatsApp.
+  de 1 minuto). Pode ser enviado pelo WhatsApp.
 - **Roteiro:** `roteiro.json` (capítulos, título, legenda e fala de cada cena).
 
 ## Linguagem visual
 
-- Abertura que diz o que a pessoa vai aprender; três capítulos numerados
-  ("Antes de sair", "Cadastrar a árvore matriz", "Colher as sementes");
-  resumo "Lembre-se" com os 4 pontos principais; encerramento.
+- Abertura de uma frase, 13 telas (uma frase cada) e encerramento. A parte
+  ("Antes de sair", "Cadastrar a matriz", "Colher") aparece no topo da tela.
+- O montador também aceita telas de capítulo, explicação e resumo
+  (`tipo` no roteiro), para vídeos mais longos.
 - Letras grandes e alto contraste, nas cores da logomarca.
 - Legenda com os nomes dos botões em pílulas verdes, iguais às do app.
 - O resto da tela escurece e o botão a tocar fica em destaque, com animação
@@ -52,8 +53,8 @@ Comparamos 7 vozes neurais gratuitas em português (Piper faber, cadu, jeff,
 dii e Kokoro dora, alex, santa): cada uma leu as frases do roteiro e um
 reconhecedor de fala (Whisper) transcreveu o que ouviu. A Kokoro "Dora" foi
 a mais clara (2% de palavras erradas, contra 5% a 21% das outras) e a única
-que falou "CRAD" certo. Ela fala um pouco mais devagar que o normal
-(`--velocidade 0.92`) e com pausa entre as frases. Outras vozes:
+que falou "CRAD" certo. Ela fala no ritmo normal
+(`--velocidade 1.0`, ritmo normal) com pausa curta entre as frases. Outras vozes:
 `--falante 43` (Alex) ou `--falante 44` (Santa).
 
 ### Com a voz de uma pessoa

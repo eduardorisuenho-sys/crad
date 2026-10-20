@@ -47,7 +47,7 @@ TRILHO = (205, 225, 238)
 
 L, A, FPS = 1080, 1920, 30
 TAXA = 44100
-TRANSICAO = 10  # quadros de fusão entre cenas
+TRANSICAO = 6  # quadros de fusão entre cenas
 
 
 # ---------------------------------------------------------------- texto
@@ -271,7 +271,7 @@ def falar(texto: str, voz: str, saida: Path, falante: int, velocidade: float):
     partes = []
     for frase in re.split(r'(?<=[.!?])\s+', texto.strip()):
         a = tts.generate(frase, sid=falante, speed=velocidade)
-        partes += [np.array(a.samples, dtype=np.float32), np.zeros(int(a.sample_rate * 0.28), dtype=np.float32)]
+        partes += [np.array(a.samples, dtype=np.float32), np.zeros(int(a.sample_rate * 0.15), dtype=np.float32)]
     som = np.concatenate(partes[:-1])
     with wave.open(str(saida), 'w') as w:
         w.setnchannels(1)
@@ -319,7 +319,7 @@ def main():
     p.add_argument('--telas', required=True, type=Path)
     p.add_argument('--voz', help='pasta do modelo Kokoro do sherpa-onnx (kokoro-multi-lang-v1_0)')
     p.add_argument('--falante', type=int, default=42, help='voz do Kokoro: 42 = pf_dora (feminina, pt-BR), 43 = pm_alex, 44 = pm_santa')
-    p.add_argument('--velocidade', type=float, default=0.92, help='1 = normal; menos que 1 = mais devagar')
+    p.add_argument('--velocidade', type=float, default=1.0, help='1 = normal; menos que 1 = mais devagar')
     p.add_argument('--gravacoes', type=Path, help='pasta com cena-01.wav, cena-02.wav... (voz gravada; tem prioridade)')
     p.add_argument('--roteiro', type=Path, default=AQUI / 'roteiro.json')
     p.add_argument('--saida', type=Path, default=AQUI / 'tutorial-coleta-de-sementes.mp4')
@@ -347,8 +347,9 @@ def main():
             preparar_voz(bruta, pronta)
             v = ler_wav(pronta)
             v = v / (np.max(np.abs(v)) + 1e-9) * 0.8
-            antes = 0.9 if c['tipo'] in ('abertura', 'capitulo') else 0.5
-            depois = 1.2 if c['tipo'] in ('capitulo', 'resumo', 'fim') else 0.7
+            # ritmo enxuto: pouco silêncio antes e depois de cada fala
+            antes = 0.4 if c['tipo'] in ('abertura', 'capitulo') else 0.2
+            depois = 1.0 if c['tipo'] in ('resumo', 'fim') else 0.45
             dur = antes + len(v) / TAXA + depois
             vozes.append((v, antes))
             inicio.append(relogio)
@@ -405,10 +406,10 @@ def main():
                     k = 0 if t < fala_ini else min(len(resumo) - 1, 1 + int((t - fala_ini) / (fala_dur / (len(resumo) - 1) + 1e-9)))
                     quadro = resumo[k].copy()
                 elif destaque is not None and destaque is not base:
-                    nivel = min(1.0, max(0.0, (t - 0.35) / 0.45))
+                    nivel = min(1.0, max(0.0, (t - 0.1) / 0.3))
                     quadro = destaque.copy() if nivel >= 1 else Image.blend(base, destaque, nivel) if nivel > 0 else base.copy()
                     # toque: círculo que cresce e some, a cada 1,6 s
-                    fase = (t - 0.9) % 1.6 if t >= 0.9 else -1
+                    fase = (t - 0.4) % 1.4 if t >= 0.4 else -1
                     if 0 <= fase < 0.9 and toque:
                         r = 22 + fase / 0.9 * 70
                         alfa = int(220 * (1 - fase / 0.9))
