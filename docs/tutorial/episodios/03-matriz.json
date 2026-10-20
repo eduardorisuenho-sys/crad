@@ -74,7 +74,7 @@
       "tipo": "tela",
       "imagem": "plaqueta.png",
       "titulo": "Código e plaqueta",
-      "fala": "A matriz ganha um código e uma plaqueta com Q R Code para prender na árvore."
+      "fala": "A matriz ganha um código e uma plaqueta com QR Code para colocar na árvore."
     },
     {
       "tipo": "tela",

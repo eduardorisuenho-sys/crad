@@ -1,0 +1,9 @@
+{
+  "name": "crad-tutorial-hyperframes",
+  "private": true,
+  "description": "Produção dos vídeos do manual com HyperFrames (só para gerar os vídeos; nada daqui vai para o app).",
+  "dependencies": {
+    "gsap": "3.14.2",
+    "hyperframes": "0.8.181"
+  }
+}

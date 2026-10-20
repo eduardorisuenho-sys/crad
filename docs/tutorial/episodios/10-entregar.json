@@ -50,7 +50,7 @@
       "tipo": "tela",
       "imagem": "entregue.png",
       "titulo": "Entregue",
-      "fala": "Pronto. O estoque baixa e o termo sai em P D F."
+      "fala": "Pronto. O estoque baixa e o termo sai em PDF."
     },
     {
       "tipo": "fim",

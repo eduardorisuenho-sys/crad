@@ -68,7 +68,7 @@
       "tipo": "tela",
       "imagem": "lote-criado.png",
       "titulo": "Lote criado",
-      "fala": "O lote ganha código e etiquetas com Q R Code."
+      "fala": "O lote ganha código e etiquetas com QR Code."
     },
     {
       "tipo": "fim",

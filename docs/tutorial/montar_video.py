@@ -263,6 +263,10 @@ _TTS = {}
 PRONUNCIA = [
     (r'\bToque em\b', 'Toque no botão'),
     (r'\btoque em\b', 'toque no botão'),
+    (r'\bQR Code\b', 'Q R Code'),
+    (r'\bPDF\b', 'P D F'),
+    (r'\bCPF\b', 'C P F'),
+    (r'\bapp\b', 'aplicativo'),
 ]
 
 
