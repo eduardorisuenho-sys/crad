@@ -13,68 +13,64 @@
     {
       "tipo": "tela",
       "imagem": "modulo.png",
-      "titulo": "Hora de colher",
-      "fala": "Hora de colher! Toque em [Coleta e sementes]."
-    },
-    {
-      "tipo": "tela",
-      "imagem": "rota-botao.png",
-      "titulo": "Como chegar",
-      "fala": "A [Rota de coleta] mostra as matrizes perto de você."
-    },
-    {
-      "tipo": "tela",
-      "imagem": "rota.png",
-      "titulo": "Como chegar",
-      "fala": "Escolha a árvore e veja a distância e a direção."
+      "titulo": "Ao lado da matriz",
+      "fala": "Você já está ao lado da matriz. Toque em [Coleta e sementes]."
     },
     {
       "tipo": "tela",
       "imagem": "registrar.png",
       "titulo": "Registrar",
-      "fala": "Chegou? Toque em [Registrar coleta]."
+      "fala": "Toque em [Registrar coleta]."
     },
     {
       "tipo": "tela",
       "imagem": "escolher.png",
-      "titulo": "Qual árvore?",
-      "fala": "Escolha a matriz, ou leia a plaqueta."
+      "titulo": "Qual matriz?",
+      "fala": "Toque em [Ler a plaqueta (QR)], ou {na matriz da lista}. A mais perto vem primeiro."
     },
     {
       "tipo": "tela",
       "imagem": "quantidade.png",
       "titulo": "Quanto?",
-      "fala": "Diga quanto colheu e a medida."
+      "fala": "Escreva a [Quantidade], escolha a medida, como [Quilos (kg)], e toque em [Continuar]."
     },
     {
       "tipo": "tela",
       "imagem": "material.png",
       "titulo": "O quê?",
-      "fala": "Frutos ou sementes?"
+      "fala": "Colheu frutos ou sementes? Toque em [Frutos]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "foto.png",
+      "titulo": "Foto",
+      "fala": "A foto é opcional. Sem foto, toque em [Pular a foto]."
     },
     {
       "tipo": "tela",
       "imagem": "salvar.png",
       "titulo": "Salvar",
-      "fala": "A foto é opcional. Toque em [Salvar coleta]."
+      "fala": "Confira e toque em [Salvar coleta]."
     },
     {
       "tipo": "tela",
       "imagem": "salva.png",
       "titulo": "Coleta salva",
-      "fala": "Pronto. O lote de sementes é criado sozinho."
+      "fala": "Pronto! O lote de sementes é criado sozinho.",
+      "dedo": false
     },
     {
       "tipo": "tela",
       "imagem": "botao-verde.png",
       "titulo": "Não é matriz?",
-      "fala": "Não é uma matriz? Use o botão verde chamado [Coleta]."
+      "fala": "A árvore não é matriz? Use o botão verde [Coleta]."
     },
     {
       "tipo": "tela",
       "imagem": "enviado.png",
       "titulo": "Tudo enviado",
-      "fala": "Com internet, tudo é enviado sozinho."
+      "fala": "Sem sinal, tudo fica guardado no celular. Com internet, é enviado sozinho.",
+      "dedo": false
     },
     {
       "tipo": "fim",

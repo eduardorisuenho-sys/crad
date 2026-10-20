@@ -43,6 +43,7 @@ def quebrar(d, texto, f, largura):
 def texto_rico(d, texto, x, y, largura, f, fb):
     """Texto com [Botão] em verde e negrito."""
     pedacos = []
+    texto = re.sub(r'\{([^}]+)\}', r'\1', texto)
     for parte in re.split(r'(\[[^\]]+\])', texto):
         if parte.startswith('['):
             pedacos += [(w, True) for w in parte[1:-1].split()]

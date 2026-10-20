@@ -199,26 +199,23 @@ test('03 · Cadastrar uma matriz', async ({ browser }) => {
 });
 
 test('04 · Registrar uma coleta', async ({ browser }) => {
-  // de volta à estrada, a uns 400 m da árvore
-  const [ctx, p] = await contexto(browser, { ...ARVORE, latitude: ARVORE.latitude - 0.0036 });
+  // a pessoa já está ao lado da árvore, sem sinal
+  const [ctx, p] = await contexto(browser, { ...ARVORE, latitude: ARVORE.latitude + 0.00004 });
   const g = new Gravador(p, '04-coleta');
   await entrar(p, 'ana@crad.local', 'Olá, Ana');
   await sincronizado(p);
   await ctx.setOffline(true);
   await g.cena('modulo', link(p, 'Coleta e sementes'));
   await link(p, 'Coleta e sementes').click();
-  await g.cena('rota-botao', link(p, 'Rota de coleta'));
-  await link(p, 'Rota de coleta').click();
-  await p.locator('.item-lista', { hasText: matriz }).click();
-  await g.cena('rota', p.getByTestId('rota-escolhida'));
-  await p.goto('/coleta');
   await g.cena('registrar', link(p, 'Registrar coleta'));
   await link(p, 'Registrar coleta').click();
-  await g.cena('escolher', botao(p, new RegExp(matriz)));
-  await botao(p, new RegExp(matriz)).click();
+  const daArvore = botao(p, new RegExp(matriz));
+  await expect(daArvore.getByText(/\d+ m/)).toBeVisible();
+  await g.cena('escolher', link(p, /Ler a plaqueta/), daArvore);
+  await daArvore.click();
   await p.getByLabel('Quantidade').fill('2,5');
   await botao(p, 'Quilos (kg)').click();
-  await g.cena('quantidade', p.getByLabel('Quantidade'));
+  await g.cena('quantidade', p.getByLabel('Quantidade'), botao(p, 'Quilos (kg)'), botao(p, 'Continuar'));
   await botao(p, 'Continuar').click();
   await g.cena('material', botao(p, 'Frutos'));
   await botao(p, 'Frutos').click();

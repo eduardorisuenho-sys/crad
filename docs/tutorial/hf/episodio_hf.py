@@ -43,26 +43,51 @@ def frases_da(fala: str) -> list[str]:
     return [f for f in re.split(r'(?<=[.!?])\s+', fala.strip()) if f]
 
 
-def gerar_voz(cenas, voz_dir, falante, velocidade):
-    """Fala cena por cena, frase por frase: devolve o áudio (24 kHz) e, por cena, o início e a duração de cada frase."""
+def carregar_voz(voz_dir, falante, velocidade):
+    """Voz neural de código aberto pelo sherpa-onnx; o motor sai da pasta do modelo (Supertonic, Piper ou Kokoro).
+    Devolve uma função texto -> (amostras, taxa)."""
     import sherpa_onnx
 
     d = Path(voz_dir)
-    modelo = sherpa_onnx.OfflineTtsKokoroModelConfig(model=str(d / 'model.onnx'), voices=str(d / 'voices.bin'), tokens=str(d / 'tokens.txt'),
-                                                      data_dir=str(d / 'espeak-ng-data'), lexicon='', lang='pt-br')
-    tts = sherpa_onnx.OfflineTts(sherpa_onnx.OfflineTtsConfig(model=sherpa_onnx.OfflineTtsModelConfig(kokoro=modelo, num_threads=4)))
-    taxa = 24000
+    if (d / 'tts.json').exists():
+        m = sherpa_onnx.OfflineTtsModelConfig(supertonic=sherpa_onnx.OfflineTtsSupertonicModelConfig(
+            duration_predictor=str(d / 'duration_predictor.int8.onnx'), text_encoder=str(d / 'text_encoder.int8.onnx'),
+            vector_estimator=str(d / 'vector_estimator.int8.onnx'), vocoder=str(d / 'vocoder.int8.onnx'), tts_json=str(d / 'tts.json'),
+            unicode_indexer=str(d / 'unicode_indexer.bin'), voice_style=str(d / 'voice.bin')), num_threads=4)
+    elif (d / 'voices.bin').exists():
+        m = sherpa_onnx.OfflineTtsModelConfig(kokoro=sherpa_onnx.OfflineTtsKokoroModelConfig(
+            model=str(d / 'model.onnx'), voices=str(d / 'voices.bin'), tokens=str(d / 'tokens.txt'),
+            data_dir=str(d / 'espeak-ng-data'), lexicon='', lang='pt-br'), num_threads=4)
+    else:
+        m = sherpa_onnx.OfflineTtsModelConfig(vits=sherpa_onnx.OfflineTtsVitsModelConfig(
+            model=str(next(d.glob('*.onnx'))), tokens=str(d / 'tokens.txt'), data_dir=str(d / 'espeak-ng-data')), num_threads=4)
+    tts = sherpa_onnx.OfflineTts(sherpa_onnx.OfflineTtsConfig(model=m))
+
+    def falar(texto):
+        g = sherpa_onnx.GenerationConfig()
+        g.sid, g.speed = falante, velocidade
+        if m.supertonic.vocoder:
+            g.num_steps = 32
+            g.extra['lang'] = 'pt'
+        a = tts.generate(texto, g)
+        return np.array(a.samples, dtype=np.float32), a.sample_rate
+    return falar
+
+
+def gerar_voz(cenas, voz_dir, falante, velocidade):
+    """Fala cena por cena, frase por frase: devolve o áudio e, por cena, o início e a duração de cada frase."""
+    falar = carregar_voz(voz_dir, falante, velocidade)
+    taxa = falar('Olá.')[1]
     pausa = np.zeros(int(taxa * 0.18), dtype=np.float32)
     trechos, mapa = [], []
     for c in cenas:
         partes, tempos, t = [], [], 0.0
         for frase in frases_da(c['fala']):
-            a = tts.generate(mv.para_falar(mv.sem_colchetes(frase)), sid=falante, speed=velocidade)
-            s = np.array(a.samples, dtype=np.float32)
+            s, _ = falar(mv.para_falar(mv.sem_colchetes(frase)))
             # corta o silêncio do começo e do fim da frase (deixa o ritmo enxuto)
             vivo = np.where(np.abs(s) > 0.01)[0]
             if len(vivo):
-                s = s[max(0, vivo[0] - 600): vivo[-1] + 1200]
+                s = s[max(0, vivo[0] - int(taxa * 0.025)): vivo[-1] + int(taxa * 0.05)]
             tempos.append((frase, t, len(s) / taxa))
             partes += [s, pausa]
             t += (len(s) + len(pausa)) / taxa
@@ -72,11 +97,14 @@ def gerar_voz(cenas, voz_dir, falante, velocidade):
 
 
 def palavras_com_tempo(frase: str, ini: float, dur: float):
-    """Tempo de cada palavra dentro da frase (proporcional ao tamanho); [Botão] conta como uma unidade."""
+    """Tempo de cada palavra dentro da frase (proporcional ao tamanho); [Botão] conta como uma unidade.
+    {texto} marca um toque que não é nome de botão (ex.: "{a matriz da lista}"): aparece como texto comum."""
     unidades = []
-    for parte in re.split(r'(\[[^\]]+\])', frase):
+    for parte in re.split(r'(\[[^\]]+\]|\{[^}]+\})', frase):
         if parte.startswith('['):
             unidades.append((parte[1:-1], True))
+        elif parte.startswith('{'):
+            unidades.append((parte[1:-1], 'alvo'))
         else:
             for p in parte.split():
                 if unidades and re.fullmatch(r'[.,:;!?]+', p):
@@ -136,10 +164,12 @@ def legenda_html(cid: str, frase_tempos, base: float):
     spans, tweens, botoes = [], [], []
     for k, (palavra, botao, t) in enumerate(unidades):
         pid = f'{cid}-p{k}'
-        cls = 'pal botao' if botao else 'pal'
+        cls = 'pal botao' if botao is True else 'pal'
         spans.append(f'<span id="{pid}" class="{cls}">{html.escape(palavra)}</span>')
         quando = base + t
-        if botao:
+        if botao == 'alvo':
+            botoes.append(quando)
+        if botao is True:
             botoes.append(quando)
             tweens.append(f'tl.fromTo("#{pid}", {{scale: 1}}, {{scale: 1.08, duration: 0.14, yoyo: true, repeat: 1, ease: "power1.out"}}, {quando:.3f});')
         else:
@@ -149,6 +179,9 @@ def legenda_html(cid: str, frase_tempos, base: float):
             tweens.append(f'tl.to("#{pid}", {{backgroundColor: "rgba(37, 154, 212, 0)", duration: 0.15}}, {max(quando + 0.1, prox):.3f});')
     texto = ' '.join(spans)
     texto = re.sub(r'</span> (<span id="[^"]+" class="pal">[.,:;!?]+</span>)', r'</span>\1', texto)
+    # a pontuação depois de um botão não pode cair sozinha no começo da linha
+    texto = re.sub(r'(<span id="[^"]+" class="pal botao">[^<]*</span>)(<span id="[^"]+" class="pal">[.,:;!?]+</span>)',
+                   r'<span class="junto">\1\2</span>', texto)
     return texto, tweens, botoes
 
 
@@ -174,7 +207,8 @@ def ponta_do_dedo(x0, y0, x1, y1):
     if w > 300:
         return x0 + 0.3 * w, (y0 + y1) / 2
     if h > 0.8 * w and h > 150:
-        return (x0 + x1) / 2 + 0.1 * w, y0 + 0.36 * h
+        # à direita do ícone: o corpo do dedo desce para a direita, longe do nome embaixo
+        return (x0 + x1) / 2 + 0.22 * w, y0 + 0.3 * h
     return (x0 + x1) / 2, (y0 + y1) / 2
 
 
@@ -355,6 +389,7 @@ def montar(roteiro, telas: Path, alvos: dict, mapa, duracoes, inicios, total: fl
       .legenda {{ position: absolute; left: 40px; right: 40px; bottom: 34px; z-index: 5; display: flex; justify-content: center; }}
       .legenda-txt {{ max-width: 1000px; padding: 24px 30px; border-radius: 24px; background: rgba(255, 255, 255, 0.94); box-shadow: 0 10px 30px rgba(31, 60, 90, 0.18); text-align: center; text-wrap: balance; font-size: 52px; font-weight: 700; line-height: 1.25; color: {AZUL_ESCURO}; }}
       .pal {{ display: inline-block; opacity: 0.62; border-radius: 12px; padding: 0 4px; margin: 0 -4px; background-color: rgba(37, 154, 212, 0); }}
+      .junto {{ white-space: nowrap; }}
       .pal.botao {{ opacity: 1; background: {VERDE}; color: #fff; border-radius: 40px; padding: 0 20px; white-space: nowrap; }}
       .cartao-fundo {{ position: absolute; inset: 0; z-index: 7; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 160px; }}
       .logo {{ display: block; height: 640px; width: auto; }}

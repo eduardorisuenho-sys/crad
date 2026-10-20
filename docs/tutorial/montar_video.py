@@ -59,7 +59,7 @@ def fonte(tamanho: int, peso: str = 'Bold') -> ImageFont.FreeTypeFont:
 
 
 def sem_colchetes(t: str) -> str:
-    return re.sub(r'\[([^\]]+)\]', r'\1', t)
+    return re.sub(r'\[([^\]]+)\]|\{([^}]+)\}', lambda m: m.group(1) or m.group(2), t)
 
 
 def quebrar(d, texto, f, largura):
@@ -267,6 +267,7 @@ PRONUNCIA = [
     (r'\bPDF\b', 'P D F'),
     (r'\bCPF\b', 'C P F'),
     (r'\bapp\b', 'aplicativo'),
+    (r'\s*\((kg|QR)\)', ''),
 ]
 
 
