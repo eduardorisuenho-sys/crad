@@ -43,6 +43,8 @@ __export(crads_exports, {
   antesDeGravarPeloPainel: () => antesDeGravarPeloPainel,
   apagarConta: () => apagarConta,
   arquivoParaLer: () => arquivoParaLer,
+  atualizarPerfil: () => atualizarPerfil,
+  atualizarPerfis: () => atualizarPerfis,
   auditarPainel: () => auditarPainel,
   avisarPush: () => avisarPush,
   catalogoPublico: () => catalogoPublico,
@@ -72,6 +74,7 @@ __export(crads_exports, {
   receberArquivo: () => receberArquivo,
   reservarFaixas: () => reservarFaixas,
   sairPush: () => sairPush,
+  textoPerfil: () => textoPerfil,
   transparencia: () => transparencia,
   viveirosPublicos: () => viveirosPublicos
 });
@@ -2411,6 +2414,41 @@ function enviosPush(app, nome, antesRec, depoisRec) {
     for (const i of inscricoes) envios.push(__spreadValues({ inscricao: { endpoint: i.getString("endpoint"), keys: { p256dh: i.getString("p256dh"), auth: i.getString("auth") } } }, n2));
   }
   return envios;
+}
+var NOME_PERFIL = { coletor: "Coletor", viveirista: "Viveirista", gestor: "Gestor" };
+function textoPerfil(app, usuarioId, gestorGeral, solicitante) {
+  var _a, _b;
+  const nomeViveiro = (id) => {
+    const v = buscar(app, "viveiro", id);
+    return v ? v.getString("nome") : "viveiro";
+  };
+  const partes = [];
+  const vinculos = app.findRecordsByFilter("usuario_viveiro", "usuario_id = {:u} && excluido = false", "", 0, 0, { u: usuarioId });
+  for (const v of vinculos) partes.push(`${(_a = NOME_PERFIL[v.getString("perfil")]) != null ? _a : v.getString("perfil")} (${nomeViveiro(v.getString("viveiro_id"))})`);
+  const pedidos = app.findRecordsByFilter("pedido_acesso", "usuario_id = {:u} && excluido = false && situacao = 'pendente'", "", 0, 0, { u: usuarioId });
+  for (const p of pedidos) partes.push(`${(_b = NOME_PERFIL[p.getString("perfil")]) != null ? _b : p.getString("perfil")} (${nomeViveiro(p.getString("viveiro_id"))}, aguardando aprova\xE7\xE3o)`);
+  partes.sort((a, b2) => a.localeCompare(b2, "pt-BR"));
+  if (solicitante) partes.push("Solicitante");
+  if (gestorGeral) partes.push("Administrador");
+  return partes.length ? partes.join(" \xB7 ") : "Sem perfil";
+}
+function atualizarPerfil(app, usuarioId) {
+  if (!usuarioId) return;
+  let u;
+  try {
+    u = app.findRecordById("users", usuarioId);
+  } catch (e) {
+    return;
+  }
+  const texto = textoPerfil(app, usuarioId, u.getBool("gestor_geral"), u.getBool("solicitante"));
+  if (u.getString("perfil") === texto) return;
+  u.set("perfil", texto);
+  app.unsafeWithoutHooks().save(u);
+}
+function atualizarPerfis(app) {
+  const usuarios = app.findRecordsByFilter("users", "", "", 0, 0);
+  for (const u of usuarios) atualizarPerfil(app, u.id);
+  return usuarios.length;
 }
 function avisarPush(app, nome, antesRec, depoisRec) {
   var _a, _b, _c;

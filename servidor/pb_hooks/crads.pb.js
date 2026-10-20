@@ -322,3 +322,34 @@ routerAdd("POST", "/api/crads/flora/atualizar", (e) => {
   $os.cmd("sh", "-c", 'nohup python3 "$0" "$1" TO >/dev/null 2>&1 &', script, destino).run();
   return e.json(202, { ok: true, andamento: "baixando a lista do Jardim Botânico (pode levar alguns minutos)" });
 }, $apis.requireAuth("users"));
+
+// Coluna "perfil" na tabela de usuários do painel: diz quem é coletor, viveirista, gestor,
+// solicitante ou administrador. É só um espelho de usuario_viveiro, refeito a cada mudança.
+onRecordAfterCreateSuccess((e) => {
+  e.next();
+  require(`${__hooks}/lib/crads.js`).atualizarPerfil($app, e.record.getString("usuario_id"));
+}, "usuario_viveiro", "pedido_acesso");
+
+onRecordAfterUpdateSuccess((e) => {
+  e.next();
+  require(`${__hooks}/lib/crads.js`).atualizarPerfil($app, e.record.getString("usuario_id"));
+}, "usuario_viveiro", "pedido_acesso");
+
+onRecordAfterCreateSuccess((e) => {
+  e.next();
+  require(`${__hooks}/lib/crads.js`).atualizarPerfil($app, e.record.id);
+}, "users");
+
+onRecordAfterUpdateSuccess((e) => {
+  e.next();
+  require(`${__hooks}/lib/crads.js`).atualizarPerfil($app, e.record.id);
+}, "users");
+
+onBootstrap((e) => {
+  e.next();
+  try {
+    require(`${__hooks}/lib/crads.js`).atualizarPerfis($app);
+  } catch (err) {
+    console.log("perfis dos usuários: " + String(err));
+  }
+});

@@ -1044,6 +1044,51 @@ export function enviosPush(app: App, nome: string, antesRec: RecordPB | null, de
 }
 
 /** Chamado pelos ganchos de gravação: manda os avisos ao carteiro (falha nunca atrapalha a gravação). */
+// ---------------------------------------------------------------- perfil na tabela de usuários
+
+const NOME_PERFIL: Record<string, string> = { coletor: 'Coletor', viveirista: 'Viveirista', gestor: 'Gestor' };
+
+/** Texto que diz quem a pessoa é, para a coluna "perfil" dos usuários no painel do servidor
+ * (ex.: "Gestor (CRAD Palmas) · Coletor (CRAD Araguaína) · Solicitante · Administrador").
+ * Os perfis de verdade ficam em usuario_viveiro; esta coluna é só um espelho, refeito a cada mudança. */
+export function textoPerfil(app: App, usuarioId: string, gestorGeral: boolean, solicitante: boolean): string {
+  const nomeViveiro = (id: string) => {
+    const v = buscar(app, 'viveiro', id);
+    return v ? v.getString('nome') : 'viveiro';
+  };
+  const partes: string[] = [];
+  const vinculos = app.findRecordsByFilter('usuario_viveiro', 'usuario_id = {:u} && excluido = false', '', 0, 0, { u: usuarioId }) as RecordPB[];
+  for (const v of vinculos) partes.push(`${NOME_PERFIL[v.getString('perfil')] ?? v.getString('perfil')} (${nomeViveiro(v.getString('viveiro_id'))})`);
+  const pedidos = app.findRecordsByFilter('pedido_acesso', "usuario_id = {:u} && excluido = false && situacao = 'pendente'", '', 0, 0, { u: usuarioId }) as RecordPB[];
+  for (const p of pedidos) partes.push(`${NOME_PERFIL[p.getString('perfil')] ?? p.getString('perfil')} (${nomeViveiro(p.getString('viveiro_id'))}, aguardando aprovação)`);
+  partes.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  if (solicitante) partes.push('Solicitante');
+  if (gestorGeral) partes.push('Administrador');
+  return partes.length ? partes.join(' · ') : 'Sem perfil';
+}
+
+export function atualizarPerfil(app: App, usuarioId: string) {
+  if (!usuarioId) return;
+  let u: RecordPB;
+  try {
+    u = app.findRecordById('users', usuarioId);
+  } catch {
+    return;
+  }
+  const texto = textoPerfil(app, usuarioId, u.getBool('gestor_geral'), u.getBool('solicitante'));
+  if (u.getString('perfil') === texto) return;
+  u.set('perfil', texto);
+  // sem ganchos: não volta a disparar a atualização do próprio usuário
+  app.unsafeWithoutHooks().save(u);
+}
+
+/** Refaz a coluna de todos (ao ligar o servidor: cobre quem já existia antes dela). */
+export function atualizarPerfis(app: App): number {
+  const usuarios = app.findRecordsByFilter('users', '', '', 0, 0) as RecordPB[];
+  for (const u of usuarios) atualizarPerfil(app, u.id);
+  return usuarios.length;
+}
+
 export function avisarPush(app: App, nome: string, antesRec: RecordPB | null, depoisRec: RecordPB) {
   try {
     const envios = enviosPush(app, nome, antesRec, depoisRec);
