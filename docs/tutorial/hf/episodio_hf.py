@@ -74,16 +74,57 @@ def carregar_voz(voz_dir, falante, velocidade):
     return falar
 
 
-def gerar_voz(cenas, voz_dir, falante, velocidade):
-    """Fala cena por cena, frase por frase: devolve o áudio e, por cena, o início e a duração de cada frase."""
-    falar = carregar_voz(voz_dir, falante, velocidade)
-    taxa = falar('Olá.')[1]
+def _ler_audio(arq: Path):
+    with wave.open(str(arq)) as w:
+        taxa, dados = w.getframerate(), np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+    return dados.astype(np.float32) / 32768, taxa
+
+
+def _clonar(textos, ref, python_voz, whisper):
+    """Chatterbox (ambiente próprio): uma chamada para todas as frases. Com --whisper, confere cada frase
+    com o reconhecedor de fala e refaz (outra semente) a que sair diferente do texto, até duas vezes."""
+    import tempfile
+
+    pasta = Path(tempfile.mkdtemp(prefix='voz-'))
+    pendentes = {f'f{k:03d}': (t, 1) for k, t in enumerate(textos)}
+    prontas = {}
+    conferir = mv.reconhecedor(whisper) if whisper else None
+    for rodada in range(3):
+        pedido = pasta / 'pedido.json'
+        pedido.write_text(json.dumps([{'id': i, 'texto': t, 'semente': sem} for i, (t, sem) in pendentes.items()], ensure_ascii=False))
+        subprocess.run([python_voz, str(AQUI / 'voz_chatterbox.py'), '--ref', str(ref), '--pedido', str(pedido), '--saida', str(pasta)], check=True)
+        refazer = {}
+        for i, (t, sem) in pendentes.items():
+            prontas[i] = _ler_audio(pasta / f'{i}.wav')
+            if conferir and rodada < 2:
+                erro = mv.taxa_de_erro(t, conferir(*prontas[i]))
+                if erro > 0.2:
+                    print(f'  refazendo ({erro:.0%} diferente): {t}')
+                    refazer[i] = (t, sem + 1)
+        pendentes = refazer
+        if not pendentes:
+            break
+    return [prontas[f'f{k:03d}'] for k in range(len(textos))]
+
+
+def gerar_voz(cenas, voz, falante, velocidade, python_voz='python3', whisper=None):
+    """Fala cena por cena, frase por frase: devolve o áudio e, por cena, o início e a duração de cada frase.
+    `voz` é a pasta de um modelo do sherpa-onnx ou uma gravação .wav de referência (voz clonada pelo Chatterbox)."""
+    frases = [[f for f in frases_da(c['fala'])] for c in cenas]
+    textos = [mv.para_falar(mv.sem_colchetes(f)) for fs in frases for f in fs]
+    if str(voz).endswith('.wav'):
+        audios = _clonar(textos, voz, python_voz, whisper)
+    else:
+        falar = carregar_voz(voz, falante, velocidade)
+        audios = [falar(t) for t in textos]
+    taxa = audios[0][1]
     pausa = np.zeros(int(taxa * 0.18), dtype=np.float32)
-    trechos, mapa = [], []
-    for c in cenas:
+    trechos, mapa, k = [], [], 0
+    for fs in frases:
         partes, tempos, t = [], [], 0.0
-        for frase in frases_da(c['fala']):
-            s, _ = falar(mv.para_falar(mv.sem_colchetes(frase)))
+        for frase in fs:
+            s = audios[k][0]
+            k += 1
             # corta o silêncio do começo e do fim da frase (deixa o ritmo enxuto)
             vivo = np.where(np.abs(s) > 0.01)[0]
             if len(vivo):
@@ -437,6 +478,8 @@ def main():
     p.add_argument('--projeto', required=True, type=Path)
     p.add_argument('--falante', type=int, default=42)
     p.add_argument('--velocidade', type=float, default=1.0)
+    p.add_argument('--python-voz', default='python3', help='Python com o Chatterbox (quando --voz é uma gravação .wav)')
+    p.add_argument('--whisper', help='pasta do Whisper (sherpa-onnx) para conferir cada frase da voz clonada')
     a = p.parse_args()
     roteiro = json.loads(a.roteiro.read_text(encoding='utf-8'))
     alvos = {c['imagem']: c for c in json.loads((a.telas / 'cenas.json').read_text())['cenas']}
@@ -444,7 +487,7 @@ def main():
     (proj / 'assets' / 'telas').mkdir(parents=True, exist_ok=True)
 
     # voz, cena por cena; a duração de cada cena acompanha a fala (mínimo 2,6 s para o toque)
-    trechos, mapa, taxa = gerar_voz(roteiro['cenas'], a.voz, a.falante, a.velocidade)
+    trechos, mapa, taxa = gerar_voz(roteiro['cenas'], a.voz, a.falante, a.velocidade, a.python_voz, a.whisper)
     duracoes, inicios, t = [], [], 0.0
     for c, tr in zip(roteiro['cenas'], trechos):
         antes = 0.35 if c['tipo'] != 'tela' else 0.2

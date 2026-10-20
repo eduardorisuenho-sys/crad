@@ -271,6 +271,42 @@ def preparar_voz(origem: Path, destino: Path):
                     '-ac', '1', '-ar', str(TAXA), '-c:a', 'pcm_s16le', str(destino)], check=True)
 
 
+def reconhecedor(pasta_whisper):
+    """Whisper (sherpa-onnx, sem internet) para conferir a narração: devolve (amostras, taxa) -> texto."""
+    import sherpa_onnx
+
+    d = Path(pasta_whisper)
+    asr = sherpa_onnx.OfflineRecognizer.from_whisper(
+        encoder=str(next(d.glob('*encoder.int8.onnx'))), decoder=str(next(d.glob('*decoder.int8.onnx'))),
+        tokens=str(next(d.glob('*tokens.txt'))), language='pt', task='transcribe', num_threads=4)
+
+    def ouvir(amostras, taxa):
+        n = int(len(amostras) * 16000 / taxa)
+        x = np.interp(np.linspace(0, len(amostras) - 1, n), np.arange(len(amostras)), amostras).astype(np.float32)
+        s = asr.create_stream()
+        s.accept_waveform(16000, x)
+        asr.decode_stream(s)
+        return s.result.text
+    return ouvir
+
+
+def taxa_de_erro(certo: str, ouvido: str) -> float:
+    """Proporção de palavras trocadas, faltando ou sobrando (sem acento e sem pontuação)."""
+    import unicodedata
+
+    def palavras(t):
+        t = ''.join(c for c in unicodedata.normalize('NFKD', t.lower()) if not unicodedata.combining(c))
+        t = re.sub(r'\b([a-z]) (?=[a-z]\b)', r'\1', t)  # "q r code" = "qr code"
+        return re.findall(r'[a-z0-9]+', t)
+    r, h = palavras(certo), palavras(ouvido)
+    d = list(range(len(h) + 1))
+    for i in range(1, len(r) + 1):
+        ant, d[0] = d[0], i
+        for j in range(1, len(h) + 1):
+            ant, d[j] = d[j], min(d[j] + 1, d[j - 1] + 1, ant + (r[i - 1] != h[j - 1]))
+    return d[-1] / max(1, len(r))
+
+
 _TTS = {}
 
 # Só na narração: jeitos de escrever que a voz pronuncia melhor (testados com
