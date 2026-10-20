@@ -168,7 +168,7 @@ export const COLECOES: Colecao[] = [
     nome: 'pedido_acesso',
     natureza: 'cadastro',
     porViveiro: true,
-    campos: [r('usuario_id', 'users', true), t('nome'), t('email'), o('perfil', ['coletor', 'viveirista'], true), o('situacao', ['pendente', 'aprovado', 'recusado'], true), r('analisado_por', 'users'), t('motivo')],
+    campos: [r('usuario_id', 'users', true), t('nome'), t('email'), o('perfil', ['coletor', 'viveirista', 'gestor'], true), o('situacao', ['pendente', 'aprovado', 'recusado'], true), r('analisado_por', 'users'), t('motivo')],
     indices: ['usuario_id'],
     leitura: SO_GESTOR,
     escrita: SO_GESTOR,

@@ -6,11 +6,12 @@ import { useApp } from '../../contexto';
 import { descobrirServidor, entrar } from '../../dados/sessao';
 import { criarConta, viveirosPublicos, type ViveiroPublico } from './api';
 
-type Escolha = 'solicitante' | 'coletor' | 'viveirista';
+type Escolha = 'solicitante' | 'coletor' | 'viveirista' | 'gestor';
 const OPCOES: { valor: Escolha; rotulo: string; dica: string; icone: string }[] = [
   { valor: 'solicitante', rotulo: 'Quero pedir mudas', dica: 'Produtor, prefeitura, escola, associação', icone: 'doacao' },
   { valor: 'coletor', rotulo: 'Vou coletar sementes', dica: 'Precisa da aprovação do gestor', icone: 'semente' },
   { valor: 'viveirista', rotulo: 'Vou trabalhar no viveiro', dica: 'Precisa da aprovação do gestor', icone: 'muda' },
+  { valor: 'gestor', rotulo: 'Grupo Gestor', dica: 'Precisa da aprovação de um gestor ou do administrador', icone: 'pessoas' },
 ];
 
 export function CriarConta() {
@@ -23,7 +24,7 @@ export function CriarConta() {
   const [verSenha, setVerSenha] = useState(false);
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
-  const equipe = perfil === 'coletor' || perfil === 'viveirista';
+  const equipe = perfil === 'coletor' || perfil === 'viveirista' || perfil === 'gestor';
 
   useEffect(() => {
     if (!equipe || viveiros) return;

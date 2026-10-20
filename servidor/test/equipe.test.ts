@@ -73,6 +73,17 @@ describe.skipIf(!temPocketBase)('contas, equipe e permissões', () => {
     expect((await chamar(s, gestor.token, 'POST', `/api/crads/equipe/pedido/${eq.pedidos[0].id}`, { aprovar: true })).dados.message).toMatch(/já foi respondido/);
   });
 
+  it('Grupo Gestor: pede pelo app e só um gestor aprova', async () => {
+    const r = await chamar(s, '', 'POST', '/api/crads/conta', { nome: 'Carla Gestora', email: 'carla@gestao.local', senha: 'senha-carla-1', perfil: 'gestor', viveiro_id: VIV });
+    expect(r.dados.pendente).toBe(true);
+    const tc = await entrar(s, 'carla@gestao.local', 'senha-carla-1');
+    expect((await chamar(s, tc, 'GET', '/api/crads/eu')).dados.pedidos_acesso).toEqual([{ perfil: 'gestor', viveiro: 'Viveiro Um', situacao: 'pendente', motivo: '' }]);
+    const pedido = (await chamar(s, gestor.token, 'GET', '/api/crads/equipe')).dados.pedidos.find((p: { email: string }) => p.email === 'carla@gestao.local');
+    expect(pedido.perfil).toBe('gestor');
+    expect((await chamar(s, gestor.token, 'POST', `/api/crads/equipe/pedido/${pedido.id}`, { aprovar: true })).status).toBe(200);
+    expect((await chamar(s, tc, 'GET', '/api/crads/eu')).dados.perfisPorViveiro).toEqual({ [VIV]: ['gestor'] });
+  });
+
   it('gestor cadastra viveirista; não pode cadastrar em viveiro alheio nem tirar o próprio acesso', async () => {
     const r = await chamar(s, gestor.token, 'POST', '/api/crads/equipe/pessoa', { nome: 'Ana Viveirista', email: 'ana@viveiro.local', senha: 'senha-ana-12', viveiro_id: VIV, perfil: 'viveirista' });
     expect(r.dados).toEqual({ ok: true, conta_nova: true });

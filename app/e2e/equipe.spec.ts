@@ -10,6 +10,7 @@ test('coletor cria a conta pelo celular, a gestora aprova e libera "semear" na t
   await c.goto('/');
   await c.evaluate((url) => localStorage.setItem('crads_servidor', url), PB());
   await c.getByRole('link', { name: 'Criar conta' }).click();
+  await expect(c.getByRole('button', { name: /Grupo Gestor/ })).toContainText('Precisa da aprovação de um gestor ou do administrador');
   await c.getByRole('button', { name: /Vou coletar sementes/ }).click();
   // Com um viveiro só, ele já vem escolhido; com vários, a pessoa toca no dela.
   const botaoViveiro = c.getByRole('button', { name: 'Viveiro Teste' });

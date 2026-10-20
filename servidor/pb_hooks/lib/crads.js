@@ -195,7 +195,7 @@ var COLECOES = [
     nome: "pedido_acesso",
     natureza: "cadastro",
     porViveiro: true,
-    campos: [r("usuario_id", "users", true), t("nome"), t("email"), o("perfil", ["coletor", "viveirista"], true), o("situacao", ["pendente", "aprovado", "recusado"], true), r("analisado_por", "users"), t("motivo")],
+    campos: [r("usuario_id", "users", true), t("nome"), t("email"), o("perfil", ["coletor", "viveirista", "gestor"], true), o("situacao", ["pendente", "aprovado", "recusado"], true), r("analisado_por", "users"), t("motivo")],
     indices: ["usuario_id"],
     leitura: SO_GESTOR,
     escrita: SO_GESTOR
@@ -1924,7 +1924,7 @@ function criarConta(app, corpo) {
   var _a;
   const d2 = validarConta(corpo);
   const perfil = String((_a = corpo.perfil) != null ? _a : "solicitante");
-  if (!["solicitante", "coletor", "viveirista"].includes(perfil)) throw new Error("Perfil inv\xE1lido.");
+  if (!["solicitante", "coletor", "viveirista", "gestor"].includes(perfil)) throw new Error("Perfil inv\xE1lido.");
   const umaHora = new Date(Date.now() - 36e5).toISOString().replace("T", " ");
   if (app.findRecordsByFilter("users", "created >= {:t}", "", 201, 0, { t: umaHora }).length > 200) throw new Error("Muitos cadastros agora. Tente de novo mais tarde.");
   let pendente = false;

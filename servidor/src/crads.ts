@@ -474,7 +474,8 @@ export function viveirosPublicos(app: App) {
 export function criarConta(app: App, corpo: { nome?: string; email?: string; senha?: string; perfil?: string; viveiro_id?: string }) {
   const d = validarConta(corpo);
   const perfil = String(corpo.perfil ?? 'solicitante');
-  if (!['solicitante', 'coletor', 'viveirista'].includes(perfil)) throw new Error('Perfil inválido.');
+  // gestor também pede: só um gestor (do viveiro ou geral) aprova, ver exigirPodeDarPerfil
+  if (!['solicitante', 'coletor', 'viveirista', 'gestor'].includes(perfil)) throw new Error('Perfil inválido.');
   // Freio contra robôs: cada endereço de internet cria poucas contas por hora (limite
   // do PocketBase, na migração) e o servidor todo no máximo 200 por hora.
   const umaHora = new Date(Date.now() - 3600_000).toISOString().replace('T', ' ');
