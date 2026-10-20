@@ -254,15 +254,15 @@ def ler_wav(caminho: Path) -> np.ndarray:
 RUIDO = Path(__file__).resolve().parent / 'ruido-voz.rnnn'
 
 
-def preparar_voz(origem: Path, destino: Path):
-    """Trata a voz (sintética ou gravada): tira o grave, o chiado de fundo (RNNoise + redução espectral)
-    e a faixa de ruído acima de 9,8 kHz, suaviza o "s" e o volume e passa para 44,1 kHz."""
+def preparar_voz(origem: Path, destino: Path, limpar: bool = True):
+    """Trata a voz: tira o grave, suaviza o "s" e o volume e passa para 44,1 kHz. Com `limpar` (voz com
+    chiado: gravação de celular ou voz sintética Piper) também tira o chiado de fundo (RNNoise + redução
+    espectral) e a faixa de ruído acima de 9,8 kHz; a voz clonada já sai limpa e fica com o tratamento leve."""
+    limpeza = [f"arnndn=m='{RUIDO}'", 'afftdn=nr=24:nf=-42:tn=0', 'lowpass=f=9800', 'lowpass=f=9800'] if limpar else []
     filtros = ','.join([
         'aresample=48000:resampler=soxr',  # o RNNoise trabalha em 48 kHz
         'highpass=f=70',
-        f"arnndn=m='{RUIDO}'",
-        'afftdn=nr=24:nf=-42:tn=0',
-        'lowpass=f=9800', 'lowpass=f=9800',
+        *limpeza,
         'deesser=i=0.3',
         'acompressor=threshold=-24dB:ratio=2.5:attack=8:release=150:makeup=3dB',
         f'aresample={TAXA}:resampler=soxr',

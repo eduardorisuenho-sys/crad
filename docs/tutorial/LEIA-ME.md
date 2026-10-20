@@ -31,12 +31,17 @@ abertura, no topo do vídeo e no manual.
 - O resto da tela escurece e o botão a tocar fica em destaque, com toque animado.
 - Cores da logomarca, transições curtas e trilha calma criada pelo próprio
   montador (sem direitos autorais), que abaixa quando a narração fala.
-- Voz neural Piper "Miro" (pt-BR, código aberto, sem internet), escolhida
-  ouvindo 7 vozes (Kokoro, Supertonic 3 e Piper). A voz é tratada antes da
-  mixagem: RNNoise (`ruido-voz.rnnn`) e redução espectral tiram o chiado,
-  um filtro corta a faixa de ruído acima de 9,8 kHz, e um de-esser e um
-  compressor suavizam o "s" e o volume. Também dá para gravar as falas com
-  voz humana (veja abaixo); a gravação passa pelo mesmo tratamento.
+- Voz: **Chatterbox Multilíngue** (Resemble AI, código aberto, licença MIT),
+  que copia o jeito de falar de uma gravação curta (`voz-referencia.wav`).
+  Escolhida ouvindo amostras de Kokoro, Supertonic 3, Piper, XTTS-v2 e
+  Chatterbox. Cada frase é conferida por um reconhecedor de fala (Whisper) e
+  refeita quando sai diferente do texto. A voz recebe um tratamento leve
+  (grave, "s" e volume); vozes com chiado (Piper, gravação de celular) passam
+  também por RNNoise (`ruido-voz.rnnn`) e redução espectral.
+- `voz-referencia.wav`: trecho de audiolivro do LibriVox (domínio público),
+  locutora 13069 do conjunto CML-TTS (português, licença CC-BY 4.0). Para usar
+  a voz de uma pessoa da equipe, troque o arquivo por uns 15 segundos de
+  leitura dela, com autorização por escrito (a voz é dado pessoal na LGPD).
 
 As telas são do app de verdade, com um viveiro de exemplo ("CRAD Palmas"),
 quatro pessoas de exemplo e espécies reais: Ipê-amarelo (*Handroanthus
@@ -91,9 +96,13 @@ destaque só em volta de vários campos).
 
 ```bash
 cd docs/tutorial/hf && npm install
-curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-pt_BR-miro-high.tar.bz2 | tar xj
+# voz: Chatterbox num ambiente Python separado (torch) + Whisper para conferir
+uv venv -p 3.11 venv-voz && uv pip install --python venv-voz/bin/python \
+  --extra-index-url https://download.pytorch.org/whl/cpu chatterbox-tts "setuptools<80"
+curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-small.tar.bz2 | tar xj
 python3 episodio_hf.py --roteiro ../episodios/03-matriz.json --telas /tmp/telas/03-matriz \
-  --voz vits-piper-pt_BR-miro-high --falante 0 --velocidade 1.1 --projeto /tmp/hf-ep03
+  --voz ../voz-referencia.wav --python-voz venv-voz/bin/python \
+  --whisper sherpa-onnx-whisper-small --projeto /tmp/hf-ep03
 npx hyperframes check /tmp/hf-ep03          # erros, contraste (WCAG AA)
 npx hyperframes render /tmp/hf-ep03 -o ep03.mp4 --fps 30
 ```

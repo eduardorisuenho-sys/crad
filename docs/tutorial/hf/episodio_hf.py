@@ -166,13 +166,13 @@ def palavras_com_tempo(frase: str, ini: float, dur: float):
     return out
 
 
-def masterizar(voz: np.ndarray, taxa_voz: int, total_s: float, pasta: Path) -> Path:
+def masterizar(voz: np.ndarray, taxa_voz: int, total_s: float, pasta: Path, limpar: bool = True) -> Path:
     """Voz + trilha (que abaixa sob a fala) num só arquivo, masterizado a -14 LUFS / -1 dBTP (duas passadas)."""
     bruta, pronta = pasta / 'voz-bruta.wav', pasta / 'voz.wav'
     with wave.open(str(bruta), 'w') as w:
         w.setnchannels(1), w.setsampwidth(2), w.setframerate(taxa_voz)
         w.writeframes((np.clip(voz, -1, 1) * 32767).astype(np.int16).tobytes())
-    mv.preparar_voz(bruta, pronta)
+    mv.preparar_voz(bruta, pronta, limpar)
     fala = mv.ler_wav(pronta)
     n = int(total_s * mv.TAXA)
     fala = np.pad(fala, (0, max(0, n - len(fala))))[:n]
@@ -511,7 +511,7 @@ def main():
     for c, tr, ini in zip(roteiro['cenas'], trechos, inicios):
         k = int((ini + (0.35 if c['tipo'] != 'tela' else 0.2)) * taxa)
         voz[k:k + len(tr)] += tr
-    masterizar(voz, taxa, total, proj / 'assets')
+    masterizar(voz, taxa, total, proj / 'assets', limpar=not str(a.voz).endswith('.wav'))
 
     # arquivos da composição
     for c in roteiro['cenas']:
