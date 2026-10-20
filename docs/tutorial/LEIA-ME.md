@@ -1,13 +1,25 @@
-# Vídeo-tutorial: Matrizes e coleta de sementes
+# Vídeo-tutorial: Coleta de sementes
 
-Para quem vai a campo coletar. Linguagem simples (pensada para quem tem 10
-anos), com as telas de verdade do app e narração.
+Para quem vai a campo coletar, de 10 a 80 anos. Didático e direto: uma
+ideia por cena, frases curtas, telas de verdade do app e narração.
 
-- **Vídeo:** `tutorial-matrizes-e-coleta.mp4` (vertical, para celular, cerca
+- **Vídeo:** `tutorial-coleta-de-sementes.mp4` (vertical, para celular, cerca
   de 4 minutos). Pode ser enviado pelo WhatsApp.
-- **Roteiro:** `roteiro.json` (título, legenda e fala de cada cena).
+- **Roteiro:** `roteiro.json` (capítulos, título, legenda e fala de cada cena).
 
-## O que o vídeo ensina
+## Linguagem visual
+
+- Abertura que diz o que a pessoa vai aprender; três capítulos numerados
+  ("Antes de sair", "Cadastrar a árvore matriz", "Colher as sementes");
+  resumo "Lembre-se" com os 4 pontos principais; encerramento.
+- Letras grandes e alto contraste, nas cores da logomarca.
+- Legenda com os nomes dos botões em pílulas verdes, iguais às do app.
+- O resto da tela escurece e o botão a tocar fica em destaque, com animação
+  de toque.
+- Barra de progresso, transições suaves e trilha sonora calma, criada pelo
+  próprio montador (sem direitos autorais), que abaixa quando a narração fala.
+
+## O que o vídeo ensina (em ordem)
 
 1. Preparar o celular para ir a campo (funciona sem internet).
 2. Cadastrar uma matriz: lugar pelo GPS, espécie, fotos, como é a árvore,

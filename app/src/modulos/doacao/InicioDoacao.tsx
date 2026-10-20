@@ -6,6 +6,7 @@ import { SITUACOES_APROVADAS, SITUACOES_EM_ANALISE } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
+import { usePedidosQueEsperam } from '../../dados/usePendencias';
 import { IconeAgua } from './BotaoPlantandoAgua';
 import { doacoesNoPrograma, ROTULO_SITUACAO } from './dados';
 
@@ -27,6 +28,7 @@ export function InicioDoacao() {
     return m;
   }, [db]);
   const programa = useLiveQuery(() => doacoesNoPrograma(db), [db]);
+  const esperam = usePedidosQueEsperam();
   const pessoas = useLiveQuery(async () => new Map((await db.colecao('pessoa').toArray()).map((p) => [p.id, String(p.nome)])), [db]);
 
   const lista = useMemo(
@@ -75,6 +77,11 @@ export function InicioDoacao() {
                   {pessoas?.get(String(d.solicitante_pessoa_id)) ?? ''} · {totais?.get(d.id) ?? 0} mudas
                 </small>
               </div>
+              {esperam.has(d.id) && (
+                <span className="selo selo-pendente" data-testid="precisa-de-voce">
+                  Precisa de você
+                </span>
+              )}
               {programa?.has(d.id) && (
                 <span className="selo-agua" title="Plantando Água">
                   <IconeAgua tamanho={20} />

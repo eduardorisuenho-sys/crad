@@ -73,6 +73,8 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await expect(g.getByTestId('pendencias-doacao')).toHaveText(/^\d+\+?$/);
   if (process.env.CRADS_FOTO_PENDENCIAS) await g.locator('.grade-blocos').screenshot({ path: process.env.CRADS_FOTO_PENDENCIAS });
   await g.goto('/doacao');
+  // na lista, o pedido que espera a gestora vem marcado
+  await expect(g.locator('.item-lista', { hasText: codigo }).getByTestId('precisa-de-voce')).toBeVisible();
   await g.locator('.item-lista', { hasText: codigo }).click();
   await g.getByTestId('plantando-agua').click();
   await expect(g.getByTestId('plantando-agua')).toHaveAttribute('aria-pressed', 'true');

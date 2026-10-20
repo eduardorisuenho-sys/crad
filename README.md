@@ -505,7 +505,13 @@ O que a etapa 1 entrega:
     pronto); inventário aberto.
   - **Espécies**: marcadas para revisar (ex.: nome vindo da Wikipédia).
   - **Equipe**: pedidos de acesso esperando aprovação.
+  - **Ajustes**: avisos da sincronização (algo que o servidor recusou).
+  Para quem cuida de mais de um viveiro, conta só o viveiro escolhido, como
+  as listas. Na lista de pedidos, cada pedido que espera a pessoa vem
+  marcado com **Precisa de você**. Zerou, o número some.
   O vermelho é exceção às cores da logo, pedida para chamar atenção.
+- **Vídeo-tutorial do coletor** em `docs/tutorial` (vertical, narrado, para
+  WhatsApp), com roteiro e o montador para refazer quando o app mudar.
 - **Vários celulares e computadores ao mesmo tempo**: cada aparelho tem a
   sua fila e a sua faixa de códigos. O servidor grava cada envio numa
   transação, e a aprovação de pedidos é feita uma de cada vez, então nunca

@@ -34,7 +34,7 @@ export const BLOCOS: Bloco[] = [
 ];
 
 export function Inicio() {
-  const { sessao, perfis, viveiroId, db, pode, sincronizar, estadoSync } = useApp();
+  const { sessao, perfis, viveiroId, db, pode, sincronizar, estadoSync, avisosAbertos } = useApp();
   const viveiro = useLiveQuery(() => (viveiroId ? db.colecao('viveiro').get(viveiroId) : undefined), [viveiroId]);
   const pendentes = usePendencias();
   const visiveis = BLOCOS.filter((b) => b.perfis === 'todos' || b.perfis.some((p) => perfis.includes(p)) || (b.permissoes ?? []).some((k) => pode(k)));
@@ -93,9 +93,15 @@ export function Inicio() {
             <span>{b.rotulo}</span>
           </Link>
         ))}
-        <Link to="/configuracoes" className="bloco bloco-secundario">
+        <Link to="/configuracoes" className="bloco bloco-secundario" title={avisosAbertos ? `${avisosAbertos} aviso(s) da sincronização` : undefined}>
           <span className="circulo">
             <Icone nome="configuracoes" tamanho={42} />
+            {/* avisos da sincronização (algo que o servidor recusou) esperam a pessoa resolver */}
+            {avisosAbertos > 0 && (
+              <span className="contador-pendencias" data-testid="pendencias-ajustes" aria-hidden="true">
+                {Math.min(99, avisosAbertos)}
+              </span>
+            )}
           </span>
           <span>Ajustes</span>
         </Link>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { codigosRestantes } from '@crads/dominio';
 import { AjusteAvisos } from '../componentes/AjusteAvisos';
 import { EditarTermo } from '../componentes/EditarTermo';
@@ -13,7 +13,7 @@ import { idDispositivo, reservarFaixas, sair } from '../dados/sessao';
 import { espacoUsado, formatarBytes } from '../plataforma/armazenamento';
 
 export function Configuracoes() {
-  const { pode, sessao, db, pendentes, ultimaSync, sincronizar, estadoSync, definirSessao, online } = useApp();
+  const { pode, sessao, db, pendentes, ultimaSync, sincronizar, estadoSync, definirSessao, online, avisosAbertos } = useApp();
   const navegar = useNavigate();
   const instalacao = useInstalacao();
   const equipe = !!sessao && (sessao.gestorGeral || Object.values(sessao.perfisPorViveiro ?? {}).some((ps) => ps.length > 0));
@@ -48,6 +48,11 @@ export function Configuracoes() {
 
   return (
     <Tela titulo="Ajustes">
+      {avisosAbertos > 0 && (
+        <Link to="/avisos" className="botao-grande aviso-pendente" data-testid="abrir-avisos">
+          <Icone nome="aviso" /> Resolver {avisosAbertos} aviso(s) da sincronização
+        </Link>
+      )}
       {sessao?.gestorGeral && <EditarTermo />}
       <dl className="ficha">
         <dt>Versão do app</dt>

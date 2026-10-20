@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pendencias, type DadosPendencias } from '../src/pendencias';
+import { pedidosQueEsperam, pendencias, type DadosPendencias } from '../src/pendencias';
 
 const vazio: DadosPendencias = { doacoes: [], itens: [], baixas: [], plantios: [], matrizes: [], especies: [], pedidosAcesso: [], lotesSementes: [], movimentosSementes: [], lotesMudas: [], movimentosMudas: [], inventarios: [], monitoramentos: [], hoje: '2026-10-19' };
 const tudo = () => true;
@@ -84,5 +84,26 @@ describe('pendências (número no botão do módulo)', () => {
       pedidosAcesso: [{ id: 'a1', situacao: 'pendente' }, { id: 'a2', situacao: 'aprovado' }],
     };
     expect(pendencias(d, { usuarioId: 'g', pode: tudo })).toEqual({ '/matrizes': 2, '/especies': 1, '/equipe': 1 });
+  });
+
+  it('quem cuida de vários viveiros: conta só o viveiro escolhido (como as listas); os próprios pedidos contam sempre', () => {
+    const doacoes = [
+      { id: 'a', situacao: 'enviada', viveiro_id: 'v1', solicitante_usuario_id: 'x' },
+      { id: 'b', situacao: 'enviada', viveiro_id: 'v2', solicitante_usuario_id: 'x' },
+      { id: 'c', situacao: 'aprovada', viveiro_id: 'v2', solicitante_usuario_id: 'g' },
+    ];
+    const q = { usuarioId: 'g', pode: tudo, viveiroId: 'v1' };
+    expect(pendencias({ ...vazio, doacoes }, q)).toEqual({ '/doacao': 2 });
+    expect([...pedidosQueEsperam({ doacoes, itens: [], baixas: [] }, q)].sort()).toEqual(['a', 'c']);
+    expect(pendencias({ ...vazio, matrizes: [{ id: 'm', especie_id: '', viveiro_id: 'v2' }] }, q)).toEqual({});
+  });
+
+  it('lote de sementes que já acabou não pede para pesar', () => {
+    const lotesSementes = [{ id: 's', peso_g: 0 }];
+    const movimentosSementes = [
+      { id: 'a', lote_sementes_id: 's', tipo: 'entrada', quantidade_unid: 100 },
+      { id: 'b', lote_sementes_id: 's', tipo: 'semeadura', quantidade_unid: 100 },
+    ];
+    expect(pendencias({ ...vazio, lotesSementes, movimentosSementes }, { usuarioId: 'v', pode: tudo })).toEqual({});
   });
 });
