@@ -1,14 +1,17 @@
 {
   "titulo": "O lote de sementes",
   "rotulo": "Episódio 5 · O lote de sementes",
-  "publico": "Para o viveiro",
+  "publico": "Viveirista",
+  "perfis": [
+    "viveirista"
+  ],
   "telas": "05-sementes",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "O lote de sementes",
-      "subtitulo": "Episódio 5 de 12 · Para o viveiro",
-      "fala": "Episódio 5: o lote de sementes."
+      "subtitulo": "Episódio 5 de 12",
+      "fala": "Episódio 5: o lote de sementes. Para o viveirista."
     },
     {
       "tipo": "tela",

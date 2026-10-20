@@ -1,14 +1,17 @@
 {
   "titulo": "A tela inicial",
   "rotulo": "Episódio 2 · A tela inicial",
-  "publico": "Para todos",
+  "publico": "Todos",
+  "perfis": [
+    "todos"
+  ],
   "telas": "02-inicio",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "A tela inicial",
-      "subtitulo": "Episódio 2 de 12 · Para todos",
-      "fala": "Episódio 2: a tela inicial."
+      "subtitulo": "Episódio 2 de 12",
+      "fala": "Episódio 2: a tela inicial. Para todos."
     },
     {
       "tipo": "tela",

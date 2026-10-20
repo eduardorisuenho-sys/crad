@@ -1,14 +1,17 @@
 {
   "titulo": "Cuidar das mudas",
   "rotulo": "Episódio 7 · Cuidar das mudas",
-  "publico": "Para o viveiro",
+  "publico": "Viveirista",
+  "perfis": [
+    "viveirista"
+  ],
   "telas": "07-cuidar",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Cuidar das mudas",
-      "subtitulo": "Episódio 7 de 12 · Para o viveiro",
-      "fala": "Episódio 7: cuidar das mudas."
+      "subtitulo": "Episódio 7 de 12",
+      "fala": "Episódio 7: cuidar das mudas. Para o viveirista."
     },
     {
       "tipo": "tela",

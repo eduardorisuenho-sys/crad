@@ -1,14 +1,17 @@
 {
   "titulo": "Cadastrar uma matriz",
   "rotulo": "Episódio 3 · Cadastrar uma matriz",
-  "publico": "Para quem coleta",
+  "publico": "Coletor",
+  "perfis": [
+    "coletor"
+  ],
   "telas": "03-matriz",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Cadastrar uma matriz",
-      "subtitulo": "Episódio 3 de 12 · Para quem coleta",
-      "fala": "Episódio 3: cadastrar uma matriz."
+      "subtitulo": "Episódio 3 de 12",
+      "fala": "Episódio 3: cadastrar uma matriz. Para o coletor."
     },
     {
       "tipo": "tela",

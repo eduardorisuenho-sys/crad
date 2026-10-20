@@ -1,14 +1,17 @@
 {
   "titulo": "Criar conta e entrar",
   "rotulo": "Episódio 1 · Criar conta e entrar",
-  "publico": "Para todos",
+  "publico": "Todos",
+  "perfis": [
+    "todos"
+  ],
   "telas": "01-conta",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Criar conta e entrar",
-      "subtitulo": "Episódio 1 de 12 · Para todos",
-      "fala": "Episódio 1: criar conta e entrar."
+      "subtitulo": "Episódio 1 de 12",
+      "fala": "Episódio 1: criar conta e entrar. Para todos."
     },
     {
       "tipo": "tela",

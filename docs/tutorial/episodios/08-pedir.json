@@ -1,14 +1,17 @@
 {
   "titulo": "Pedir mudas",
   "rotulo": "Episódio 8 · Pedir mudas",
-  "publico": "Para quem pede mudas",
+  "publico": "Solicitante",
+  "perfis": [
+    "solicitante"
+  ],
   "telas": "08-pedir",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Pedir mudas",
-      "subtitulo": "Episódio 8 de 12 · Para quem pede mudas",
-      "fala": "Episódio 8: pedir mudas."
+      "subtitulo": "Episódio 8 de 12",
+      "fala": "Episódio 8: pedir mudas. Para o solicitante."
     },
     {
       "tipo": "tela",

@@ -1,14 +1,17 @@
 {
   "titulo": "Cadastro de mudas",
   "rotulo": "Episódio 6 · Cadastro de mudas",
-  "publico": "Para o viveiro",
+  "publico": "Viveirista",
+  "perfis": [
+    "viveirista"
+  ],
   "telas": "06-mudas",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Cadastro de mudas",
-      "subtitulo": "Episódio 6 de 12 · Para o viveiro",
-      "fala": "Episódio 6: cadastro de mudas."
+      "subtitulo": "Episódio 6 de 12",
+      "fala": "Episódio 6: cadastro de mudas. Para o viveirista."
     },
     {
       "tipo": "tela",

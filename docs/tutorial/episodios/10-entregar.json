@@ -1,14 +1,17 @@
 {
   "titulo": "Entregar as mudas",
   "rotulo": "Episódio 10 · Entregar as mudas",
-  "publico": "Para o viveiro",
+  "publico": "Viveirista",
+  "perfis": [
+    "viveirista"
+  ],
   "telas": "10-entregar",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Entregar as mudas",
-      "subtitulo": "Episódio 10 de 12 · Para o viveiro",
-      "fala": "Episódio 10: entregar as mudas."
+      "subtitulo": "Episódio 10 de 12",
+      "fala": "Episódio 10: entregar as mudas. Para o viveirista."
     },
     {
       "tipo": "tela",

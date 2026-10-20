@@ -1,14 +1,17 @@
 {
   "titulo": "Pós-plantio",
   "rotulo": "Episódio 11 · Pós-plantio",
-  "publico": "Para quem plantou",
+  "publico": "Solicitante",
+  "perfis": [
+    "solicitante"
+  ],
   "telas": "11-plantio",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Pós-plantio",
-      "subtitulo": "Episódio 11 de 12 · Para quem plantou",
-      "fala": "Episódio 11: depois do plantio."
+      "subtitulo": "Episódio 11 de 12",
+      "fala": "Episódio 11: depois do plantio. Para o solicitante."
     },
     {
       "tipo": "tela",

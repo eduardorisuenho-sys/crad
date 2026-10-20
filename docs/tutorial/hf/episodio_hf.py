@@ -35,6 +35,8 @@ L, A, FPS = 1080, 1920, 30
 # tela do celular na composição (as capturas são 1081x1999)
 TELA_L = 800
 VERDE, AZUL, AZUL_ESCURO = '#48672f', '#259ad4', '#33618d'
+# nomes dos perfis como aparecem no app (Equipe)
+PERFIL = {'todos': 'Todos', 'coletor': 'Coletor', 'viveirista': 'Viveirista', 'gestor': 'Gestor', 'solicitante': 'Solicitante'}
 
 
 # ------------------------------------------------------------------ áudio
@@ -287,6 +289,9 @@ def montar(roteiro, telas: Path, alvos: dict, mapa, duracoes, inicios, total: fl
                          f'<p id="{cid}-sub" class="prox-nome">{html.escape(sub.split(":", 1)[1].strip())}</p>')
             else:
                 extra = f'<p id="{cid}-sub" class="cartao-sub">{html.escape(sub)}</p>'
+                if c['tipo'] == 'abertura' and roteiro.get('perfis'):
+                    extra += (f'<div id="{cid}-perfis" class="perfis"><span class="perfis-rot">PERFIL</span>'
+                              + ''.join(f'<span class="perfil">{PERFIL[k]}</span>' for k in roteiro['perfis']) + '</div>')
             classe_logo = 'logo' if c['tipo'] == 'abertura' else 'logo logo-fim'
             cenas_html.append(f"""
       <section id="{cid}" class="clip cartao" data-start="{ini_v:.3f}" data-duration="{fim - ini_v:.3f}" data-track-index="{2 + n % 2}">
@@ -411,6 +416,7 @@ def montar(roteiro, telas: Path, alvos: dict, mapa, duracoes, inicios, total: fl
             tl.append(f'tl.to("#topo", {{opacity: 0, duration: 0.25}}, {inicios[n] - 0.3:.3f});')
     tl.append(f'tl.fromTo("#progresso", {{scaleX: 0}}, {{scaleX: 1, duration: {total:.3f}, ease: "none", transformOrigin: "0 50%"}}, 0);')
     corpo = '\n'.join(cenas_html + textos_html)
+    chip_perfil = ''.join(f'<span class="perfil perfil-topo">{PERFIL[k]}</span>' for k in roteiro.get('perfis', [])[:1])
     script = '\n      '.join(tl)
     return f"""<!doctype html>
 <html lang="pt-BR">
@@ -447,6 +453,10 @@ def montar(roteiro, telas: Path, alvos: dict, mapa, duracoes, inicios, total: fl
       .logo-fim {{ height: 460px; }}
       .cartao-titulo {{ margin-top: 60px; font-size: 104px; font-weight: 900; color: {VERDE}; text-align: center; max-width: 960px; line-height: 1.05; }}
       .cartao-sub {{ margin-top: 30px; font-size: 50px; font-weight: 600; color: {AZUL_ESCURO}; text-align: center; max-width: 920px; }}
+      .perfis {{ margin-top: 40px; display: flex; align-items: center; gap: 18px; }}
+      .perfis-rot {{ font-size: 34px; font-weight: 800; letter-spacing: 0.06em; color: {AZUL_ESCURO}; }}
+      .perfil {{ padding: 10px 34px 14px; border-radius: 60px; background: {VERDE}; color: #fff; font-size: 52px; font-weight: 800; }}
+      .perfil-topo {{ position: absolute; right: 20px; top: 16px; padding: 4px 18px 6px; font-size: 26px; letter-spacing: 0.02em; }}
       .prox {{ margin-top: 70px; font-size: 44px; font-weight: 800; letter-spacing: 0.04em; color: {AZUL}; }}
       .prox-nome {{ margin-top: 12px; font-size: 64px; font-weight: 900; color: {VERDE}; text-align: center; max-width: 960px; }}
       .ondas {{ position: absolute; left: 0; right: 0; bottom: 0; height: 120px; }}
@@ -458,7 +468,7 @@ def montar(roteiro, telas: Path, alvos: dict, mapa, duracoes, inicios, total: fl
     <div id="root" data-composition-id="main" data-start="0" data-duration="{total:.3f}" data-width="{L}" data-height="{A}">
       <audio id="trilha" src="assets/trilha.wav" data-start="0" data-duration="{total:.3f}" data-track-index="0" data-volume="1"></audio>
 {corpo}
-      <div id="topo" class="topo"><div class="barra"><div id="progresso"></div></div><div class="rotulo">{html.escape(ep_rotulo)}</div></div>
+      <div id="topo" class="topo"><div class="barra"><div id="progresso"></div></div><div class="rotulo">{html.escape(ep_rotulo)}</div>{chip_perfil}</div>
     </div>
     <script>
       const tl = gsap.timeline({{ paused: true }});

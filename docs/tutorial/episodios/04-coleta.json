@@ -1,14 +1,17 @@
 {
   "titulo": "Registrar uma coleta",
   "rotulo": "Episódio 4 · Registrar uma coleta",
-  "publico": "Para quem coleta",
+  "publico": "Coletor",
+  "perfis": [
+    "coletor"
+  ],
   "telas": "04-coleta",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Registrar uma coleta",
-      "subtitulo": "Episódio 4 de 12 · Para quem coleta",
-      "fala": "Episódio 4: registrar uma coleta."
+      "subtitulo": "Episódio 4 de 12",
+      "fala": "Episódio 4: registrar uma coleta. Para o coletor."
     },
     {
       "tipo": "tela",

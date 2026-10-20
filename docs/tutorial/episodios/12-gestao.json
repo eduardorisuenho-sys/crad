@@ -1,14 +1,17 @@
 {
   "titulo": "Para a gestão",
   "rotulo": "Episódio 12 · Para a gestão",
-  "publico": "Para o gestor",
+  "publico": "Gestor",
+  "perfis": [
+    "gestor"
+  ],
   "telas": "12-gestao",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Para a gestão",
-      "subtitulo": "Episódio 12 de 12 · Para o gestor",
-      "fala": "Episódio 12: para a gestão."
+      "subtitulo": "Episódio 12 de 12",
+      "fala": "Episódio 12: para a gestão. Para o gestor."
     },
     {
       "tipo": "tela",

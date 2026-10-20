@@ -5,20 +5,23 @@ celular) e um **manual em PDF** com os mesmos passos. Público: de 10 a 80
 anos. Linguagem direta, uma frase por tela, os nomes dos botões iguais aos
 do app.
 
-| # | Episódio | Para quem |
+| # | Episódio | Perfil |
 |---|---|---|
 | 1 | Criar conta e entrar | Todos |
 | 2 | A tela inicial (e o trabalho sem internet) | Todos |
-| 3 | Cadastrar uma matriz | Quem coleta |
-| 4 | Registrar uma coleta | Quem coleta |
-| 5 | O lote de sementes | Viveiro |
-| 6 | Cadastro de mudas | Viveiro |
-| 7 | Cuidar das mudas (germinação, perdas, pronta, inventário) | Viveiro |
-| 8 | Pedir mudas | Quem pede mudas |
-| 9 | Analisar e aprovar pedidos | Gestão |
-| 10 | Entregar as mudas | Viveiro |
-| 11 | Pós-plantio | Quem plantou |
+| 3 | Cadastrar uma matriz | Coletor |
+| 4 | Registrar uma coleta | Coletor |
+| 5 | O lote de sementes | Viveirista |
+| 6 | Cadastro de mudas | Viveirista |
+| 7 | Cuidar das mudas (germinação, perdas, pronta, inventário) | Viveirista |
+| 8 | Pedir mudas | Solicitante |
+| 9 | Analisar e aprovar pedidos | Gestor |
+| 10 | Entregar as mudas | Viveirista |
+| 11 | Depois do plantio | Solicitante |
 | 12 | Para a gestão (equipe, relatórios, lixeira) | Gestor |
+
+O perfil (`perfis` no roteiro) usa os nomes do app e aparece no cartão de
+abertura, no topo do vídeo e no manual.
 
 ## Linguagem visual
 

@@ -1,14 +1,17 @@
 {
   "titulo": "Analisar e aprovar pedidos",
   "rotulo": "Episódio 9 · Analisar e aprovar pedidos",
-  "publico": "Para a gestão",
+  "publico": "Gestor",
+  "perfis": [
+    "gestor"
+  ],
   "telas": "09-aprovar",
   "cenas": [
     {
       "tipo": "abertura",
       "titulo": "Analisar e aprovar pedidos",
-      "subtitulo": "Episódio 9 de 12 · Para a gestão",
-      "fala": "Episódio 9: analisar e aprovar pedidos."
+      "subtitulo": "Episódio 9 de 12",
+      "fala": "Episódio 9: analisar e aprovar pedidos. Para o gestor."
     },
     {
       "tipo": "tela",
