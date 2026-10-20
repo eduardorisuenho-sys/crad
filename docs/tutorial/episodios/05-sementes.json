@@ -1,0 +1,62 @@
+{
+  "titulo": "O lote de sementes",
+  "rotulo": "Episódio 5 · O lote de sementes",
+  "publico": "Para o viveiro",
+  "telas": "05-sementes",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "O lote de sementes",
+      "subtitulo": "Episódio 5 de 12 · Para o viveiro",
+      "fala": "Episódio 5: o lote de sementes."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "modulo.png",
+      "titulo": "As coletas chegaram",
+      "fala": "As coletas chegam ao viveiro. Toque em [Coleta e sementes]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "lista.png",
+      "titulo": "Escolha a coleta",
+      "fala": "Escolha a coleta na lista."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "ficha.png",
+      "titulo": "O lote",
+      "fala": "Toque em [Abrir o lote de sementes]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "pesar.png",
+      "titulo": "Pese as sementes",
+      "fala": "Depois de limpar, pese as sementes e toque em [Salvar peso]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "saldo.png",
+      "titulo": "O saldo",
+      "fala": "O saldo mostra quanto há no lote."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "etiqueta.png",
+      "titulo": "Etiqueta",
+      "fala": "Imprima a etiqueta para o saco ou o pote."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "teste.png",
+      "titulo": "Teste de germinação",
+      "fala": "Fez um teste de germinação? Registre aqui."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Cadastro de mudas",
+      "fala": "Pronto! No próximo episódio: cadastro de mudas."
+    }
+  ]
+}

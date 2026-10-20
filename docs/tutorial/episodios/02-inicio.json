@@ -1,0 +1,62 @@
+{
+  "titulo": "A tela inicial",
+  "rotulo": "Episódio 2 · A tela inicial",
+  "publico": "Para todos",
+  "telas": "02-inicio",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "A tela inicial",
+      "subtitulo": "Episódio 2 de 12 · Para todos",
+      "fala": "Episódio 2: a tela inicial."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "inicio.png",
+      "titulo": "Sua tela inicial",
+      "fala": "Esta é a sua tela inicial."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "viveiro.png",
+      "titulo": "Seu viveiro",
+      "fala": "Aqui fica o seu viveiro."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "botoes.png",
+      "titulo": "Os botões",
+      "fala": "Cada botão abre uma parte do trabalho. Número vermelho no botão: tem algo esperando por você."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "barra.png",
+      "titulo": "Tudo enviado",
+      "fala": "Esta faixa mostra se está tudo enviado para o servidor."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "preparar.png",
+      "titulo": "Vai sem internet?",
+      "fala": "Vai para um lugar sem sinal? Em Ajustes, toque em [Preparar para ir a campo]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "pronto.png",
+      "titulo": "Pronto para o campo",
+      "fala": "Pronto. O app trabalha sem internet."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "sem-sinal.png",
+      "titulo": "Sem sinal? Tudo bem",
+      "fala": "Ficou sem sinal? Tudo fica guardado no celular, e é enviado quando a internet voltar."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Cadastrar uma matriz",
+      "fala": "Pronto! No próximo episódio: cadastrar uma matriz."
+    }
+  ]
+}

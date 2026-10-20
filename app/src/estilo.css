@@ -375,3 +375,5 @@ label.opcao, label.botao-grande { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .contador-pendencias { animation: none; } }
 .selo-pendente { background: var(--erro); color: #fff; }
 .aviso-pendente { border: 3px solid var(--erro); }
+.item-lista div > .selo-pendente { align-self: flex-start; margin-top: 4px; }
+.item-lista > .selo { white-space: nowrap; flex: none; }

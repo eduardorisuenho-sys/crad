@@ -1,0 +1,74 @@
+{
+  "titulo": "Cuidar das mudas",
+  "rotulo": "Episódio 7 · Cuidar das mudas",
+  "publico": "Para o viveiro",
+  "telas": "07-cuidar",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Cuidar das mudas",
+      "subtitulo": "Episódio 7 de 12 · Para o viveiro",
+      "fala": "Episódio 7: cuidar das mudas."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "lote.png",
+      "titulo": "No lote de mudas",
+      "fala": "No lote de mudas, registre o que acontece."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "germinacao.png",
+      "titulo": "Germinação",
+      "fala": "Conte as mudas que nasceram."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "perda.png",
+      "titulo": "Perdas",
+      "fala": "Morreu alguma? Registre a perda e o motivo."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "pronta.png",
+      "titulo": "Pronta para doar",
+      "fala": "Mudas prontas? Escolha [Marcar como pronta]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "pronta-ok.png",
+      "titulo": "No catálogo",
+      "fala": "Pronto. Elas entram no catálogo para doação."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "fotos.png",
+      "titulo": "Fotos",
+      "fala": "Tire fotos das mudas. Elas aparecem no catálogo."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "editar.png",
+      "titulo": "Corrigir",
+      "fala": "Errou algo? Use [Editar o lote de mudas]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "inventario.png",
+      "titulo": "Inventário",
+      "fala": "No inventário, conte as mudas de cada lote."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "fechar.png",
+      "titulo": "Fechar",
+      "fala": "Toque em [Fechar inventário]. O estoque é ajustado."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Pedir mudas",
+      "fala": "Pronto! No próximo episódio: pedir mudas."
+    }
+  ]
+}

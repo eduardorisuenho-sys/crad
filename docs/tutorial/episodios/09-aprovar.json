@@ -1,0 +1,56 @@
+{
+  "titulo": "Analisar e aprovar pedidos",
+  "rotulo": "Episódio 9 · Analisar e aprovar pedidos",
+  "publico": "Para a gestão",
+  "telas": "09-aprovar",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Analisar e aprovar pedidos",
+      "subtitulo": "Episódio 9 de 12 · Para a gestão",
+      "fala": "Episódio 9: analisar e aprovar pedidos."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "numero.png",
+      "titulo": "Pedido novo",
+      "fala": "O número vermelho avisa: chegou pedido."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "lista.png",
+      "titulo": "Precisa de você",
+      "fala": "Abra o pedido marcado com [Precisa de você]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "agua.png",
+      "titulo": "Plantando Água",
+      "fala": "O pedido é do programa Plantando Água? Toque para marcar."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "analisar.png",
+      "titulo": "Analisar",
+      "fala": "Toque em [Analisar pedido]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "aprovar.png",
+      "titulo": "Aprovar",
+      "fala": "Confira as quantidades e toque em [Aprovar e reservar]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "aprovado.png",
+      "titulo": "Aprovado",
+      "fala": "As mudas ficam reservadas, e quem pediu é avisado."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Entregar as mudas",
+      "fala": "Pronto! No próximo episódio: entregar as mudas."
+    }
+  ]
+}

@@ -523,8 +523,11 @@ O que a etapa 1 entrega:
   iPhone/iPad com notificações permitidas, Windows e macOS; no Android o
   sistema mostra a bolinha quando chega notificação).
   O vermelho é exceção às cores da logo, pedida para chamar atenção.
-- **Vídeo-tutorial do coletor** em `docs/tutorial` (vertical, narrado, para
-  WhatsApp), com roteiro e o montador para refazer quando o app mudar.
+- **Manual de utilização** em `docs/tutorial`: série de 12 vídeos curtos
+  (criar conta, tela inicial, matriz, coleta, lote de sementes, cadastro de
+  mudas, cuidar das mudas, pedir, aprovar, entregar, pós-plantio, gestão) e o
+  manual em PDF (`manual-crad.pdf`), gerados das telas reais do app, com
+  roteiros e scripts para refazer quando o app mudar.
 - **Vários celulares e computadores ao mesmo tempo**: cada aparelho tem a
   sua fila e a sua faixa de códigos. O servidor grava cada envio numa
   transação, e a aprovação de pedidos é feita uma de cada vez, então nunca

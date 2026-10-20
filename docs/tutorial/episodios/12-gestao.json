@@ -1,0 +1,56 @@
+{
+  "titulo": "Para a gestão",
+  "rotulo": "Episódio 12 · Para a gestão",
+  "publico": "Para o gestor",
+  "telas": "12-gestao",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Para a gestão",
+      "subtitulo": "Episódio 12 de 12 · Para o gestor",
+      "fala": "Episódio 12: para a gestão."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "equipe-botao.png",
+      "titulo": "Equipe",
+      "fala": "Alguém pediu para entrar na equipe? Toque em [Equipe]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "acesso.png",
+      "titulo": "Aprovar acesso",
+      "fala": "Confira e toque em [Aprovar]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "aprovado.png",
+      "titulo": "Aprovado",
+      "fala": "Pronto. A pessoa já pode trabalhar."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "relatorios.png",
+      "titulo": "Relatórios",
+      "fala": "Em Relatórios, veja os números do trabalho."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "baixar.png",
+      "titulo": "Baixar",
+      "fala": "Baixe em planilha, P D F ou mapa."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "lixeira.png",
+      "titulo": "Lixeira",
+      "fala": "Algo preenchido errado? Use a [Lixeira]."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Fim da série",
+      "subtitulo": "Dúvidas? Fale com o gestor do seu viveiro.",
+      "fala": "Fim da série. Dúvidas? Fale com o gestor do seu viveiro."
+    }
+  ]
+}

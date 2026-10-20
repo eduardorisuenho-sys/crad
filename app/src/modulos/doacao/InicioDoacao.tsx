@@ -76,12 +76,13 @@ export function InicioDoacao() {
                 <small>
                   {pessoas?.get(String(d.solicitante_pessoa_id)) ?? ''} · {totais?.get(d.id) ?? 0} mudas
                 </small>
+                {/* embaixo do código: não espreme o texto quando há vários selos */}
+                {esperam.has(d.id) && (
+                  <span className="selo selo-pendente" data-testid="precisa-de-voce">
+                    Precisa de você
+                  </span>
+                )}
               </div>
-              {esperam.has(d.id) && (
-                <span className="selo selo-pendente" data-testid="precisa-de-voce">
-                  Precisa de você
-                </span>
-              )}
               {programa?.has(d.id) && (
                 <span className="selo-agua" title="Plantando Água">
                   <IconeAgua tamanho={20} />

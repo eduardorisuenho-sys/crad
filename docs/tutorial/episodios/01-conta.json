@@ -1,0 +1,62 @@
+{
+  "titulo": "Criar conta e entrar",
+  "rotulo": "Episódio 1 · Criar conta e entrar",
+  "publico": "Para todos",
+  "telas": "01-conta",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Criar conta e entrar",
+      "subtitulo": "Episódio 1 de 12 · Para todos",
+      "fala": "Episódio 1: criar conta e entrar."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "entrar.png",
+      "titulo": "Bem-vindo",
+      "fala": "Primeira vez no app? Toque em [Criar conta]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "perfil.png",
+      "titulo": "Escolha o que vai fazer",
+      "fala": "Escolha o que você vai fazer: pedir mudas, coletar sementes, trabalhar no viveiro ou o grupo gestor."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "dados.png",
+      "titulo": "Seus dados",
+      "fala": "Preencha nome, e-mail e uma senha, e toque em [Criar conta]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "aguardando.png",
+      "titulo": "Aguarde a aprovação",
+      "fala": "Quem é da equipe espera o gestor aprovar. Os botões aparecem sozinhos."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "perfil-mudas.png",
+      "titulo": "Vai pedir mudas?",
+      "fala": "Vai pedir mudas? Escolha [Quero pedir mudas]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "entrou.png",
+      "titulo": "Entrou!",
+      "fala": "Você entra na hora, e já pode ver o catálogo e pedir."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "ja-tenho.png",
+      "titulo": "Já tem conta?",
+      "fala": "Já tem conta? Digite o e-mail e a senha, e toque em [Entrar]."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: A tela inicial",
+      "fala": "Pronto! No próximo episódio: a tela inicial."
+    }
+  ]
+}

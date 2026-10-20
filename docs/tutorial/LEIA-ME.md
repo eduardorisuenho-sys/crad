@@ -1,73 +1,70 @@
-# Vídeo-tutorial: Coleta de sementes
+# Manual de utilização do app CRAD
 
-Para quem vai a campo coletar, de 10 a 80 anos. Curto e direto: cerca de
-1 minuto, uma frase por tela, telas de verdade do app e narração.
+Série de **12 vídeos curtos** (30 a 60 segundos cada, verticais, para
+celular) e um **manual em PDF** com os mesmos passos. Público: de 10 a 80
+anos. Linguagem direta, uma frase por tela, os nomes dos botões iguais aos
+do app.
 
-- **Vídeo:** `tutorial-coleta-de-sementes.mp4` (vertical, para celular, cerca
-  de 1 minuto). Pode ser enviado pelo WhatsApp.
-- **Roteiro:** `roteiro.json` (capítulos, título, legenda e fala de cada cena).
+| # | Episódio | Para quem |
+|---|---|---|
+| 1 | Criar conta e entrar | Todos |
+| 2 | A tela inicial (e o trabalho sem internet) | Todos |
+| 3 | Cadastrar uma matriz | Quem coleta |
+| 4 | Registrar uma coleta | Quem coleta |
+| 5 | O lote de sementes | Viveiro |
+| 6 | Cadastro de mudas | Viveiro |
+| 7 | Cuidar das mudas (germinação, perdas, pronta, inventário) | Viveiro |
+| 8 | Pedir mudas | Quem pede mudas |
+| 9 | Analisar e aprovar pedidos | Gestão |
+| 10 | Entregar as mudas | Viveiro |
+| 11 | Pós-plantio | Quem plantou |
+| 12 | Para a gestão (equipe, relatórios, lixeira) | Gestor |
 
 ## Linguagem visual
 
-- Abertura de uma frase, 13 telas (uma frase cada) e encerramento. A parte
-  ("Antes de sair", "Cadastrar a matriz", "Colher") aparece no topo da tela.
-- O montador também aceita telas de capítulo, explicação e resumo
-  (`tipo` no roteiro), para vídeos mais longos.
-- Letras grandes e alto contraste, nas cores da logomarca.
-- Legenda com os nomes dos botões em pílulas verdes, iguais às do app.
-- O resto da tela escurece e o botão a tocar fica em destaque, com animação
-  de toque.
-- Barra de progresso, transições suaves e trilha sonora calma, criada pelo
-  próprio montador (sem direitos autorais), que abaixa quando a narração fala.
+- Abertura com o número do episódio e para quem é; fim com "Próximo: …".
+- Topo da tela: "Episódio N · título" e a barra de progresso.
+- Legenda grande; os botões aparecem em pílulas verdes, como no app.
+- O resto da tela escurece e o botão a tocar fica em destaque, com toque animado.
+- Cores da logomarca, transições curtas e trilha calma criada pelo próprio
+  montador (sem direitos autorais), que abaixa quando a narração fala.
+- Voz neural Kokoro "Dora" (pt-BR, código aberto, sem internet), escolhida
+  por teste com reconhecedor de fala (Whisper) entre 7 vozes: foi a mais
+  clara. Também dá para gravar as falas com voz humana (veja abaixo).
 
-## O que o vídeo ensina (em ordem)
+As telas são do app de verdade, com um viveiro de exemplo ("CRAD Palmas"),
+quatro pessoas de exemplo e espécies reais: Ipê-amarelo (*Handroanthus
+serratifolius*, Bignoniaceae), Jatobá (*Hymenaea courbaril*, Fabaceae) e
+Baru (*Dipteryx alata*, Fabaceae).
 
-1. Preparar o celular para ir a campo (funciona sem internet).
-2. Cadastrar uma matriz: lugar pelo GPS, espécie, fotos, como é a árvore,
-   dono do terreno, salvar e prender a plaqueta.
-3. Marcar flor e fruto a cada visita.
-4. Rota de coleta até a árvore.
-5. Registrar a coleta (quanto e o quê), e o botão verde "Coleta" para
-   árvores que não são matriz.
-6. Ver "Tudo enviado" quando a internet volta.
+## Arquivos
 
-## Refazer o vídeo (depois de mudar o app ou o roteiro)
+- `episodios/NN-nome.json`: roteiro de cada episódio (título, fala e tela de cada passo).
+- `app/tutorial/`: servidor de exemplo e o caminho que gera as telas.
+- `montar_video.py`: monta um vídeo; `montar_serie.py`: monta todos.
+- `gerar_manual.py`: gera o manual em PDF.
+
+## Refazer (depois de mudar o app ou um roteiro)
 
 Tudo gratuito e de código aberto.
 
 ```bash
-# 1) telas do app (sobe o servidor de teste e percorre o caminho do coletor)
-cd app && CRADS_TUTORIAL_DIR=/tmp/telas npx playwright test e2e/tutorial.spec.ts
+# 1) telas do app (servidor só com os dados de exemplo)
+cd app && npx vite build && CRADS_TUTORIAL_DIR=/tmp/telas npx playwright test -c tutorial
 
-# 2) voz neural Kokoro (código aberto, roda sem internet), voz "Dora" em português do Brasil
+# 2) voz neural Kokoro
 pip install sherpa-onnx numpy pillow
 curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2 | tar xj
 
-# 3) monta o vídeo
-python3 docs/tutorial/montar_video.py --telas /tmp/telas --voz kokoro-multi-lang-v1_0
+# 3) vídeos e manual
+python3 docs/tutorial/montar_serie.py --telas /tmp/telas --voz kokoro-multi-lang-v1_0 --saida videos/
+python3 docs/tutorial/gerar_manual.py --telas /tmp/telas --saida manual-crad.pdf
 ```
 
-### A voz
-
-Comparamos 7 vozes neurais gratuitas em português (Piper faber, cadu, jeff,
-dii e Kokoro dora, alex, santa): cada uma leu as frases do roteiro e um
-reconhecedor de fala (Whisper) transcreveu o que ouviu. A Kokoro "Dora" foi
-a mais clara (2% de palavras erradas, contra 5% a 21% das outras) e a única
-que falou "CRAD" certo. Ela fala no ritmo normal
-(`--velocidade 1.0`, ritmo normal) com pausa curta entre as frases. Outras vozes:
-`--falante 43` (Alex) ou `--falante 44` (Santa).
+Um episódio só: `montar_serie.py ... 03-matriz`.
 
 ### Com a voz de uma pessoa
 
-Para uma narração ainda mais humana, grave cada fala do `roteiro.json` (pelo celular mesmo) como
-`cena-01.wav`, `cena-02.wav`… numa pasta e rode:
-
-```bash
-python3 docs/tutorial/montar_video.py --telas /tmp/telas --gravacoes pasta-das-gravacoes
-```
-
-Cenas sem gravação usam a voz sintética, se `--voz` também for passado.
-
-As telas usam uma coletora de exemplo ("Ana") e o Ipê-amarelo
-(*Handroanthus serratifolius*, Bignoniaceae). Nos fundos de mapa, a imagem de
-satélite não aparece nas telas geradas sem internet; no celular ela aparece.
+Grave cada fala do roteiro (pelo celular mesmo) como `cena-01.wav`,
+`cena-02.wav`… (na ordem das cenas, contando a abertura e o fim) e rode
+`montar_video.py --roteiro episodios/03-matriz.json --telas /tmp/telas/03-matriz --gravacoes <pasta>`.

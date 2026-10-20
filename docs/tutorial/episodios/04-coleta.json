@@ -1,0 +1,86 @@
+{
+  "titulo": "Registrar uma coleta",
+  "rotulo": "Episódio 4 · Registrar uma coleta",
+  "publico": "Para quem coleta",
+  "telas": "04-coleta",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Registrar uma coleta",
+      "subtitulo": "Episódio 4 de 12 · Para quem coleta",
+      "fala": "Episódio 4: registrar uma coleta."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "modulo.png",
+      "titulo": "Hora de colher",
+      "fala": "Hora de colher! Toque em [Coleta e sementes]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "rota-botao.png",
+      "titulo": "Como chegar",
+      "fala": "A [Rota de coleta] mostra as matrizes perto de você."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "rota.png",
+      "titulo": "Como chegar",
+      "fala": "Escolha a árvore e veja a distância e a direção."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "registrar.png",
+      "titulo": "Registrar",
+      "fala": "Chegou? Toque em [Registrar coleta]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "escolher.png",
+      "titulo": "Qual árvore?",
+      "fala": "Escolha a matriz, ou leia a plaqueta."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "quantidade.png",
+      "titulo": "Quanto?",
+      "fala": "Diga quanto colheu e a medida."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "material.png",
+      "titulo": "O quê?",
+      "fala": "Frutos ou sementes?"
+    },
+    {
+      "tipo": "tela",
+      "imagem": "salvar.png",
+      "titulo": "Salvar",
+      "fala": "A foto é opcional. Toque em [Salvar coleta]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "salva.png",
+      "titulo": "Coleta salva",
+      "fala": "Pronto. O lote de sementes é criado sozinho."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "botao-verde.png",
+      "titulo": "Não é matriz?",
+      "fala": "Não é uma matriz? Use o botão verde chamado [Coleta]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "enviado.png",
+      "titulo": "Tudo enviado",
+      "fala": "Com internet, tudo é enviado sozinho."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: O lote de sementes",
+      "fala": "Pronto! No próximo episódio: o lote de sementes."
+    }
+  ]
+}

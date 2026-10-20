@@ -162,7 +162,9 @@ def quadro_capitulo(c, capitulos):
 
 
 def cabecalho(d, c, capitulos):
-    if c.get('capitulo'):
+    if c.get('_rotulo'):
+        centro(d, c['_rotulo'].upper(), fonte(30, 'Bold'), 46, AZUL)
+    elif c.get('capitulo'):
         rotulo = f"PARTE {c['capitulo']} DE {len(capitulos)}  ·  {capitulos[c['capitulo'] - 1].upper()}"
         centro(d, rotulo, fonte(30, 'Bold'), 46, AZUL)
 
@@ -256,6 +258,19 @@ def preparar_voz(origem: Path, destino: Path):
 
 _TTS = {}
 
+# Só na narração: jeitos de escrever que a voz pronuncia melhor (testados com
+# reconhecedor de fala). A legenda continua com o texto do roteiro.
+PRONUNCIA = [
+    (r'\bToque em\b', 'Toque no botão'),
+    (r'\btoque em\b', 'toque no botão'),
+]
+
+
+def para_falar(texto: str) -> str:
+    for de, para in PRONUNCIA:
+        texto = re.sub(de, para, texto)
+    return texto
+
 
 def falar(texto: str, voz: str, saida: Path, falante: int, velocidade: float):
     """Voz neural Kokoro (código aberto, roda sem internet) pelo sherpa-onnx."""
@@ -280,9 +295,10 @@ def falar(texto: str, voz: str, saida: Path, falante: int, velocidade: float):
         w.writeframes((np.clip(som, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
-def trilha(segundos: float) -> np.ndarray:
+def trilha(amostras: int) -> np.ndarray:
     """Trilha calma e original: acordes suaves (Dó, Lá menor, Fá, Sol) e um dedilhado leve."""
-    t = np.arange(int(segundos * TAXA)) / TAXA
+    t = np.arange(amostras) / TAXA
+    segundos = amostras / TAXA
     acordes = [(130.81, 261.63, 329.63, 392.00), (110.00, 220.00, 261.63, 329.63), (87.31, 174.61, 220.00, 261.63), (98.00, 196.00, 246.94, 293.66)]
     dur = 6.0
     som = np.zeros_like(t)
@@ -326,9 +342,13 @@ def main():
     p.add_argument('--sem-trilha', action='store_true')
     a = p.parse_args()
     roteiro = json.loads(a.roteiro.read_text(encoding='utf-8'))
-    capitulos = roteiro['capitulos']
+    capitulos = roteiro.get('capitulos', [])
     alvos = {c['imagem']: c['alvo'] for c in json.loads((a.telas / 'cenas.json').read_text())['cenas']}
     cenas = roteiro['cenas']
+    # série de episódios: o topo da tela mostra "Episódio N · título"
+    if roteiro.get('rotulo'):
+        for c in cenas:
+            c.setdefault('_rotulo', roteiro['rotulo'])
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
@@ -341,7 +361,7 @@ def main():
             if gravada and gravada.exists():
                 bruta = gravada
             elif a.voz:
-                falar(sem_colchetes(c['fala']), a.voz, bruta, a.falante, a.velocidade)
+                falar(para_falar(sem_colchetes(c['fala'])), a.voz, bruta, a.falante, a.velocidade)
             else:
                 sys.exit(f'Falta a narração da cena {n}: use --voz ou --gravacoes.')
             preparar_voz(bruta, pronta)
@@ -364,7 +384,7 @@ def main():
             fala[k:k + len(v)] += v
         mix = fala
         if not a.sem_trilha:
-            musica = trilha(len(fala) / TAXA)
+            musica = trilha(len(fala))
             falando = suavizar((np.abs(fala) > 0.02).astype(np.float32), 0.6)
             falando = np.clip(falando * 4, 0, 1)
             mix = fala + musica * (0.16 - 0.11 * falando)

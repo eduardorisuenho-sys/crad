@@ -1,0 +1,92 @@
+{
+  "titulo": "Cadastrar uma matriz",
+  "rotulo": "Episódio 3 · Cadastrar uma matriz",
+  "publico": "Para quem coleta",
+  "telas": "03-matriz",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Cadastrar uma matriz",
+      "subtitulo": "Episódio 3 de 12 · Para quem coleta",
+      "fala": "Episódio 3: cadastrar uma matriz."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "matrizes.png",
+      "titulo": "Matrizes",
+      "fala": "Matriz é a árvore saudável que dá as sementes. Toque em [Matrizes]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "cadastrar.png",
+      "titulo": "Nova matriz",
+      "fala": "Toque em [Cadastrar matriz]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "gps.png",
+      "titulo": "1. O lugar",
+      "fala": "Ao lado da árvore, toque em [Usar este ponto]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "especie.png",
+      "titulo": "2. A espécie",
+      "fala": "Sabe o nome? Toque em [Já sei o nome]. Se não, o app ajuda a identificar."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "especie-nome.png",
+      "titulo": "2. A espécie",
+      "fala": "Escreva o começo do nome e escolha na lista."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "certeza.png",
+      "titulo": "2. A espécie",
+      "fala": "Tem certeza? Então escolha [Tenho certeza]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "fotos.png",
+      "titulo": "3. As fotos",
+      "fala": "Fotografe a [Árvore inteira] e as [Folhas]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "arvore.png",
+      "titulo": "4. A árvore",
+      "fala": "Informe a altura, o tronco e se a árvore está saudável."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "dono.png",
+      "titulo": "5. O dono da área",
+      "fala": "Escreva o nome do dono e marque que ele autorizou."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "salvar.png",
+      "titulo": "6. Salvar",
+      "fala": "Confira e toque em [Salvar matriz]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "plaqueta.png",
+      "titulo": "Código e plaqueta",
+      "fala": "A matriz ganha um código e uma plaqueta com Q R Code para prender na árvore."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "visita.png",
+      "titulo": "A cada visita",
+      "fala": "A cada visita, marque se tem flor ou fruto."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Registrar uma coleta",
+      "fala": "Pronto! No próximo episódio: registrar uma coleta."
+    }
+  ]
+}

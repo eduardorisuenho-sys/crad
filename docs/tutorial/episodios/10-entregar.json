@@ -1,0 +1,62 @@
+{
+  "titulo": "Entregar as mudas",
+  "rotulo": "Episódio 10 · Entregar as mudas",
+  "publico": "Para o viveiro",
+  "telas": "10-entregar",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Entregar as mudas",
+      "subtitulo": "Episódio 10 de 12 · Para o viveiro",
+      "fala": "Episódio 10: entregar as mudas."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "aguardando.png",
+      "titulo": "Aguardando retirada",
+      "fala": "Em Doação de mudas, veja [Aguardando retirada]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "telefone.png",
+      "titulo": "Combine o dia",
+      "fala": "Toque em [Ver telefone de quem pediu]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "combinar.png",
+      "titulo": "Dia combinado",
+      "fala": "Combine o dia e toque em [Salvar dia combinado]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "baixa.png",
+      "titulo": "Dar baixa",
+      "fala": "No dia, toque em [As mudas saíram]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "assinar.png",
+      "titulo": "Assinatura",
+      "fala": "Quem recebe assina com o dedo."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "confirmar.png",
+      "titulo": "Confirmar",
+      "fala": "Toque em [Confirmar]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "entregue.png",
+      "titulo": "Entregue",
+      "fala": "Pronto. O estoque baixa e o termo sai em P D F."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Pós-plantio",
+      "fala": "Pronto! No próximo episódio: depois do plantio."
+    }
+  ]
+}

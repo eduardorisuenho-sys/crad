@@ -1,0 +1,80 @@
+{
+  "titulo": "Cadastro de mudas",
+  "rotulo": "Episódio 6 · Cadastro de mudas",
+  "publico": "Para o viveiro",
+  "telas": "06-mudas",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Cadastro de mudas",
+      "subtitulo": "Episódio 6 de 12 · Para o viveiro",
+      "fala": "Episódio 6: cadastro de mudas."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "modulo.png",
+      "titulo": "Viveiro",
+      "fala": "Para cadastrar mudas, toque em [Viveiro]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "registrar.png",
+      "titulo": "Mudas que já estão aqui",
+      "fala": "Mudas que já estão no viveiro? Toque em [Registrar mudas]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "formas.png",
+      "titulo": "Três jeitos",
+      "fala": "Uma espécie por vez, várias de uma vez, ou por planilha."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "quantas.png",
+      "titulo": "Quantas?",
+      "fala": "Escolha a espécie, diga quantas mudas, e tire uma foto."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "salvar.png",
+      "titulo": "Salvar",
+      "fala": "Toque em [Salvar]. Elas já aparecem no catálogo."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "semear.png",
+      "titulo": "Vai semear?",
+      "fala": "Vai semear? No lote de sementes, toque em [Semear deste lote]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "quantas-sementes.png",
+      "titulo": "Quantas sementes?",
+      "fala": "Diga quantas sementes vai usar."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "recipiente.png",
+      "titulo": "Onde?",
+      "fala": "Escolha o recipiente e o canteiro."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "criar.png",
+      "titulo": "Criar",
+      "fala": "Toque em [Criar lote de mudas]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "lote-criado.png",
+      "titulo": "Lote criado",
+      "fala": "O lote ganha código e etiquetas com Q R Code."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Cuidar das mudas",
+      "fala": "Pronto! No próximo episódio: cuidar das mudas."
+    }
+  ]
+}

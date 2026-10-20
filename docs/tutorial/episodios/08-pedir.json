@@ -1,0 +1,74 @@
+{
+  "titulo": "Pedir mudas",
+  "rotulo": "Episódio 8 · Pedir mudas",
+  "publico": "Para quem pede mudas",
+  "telas": "08-pedir",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Pedir mudas",
+      "subtitulo": "Episódio 8 de 12 · Para quem pede mudas",
+      "fala": "Episódio 8: pedir mudas."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "catalogo-botao.png",
+      "titulo": "Catálogo",
+      "fala": "Quer mudas? Veja o [Catálogo]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "catalogo.png",
+      "titulo": "Mudas prontas",
+      "fala": "Ele mostra as mudas prontas para doação."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "pedir.png",
+      "titulo": "Pedir",
+      "fala": "Em Doação de mudas, toque em [Pedir mudas]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "quantidade.png",
+      "titulo": "Quais e quantas?",
+      "fala": "Escolha as mudas e quantas quer."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "onde.png",
+      "titulo": "Onde vai plantar?",
+      "fala": "Conte para que são, o município, o endereço e a área."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "dados.png",
+      "titulo": "Seus dados",
+      "fala": "Preencha seus dados. C P F e telefone, só o gestor vê."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "termo.png",
+      "titulo": "O termo",
+      "fala": "Leia o termo de compromisso."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "enviar.png",
+      "titulo": "Enviar",
+      "fala": "Aceite o termo e toque em [Enviar pedido]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "oficio.png",
+      "titulo": "Envie o ofício",
+      "fala": "Por fim, envie o ofício à SEMARH por e-mail, com a solicitação em anexo."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Analisar e aprovar pedidos",
+      "fala": "Pronto! No próximo episódio: analisar e aprovar pedidos."
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "titulo": "Pós-plantio",
+  "rotulo": "Episódio 11 · Pós-plantio",
+  "publico": "Para quem plantou",
+  "telas": "11-plantio",
+  "cenas": [
+    {
+      "tipo": "abertura",
+      "titulo": "Pós-plantio",
+      "subtitulo": "Episódio 11 de 12 · Para quem plantou",
+      "fala": "Episódio 11: depois do plantio."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "modulo.png",
+      "titulo": "Plantou?",
+      "fala": "Plantou as mudas? Toque em [Pós-plantio]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "lista.png",
+      "titulo": "Seu pedido",
+      "fala": "Escolha o seu pedido."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "plantadas.png",
+      "titulo": "Quantas?",
+      "fala": "Diga quantas mudas plantou."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "local.png",
+      "titulo": "Onde?",
+      "fala": "No local, marque o ponto."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "foto.png",
+      "titulo": "Fotos",
+      "fala": "Tire fotos. Elas guardam a data e o ponto."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "registrado.png",
+      "titulo": "Registrado",
+      "fala": "Pronto, o plantio foi registrado."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "acompanhamento.png",
+      "titulo": "Acompanhe",
+      "fala": "Depois, conte quantas estão vivas."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "sobrevivencia.png",
+      "titulo": "Sobrevivência",
+      "fala": "O app calcula quantas sobreviveram."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "relatorio.png",
+      "titulo": "Relatório",
+      "fala": "Baixe o relatório do plantio, para enviar."
+    },
+    {
+      "tipo": "fim",
+      "titulo": "Pronto!",
+      "subtitulo": "Próximo: Para a gestão",
+      "fala": "Pronto! No próximo episódio: para a gestão."
+    }
+  ]
+}
