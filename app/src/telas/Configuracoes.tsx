@@ -8,6 +8,7 @@ import { useInstalacao } from '../plataforma/instalacao';
 import { sairDosAvisos } from '../plataforma/notificar';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
+import { linkWhatsApp } from './Instalar';
 import { useApp } from '../contexto';
 import { idDispositivo, reservarFaixas, sair } from '../dados/sessao';
 import { espacoUsado, formatarBytes } from '../plataforma/armazenamento';
@@ -54,6 +55,10 @@ export function Configuracoes() {
         </Link>
       )}
       {sessao?.gestorGeral && <EditarTermo />}
+      {/* convidar alguém: a mensagem leva à página de baixar o app (celular ou computador) */}
+      <a className="botao-secundario" href={linkWhatsApp(window.location.origin)} target="_blank" rel="noopener noreferrer" data-testid="convidar-whatsapp">
+        <Icone nome="compartilhar" /> Enviar o app pelo WhatsApp
+      </a>
       <dl className="ficha">
         <dt>Versão do app</dt>
         <dd data-testid="versao">

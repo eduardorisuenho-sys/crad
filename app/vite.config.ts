@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { execSync } from 'node:child_process';
 
@@ -14,9 +14,20 @@ function versao(): string {
   }
 }
 
+// Prévia do link (WhatsApp): og:image e og:url precisam do endereço completo do app.
+// Sem VITE_APP_URL no build, essas duas linhas saem (o resto da prévia continua).
+function enderecoNaPrevia(): Plugin {
+  const url = (process.env.VITE_APP_URL ?? '').replace(/\/$/, '');
+  return {
+    name: 'endereco-na-previa',
+    transformIndexHtml: (html) => (url ? html.replaceAll('%URL_DO_APP%', url) : html.replace(/\s*<meta property="og:(url|image)" content="%URL_DO_APP%[^"]*" \/>/g, '')),
+  };
+}
+
 export default defineConfig({
   define: { __VERSAO__: JSON.stringify(versao()), __DATA_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
   plugins: [
+    enderecoNaPrevia(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
