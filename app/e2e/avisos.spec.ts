@@ -6,6 +6,11 @@ test('com a notificação permitida, o aparelho se inscreve para receber avisos 
   // O navegador de teste não fala com o serviço de push do Google: simula a inscrição.
   await ctx.addInitScript(() => {
     const falsa = { endpoint: 'https://push.exemplo/aparelho-teste', toJSON: () => ({ endpoint: 'https://push.exemplo/aparelho-teste', keys: { p256dh: 'chave-p', auth: 'chave-a' } }), unsubscribe: async () => true };
+    // e a permissão já dada (no navegador do GitHub ela fica "default" mesmo com a permissão do contexto)
+    if (typeof Notification !== 'undefined') {
+      Object.defineProperty(Notification, 'permission', { get: () => 'granted' });
+      Notification.requestPermission = async () => 'granted';
+    }
     if (typeof PushManager !== 'undefined') {
       PushManager.prototype.getSubscription = async () => null;
       PushManager.prototype.subscribe = async () => falsa as unknown as PushSubscription;
