@@ -17,7 +17,7 @@ do app.
 | 8 | Pedir mudas | Solicitante |
 | 9 | Analisar e aprovar pedidos | Gestor |
 | 10 | Entregar as mudas | Viveirista |
-| 11 | Depois do plantio | Solicitante |
+| 11 | Pós-plantio | Solicitante |
 | 12 | Para a gestão (equipe, relatórios, lixeira) | Gestor |
 
 O perfil (`perfis` no roteiro) usa os nomes do app e aparece no cartão de
