@@ -29,7 +29,7 @@
       "tipo": "tela",
       "imagem": "agua.png",
       "titulo": "Plantando Água",
-      "fala": "O pedido é do programa Plantando Água? {Toque para marcar}."
+      "fala": "O pedido é do programa Plantando Água? {Toque aqui para marcar}."
     },
     {
       "tipo": "tela",

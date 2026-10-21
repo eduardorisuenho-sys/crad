@@ -41,7 +41,7 @@
       "tipo": "tela",
       "imagem": "salvar.png",
       "titulo": "Salvar",
-      "fala": "Toque em [Salvar]. Elas já aparecem no catálogo."
+      "fala": "Toque em [Salvar]. As mudas já aparecem no catálogo."
     },
     {
       "tipo": "tela",
