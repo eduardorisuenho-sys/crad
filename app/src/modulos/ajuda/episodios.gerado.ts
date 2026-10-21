@@ -11,7 +11,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/01-conta.mp4",
     "capa": "/ajuda/01-conta.jpg",
     "segundos": 53,
-    "bytes": 2598923
+    "bytes": 2599871
   },
   {
     "numero": 2,
@@ -21,8 +21,8 @@ export const EPISODIOS: Episodio[] = [
     ],
     "video": "/ajuda/02-inicio.mp4",
     "capa": "/ajuda/02-inicio.jpg",
-    "segundos": 41,
-    "bytes": 2079201
+    "segundos": 50,
+    "bytes": 2590076
   },
   {
     "numero": 3,
@@ -32,8 +32,8 @@ export const EPISODIOS: Episodio[] = [
     ],
     "video": "/ajuda/03-matriz.mp4",
     "capa": "/ajuda/03-matriz.jpg",
-    "segundos": 65,
-    "bytes": 3368837
+    "segundos": 67,
+    "bytes": 3399344
   },
   {
     "numero": 4,
@@ -44,7 +44,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/04-coleta.mp4",
     "capa": "/ajuda/04-coleta.jpg",
     "segundos": 57,
-    "bytes": 2925780
+    "bytes": 2920880
   },
   {
     "numero": 5,
@@ -55,7 +55,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/05-sementes.mp4",
     "capa": "/ajuda/05-sementes.jpg",
     "segundos": 37,
-    "bytes": 1962012
+    "bytes": 1959021
   },
   {
     "numero": 6,
@@ -65,8 +65,8 @@ export const EPISODIOS: Episodio[] = [
     ],
     "video": "/ajuda/06-mudas.mp4",
     "capa": "/ajuda/06-mudas.jpg",
-    "segundos": 50,
-    "bytes": 2696198
+    "segundos": 51,
+    "bytes": 2723033
   },
   {
     "numero": 7,
@@ -77,7 +77,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/07-cuidar.mp4",
     "capa": "/ajuda/07-cuidar.jpg",
     "segundos": 44,
-    "bytes": 2523322
+    "bytes": 2526271
   },
   {
     "numero": 8,
@@ -88,7 +88,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/08-pedir.mp4",
     "capa": "/ajuda/08-pedir.jpg",
     "segundos": 47,
-    "bytes": 2684951
+    "bytes": 2683294
   },
   {
     "numero": 9,
@@ -99,7 +99,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/09-aprovar.mp4",
     "capa": "/ajuda/09-aprovar.jpg",
     "segundos": 35,
-    "bytes": 1860450
+    "bytes": 1864786
   },
   {
     "numero": 10,
@@ -110,7 +110,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/10-entregar.mp4",
     "capa": "/ajuda/10-entregar.jpg",
     "segundos": 35,
-    "bytes": 1932578
+    "bytes": 1943950
   },
   {
     "numero": 11,
@@ -121,7 +121,7 @@ export const EPISODIOS: Episodio[] = [
     "video": "/ajuda/11-plantio.mp4",
     "capa": "/ajuda/11-plantio.jpg",
     "segundos": 40,
-    "bytes": 2243177
+    "bytes": 2239478
   },
   {
     "numero": 12,
@@ -131,7 +131,7 @@ export const EPISODIOS: Episodio[] = [
     ],
     "video": "/ajuda/12-gestao.mp4",
     "capa": "/ajuda/12-gestao.jpg",
-    "segundos": 29,
-    "bytes": 1709778
+    "segundos": 30,
+    "bytes": 1733565
   }
 ];

@@ -21,7 +21,7 @@ test('o coletor vê os vídeos dele primeiro e guarda um para ver sem internet',
   await expect(page.getByRole('heading', { name: 'Outros vídeos' })).toBeVisible();
 
   await paraVoce.getByRole('link', { name: /Cadastrar uma matriz/ }).click();
-  await expect(page.getByText('Coletor', { exact: true })).toBeVisible();
+  await expect(page.locator('.perfis-video .selo')).toHaveText(['Coletor']);
   await page.getByTestId('guardar-video').click();
   await expect(page.getByText('Guardado no celular: abre mesmo sem internet.')).toBeVisible();
   await expect(page.getByTestId('guardar-video')).toHaveText(/Tirar do celular/);

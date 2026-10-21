@@ -11,7 +11,8 @@ Uso:  python3 flora.py SAIDA.zip [UF] [ARQUIVO_DE_ENTRADA.zip]
 """
 import datetime, io, json, os, re, ssl, sys, urllib.request, zipfile
 
-URL = "https://ipt.jbrj.gov.br/jbrj/archive.do?r=lista_especies_flora_brasil"
+# CRADS_FLORA_URL troca o endereço (os testes apontam para um que não responde, como se estivesse sem internet)
+URL = os.environ.get("CRADS_FLORA_URL") or "https://ipt.jbrj.gov.br/jbrj/archive.do?r=lista_especies_flora_brasil"
 
 
 def atributo(tag, nome):

@@ -32,7 +32,9 @@ export async function subirServidor(): Promise<ServidorTeste> {
   execFileSync(BINARIO, ['superuser', 'upsert', 'admin@teste.local', 'senha-admin-123', ...flags]);
   const porta = await portaLivre();
   const url = `http://127.0.0.1:${porta}`;
-  const proc: ChildProcess = spawn(BINARIO, ['serve', `--http=127.0.0.1:${porta}`, ...flags], { stdio: ['ignore', 'pipe', 'pipe'] });
+  // Lista oficial de espécies: endereço que não responde (os testes contam com a falta de internet, haja rede ou não).
+  const env = { ...process.env, CRADS_FLORA_URL: process.env.CRADS_FLORA_URL ?? 'http://127.0.0.1:9/sem-internet' };
+  const proc: ChildProcess = spawn(BINARIO, ['serve', `--http=127.0.0.1:${porta}`, ...flags], { stdio: ['ignore', 'pipe', 'pipe'], env });
   // Erro ao carregar os ganchos (pb_hooks) faz o resto do arquivo ser ignorado em silêncio: o teste falha na hora.
   let saida = '';
   proc.stdout?.on('data', (d) => (saida += String(d)));
