@@ -15,6 +15,14 @@ function useGuardados() {
   return { guardados, recarregar };
 }
 
+function VoltarInicio() {
+  return (
+    <Link to="/" className="botao-secundario">
+      <Icone nome="casa" /> Voltar à tela inicial
+    </Link>
+  );
+}
+
 function Perfis({ episodio }: { episodio: Episodio }) {
   return (
     <span className="perfis-video">
@@ -77,6 +85,7 @@ export function ListaAjuda() {
       <a className="botao-secundario" href="/ajuda/manual-crad.pdf" download>
         <Icone nome="baixar" /> Manual em PDF
       </a>
+      <VoltarInicio />
     </Tela>
   );
 }
@@ -95,6 +104,7 @@ export function VideoAjuda() {
         <Link to="/ajuda" className="botao-secundario">
           Ver todos os vídeos
         </Link>
+        <VoltarInicio />
       </Tela>
     );
   }
@@ -143,6 +153,7 @@ export function VideoAjuda() {
       <Link to="/ajuda" className="botao-secundario">
         Ver todos os vídeos
       </Link>
+      <VoltarInicio />
     </Tela>
   );
 }

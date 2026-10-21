@@ -11,6 +11,9 @@ test('vídeos de ajuda abrem sem login, a partir da tela de entrar', async ({ pa
   await expect(page.locator('video.video-ajuda')).toHaveAttribute('src', '/ajuda/01-conta.mp4');
   await page.getByRole('link', { name: /Próximo: A tela inicial/ }).click();
   await expect(page.locator('video.video-ajuda')).toHaveAttribute('src', '/ajuda/02-inicio.mp4');
+  // sem login, a tela inicial é a de entrar
+  await page.getByRole('link', { name: 'Voltar à tela inicial' }).click();
+  await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
 });
 
 test('o coletor vê os vídeos dele primeiro e guarda um para ver sem internet', async ({ page, context }) => {
@@ -42,4 +45,6 @@ test('o coletor vê os vídeos dele primeiro e guarda um para ver sem internet',
   await page.getByRole('link', { name: /Cadastrar uma matriz/ }).click();
   await page.getByTestId('guardar-video').click();
   await expect(page.getByTestId('guardar-video')).toHaveText(/Guardar para ver sem internet/);
+  await page.getByRole('link', { name: 'Voltar à tela inicial' }).click();
+  await expect(page.getByRole('heading', { name: 'Olá, Coletor' })).toBeVisible();
 });
