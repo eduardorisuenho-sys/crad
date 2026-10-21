@@ -15,9 +15,9 @@ function versao(): string {
 }
 
 // Prévia do link (WhatsApp): og:image e og:url precisam do endereço completo do app.
-// Sem VITE_APP_URL no build, essas duas linhas saem (o resto da prévia continua).
+// Padrão: o endereço publicado na Cloudflare; VITE_APP_URL troca (VITE_APP_URL= vazio tira as duas linhas).
 function enderecoNaPrevia(): Plugin {
-  const url = (process.env.VITE_APP_URL ?? '').replace(/\/$/, '');
+  const url = (process.env.VITE_APP_URL ?? 'https://crad.geprh2023.workers.dev').replace(/\/$/, '');
   return {
     name: 'endereco-na-previa',
     transformIndexHtml: (html) => (url ? html.replaceAll('%URL_DO_APP%', url) : html.replace(/\s*<meta property="og:(url|image)" content="%URL_DO_APP%[^"]*" \/>/g, '')),

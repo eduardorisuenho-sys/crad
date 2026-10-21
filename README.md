@@ -673,9 +673,9 @@ Na Cloudflare: **Workers e Pages → Criar → Importar repositório → crad**.
 - Comando de build: `npm install && npm run build -w app`
 - Comando de deploy: `npx wrangler deploy` (usa o `wrangler.jsonc` da raiz)
 - Variáveis de build: `NODE_VERSION=22`,
-  `VITE_SERVIDOR_URL=https://crads.seudominio.gov.br` e
-  `VITE_APP_URL=https://<endereço do app>` (para a prévia do link no WhatsApp
-  mostrar a imagem do CRAD)
+  `VITE_SERVIDOR_URL=https://crads.seudominio.gov.br` e, se o endereço do app
+  mudar, `VITE_APP_URL=https://<endereço novo>` (a prévia do link no WhatsApp
+  usa esse endereço; o padrão é https://crad.geprh2023.workers.dev)
 - O `app/public/_headers` faz o celular conferir sempre se há versão nova.
   As telas como `/catalogo` abrem direto pelo endereço.
 
@@ -684,7 +684,7 @@ dois serviços já dão HTTPS.
 
 ### Divulgar o app (WhatsApp)
 
-Mande o endereço `https://<endereço do app>/instalar`: abre a página **Baixar o
+Mande o endereço **https://crad.geprh2023.workers.dev/instalar**: abre a página **Baixar o
 CRAD**, com o botão de instalar e o passo a passo do aparelho de quem abriu
 (Android, iPhone ou computador). No WhatsApp o link aparece com o logo e a
 descrição. Em **Ajustes → Enviar o app pelo WhatsApp** a mensagem já sai pronta.
