@@ -103,7 +103,8 @@ def _clonar(textos, ref, python_voz, whisper):
     prontas = {k: _ler_audio(_chave(ref, t)) for k, t in enumerate(textos) if _chave(ref, t).exists()}
     pendentes = {f'f{k:03d}': (t, 1) for k, t in enumerate(textos) if k not in prontas}
     conferir = mv.reconhecedor(whisper) if whisper and pendentes else None
-    for rodada in range(3):
+    melhor: dict[str, tuple[float, Path]] = {}  # a tentativa com menos erro de cada frase
+    for rodada in range(4):
         if not pendentes:
             break
         pedido = pasta / 'pedido.json'
@@ -111,16 +112,21 @@ def _clonar(textos, ref, python_voz, whisper):
         subprocess.run([python_voz, str(AQUI / 'voz_chatterbox.py'), '--ref', str(ref), '--pedido', str(pedido), '--saida', str(pasta)], check=True)
         refazer = {}
         for i, (t, sem) in pendentes.items():
-            audio = _ler_audio(pasta / f'{i}.wav')
-            if conferir and rodada < 2:
-                erro = mv.taxa_de_erro(t, conferir(*audio))
-                if erro > 0.2:
-                    print(f'  refazendo ({erro:.0%} diferente): {t}')
-                    refazer[i] = (t, sem + 1)
-                    continue
-            prontas[int(i[1:])] = audio
-            shutil.copy(pasta / f'{i}.wav', _chave(ref, t))
+            tentativa = pasta / f'{i}-{sem}.wav'
+            shutil.move(pasta / f'{i}.wav', tentativa)
+            erro = mv.taxa_de_erro(t, conferir(*_ler_audio(tentativa))) if conferir else 0.0
+            if i not in melhor or erro < melhor[i][0]:
+                melhor[i] = (erro, tentativa)
+            if erro > 0.2:
+                print(f'  refazendo ({erro:.0%} diferente): {t}')
+                refazer[i] = (t, sem + 1)
         pendentes = refazer
+    for i, (erro, arq) in melhor.items():
+        t = textos[int(i[1:])]
+        if erro > 0.2:
+            print(f'  ATENÇÃO, ficou {erro:.0%} diferente (ouça): {t}')
+        prontas[int(i[1:])] = _ler_audio(arq)
+        shutil.copy(arq, _chave(ref, t))
     return [prontas[k] for k in range(len(textos))]
 
 

@@ -92,6 +92,12 @@ export function Inicio() {
             </Link>
           );
         })}
+        <Link to="/ajuda" className="bloco bloco-secundario">
+          <span className="circulo">
+            <Icone nome="video" tamanho={42} />
+          </span>
+          <span>Ajuda</span>
+        </Link>
         <Link to="/configuracoes" className="bloco bloco-secundario" aria-label={rotuloComPendencias('Ajustes', avisos, 'aviso')}>
           <span className="circulo">
             <Icone nome="configuracoes" tamanho={42} />

@@ -377,3 +377,14 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .aviso-pendente { border: 3px solid var(--erro); }
 .item-lista div > .selo-pendente { align-self: flex-start; margin-top: 4px; }
 .item-lista > .selo { white-space: nowrap; flex: none; }
+
+/* Ajuda: vídeos do manual */
+.subtitulo { font-size: 1.1rem; margin: 8px 0 0; color: var(--azul-escuro); }
+.lista-videos { display: flex; flex-direction: column; gap: 10px; }
+.item-video { display: flex; gap: 12px; align-items: center; background: var(--branco); border: 1px solid var(--azul-escuro-25); border-radius: 12px; padding: 10px; color: var(--azul-escuro); text-decoration: none; }
+.item-video img { width: 72px; height: 128px; object-fit: cover; border-radius: 8px; flex: none; background: var(--azul-escuro-10); }
+.item-video div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.item-video strong { font-size: 1.05rem; }
+.item-video small { color: var(--suave); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.perfis-video { display: flex; gap: 6px; flex-wrap: wrap; justify-content: inherit; }
+.video-ajuda { display: block; width: 100%; max-height: 70vh; aspect-ratio: 9 / 16; border-radius: 16px; background: #000; }

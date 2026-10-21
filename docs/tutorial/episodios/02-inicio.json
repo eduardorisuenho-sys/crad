@@ -39,6 +39,18 @@
     },
     {
       "tipo": "tela",
+      "imagem": "ajuda.png",
+      "titulo": "Ajuda",
+      "fala": "Ficou com dúvida? Toque em [Ajuda]."
+    },
+    {
+      "tipo": "tela",
+      "imagem": "ajuda-lista.png",
+      "titulo": "Vídeos para você",
+      "fala": "Os vídeos do seu perfil vêm primeiro. Guarde no celular para ver sem internet."
+    },
+    {
+      "tipo": "tela",
       "imagem": "preparar.png",
       "titulo": "Vai sem internet?",
       "fala": "Vai para um lugar sem sinal? Em Ajustes, toque em [Preparar para ir a campo]."

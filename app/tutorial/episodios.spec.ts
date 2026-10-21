@@ -128,6 +128,11 @@ test('02 · A tela inicial e o trabalho sem internet', async ({ browser }) => {
   await g.cena('viveiro', p.locator('.viveiro-atual'));
   await g.cena('botoes', p.locator('.grade-blocos'));
   await g.cena('barra', p.getByTestId('barra-sync'));
+  await g.cena('ajuda', link(p, 'Ajuda'));
+  await link(p, 'Ajuda').click();
+  await expect(p.getByRole('heading', { name: 'Para você' })).toBeVisible();
+  await g.cena('ajuda-lista', p.locator('.lista-videos').first());
+  await p.goto('/');
   await link(p, 'Ajustes').click();
   await g.cena('preparar', botao(p, 'Preparar para ir a campo'));
   await botao(p, 'Preparar para ir a campo').click();

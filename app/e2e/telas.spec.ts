@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { entrarComoColetor, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, PB } from './apoio';
 
 const ESTATICAS = [
-  '/', '/avisos', '/catalogo', '/coleta', '/coleta/nova', '/coleta/relatorio', '/coleta/rota',
+  '/', '/ajuda', '/ajuda/3', '/avisos', '/catalogo', '/coleta', '/coleta/nova', '/coleta/relatorio', '/coleta/rota',
   '/configuracoes', '/doacao', '/doacao/novo', '/equipe', '/especies', '/especies/importar', '/identificar', '/instalar', '/lixeira', '/matrizes', '/matrizes/nova',
   '/municipios', '/permissoes', '/pos-plantio', '/relatorios', '/relatorios/rastreio', '/transparencia', '/viveiro', '/viveiro-atual', '/viveiro/estoque-inicial',
   '/viveiro/inventario', '/viveiro/semeadura', '/viveiros',
@@ -64,7 +64,7 @@ test('telas públicas abrem sem login', async ({ page }) => {
   await page.goto('/');
   await page.evaluate((url) => localStorage.setItem('crads_servidor', url), PB());
   const lm = (await lerDoServidor('lote_mudas'))[0] as { codigo: string };
-  await passear(page, ['/', '/catalogo', '/instalar', '/criar-conta', `/rastreio/${lm.codigo}`]);
+  await passear(page, ['/', '/ajuda', '/ajuda/1', '/catalogo', '/instalar', '/criar-conta', `/rastreio/${lm.codigo}`]);
 });
 
 test('quem não tem a permissão vê "Sem acesso" ao digitar o endereço', async ({ page }) => {

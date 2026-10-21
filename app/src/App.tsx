@@ -49,6 +49,7 @@ import { Permissoes } from './modulos/equipe/Permissoes';
 import { EstoqueInicial } from './modulos/viveiro/EstoqueInicial';
 import { Lixeira } from './modulos/lixeira/Lixeira';
 import { RelatorioServico } from './modulos/coleta/RelatorioServico';
+import { ListaAjuda, VideoAjuda } from './modulos/ajuda/Ajuda';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -67,6 +68,8 @@ function Rotas() {
       <Route path="/catalogo/:id" element={<EspeciePublica />} />
       <Route path="/rastreio/:codigo" element={<RastreioLote />} />
       <Route path="/instalar" element={<Instalar />} />
+      <Route path="/ajuda" element={<ListaAjuda />} />
+      <Route path="/ajuda/:numero" element={<VideoAjuda />} />
     </>
   );
   if (!sessao) {

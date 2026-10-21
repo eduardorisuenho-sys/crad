@@ -296,6 +296,9 @@ def taxa_de_erro(certo: str, ouvido: str) -> float:
 
     def palavras(t):
         t = ''.join(c for c in unicodedata.normalize('NFKD', t.lower()) if not unicodedata.combining(c))
+        # a sigla falada conta como a sigla escrita
+        for falada, sigla in (('que erre code', 'qr code'), ('pe de efe', 'pdf'), ('ce pe efe', 'cpf')):
+            t = re.sub(r'[^a-z0-9]+', ' ', t).replace(falada, sigla)
         t = re.sub(r'\b([a-z]) (?=[a-z]\b)', r'\1', t)  # "q r code" = "qr code"
         return re.findall(r'[a-z0-9]+', t)
     r, h = palavras(certo), palavras(ouvido)
@@ -314,9 +317,10 @@ _TTS = {}
 PRONUNCIA = [
     (r'\bToque em\b', 'Toque no botão'),
     (r'\btoque em\b', 'toque no botão'),
-    (r'\bQR Code\b', 'Q R Code'),
-    (r'\bPDF\b', 'P D F'),
-    (r'\bCPF\b', 'C P F'),
+    # siglas como se fala (a voz se atrapalha com letras soltas)
+    (r'\bQR Code\b', 'quê erre côde'),
+    (r'\bPDF\b', 'pê dê efe'),
+    (r'\bCPF\b', 'cê pê efe'),
     (r'\bapp\b', 'aplicativo'),
     (r'\s*\((kg|QR)\)', ''),
 ]

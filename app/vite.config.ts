@@ -40,11 +40,12 @@ export default defineConfig({
       },
       workbox: {
         // O app inteiro fica guardado no aparelho e abre sem internet.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'ajuda/*.jpg'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         // Avisos com o app fechado (Web Push).
-        importScripts: ['sw-push.js'],
+        // e vídeos de ajuda guardados para ver sem internet (antes das rotas do Workbox).
+        importScripts: ['sw-push.js', 'sw-videos.js'],
         // Fotos do catálogo ficam guardadas para abrir sem internet.
         runtimeCaching: [
           {

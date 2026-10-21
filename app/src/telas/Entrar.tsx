@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { Icone } from '../componentes/Icone';
 import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { useApp } from '../contexto';
 import { descobrirServidor, entrar } from '../dados/sessao';
@@ -49,6 +50,9 @@ export function Entrar() {
         </Link>
         <Link to="/catalogo" className="botao-secundario">
           Ver o catálogo de mudas (sem login)
+        </Link>
+        <Link to="/ajuda" className="botao-secundario">
+          <Icone nome="video" /> Vídeos de ajuda
         </Link>
       </form>
     </div>
