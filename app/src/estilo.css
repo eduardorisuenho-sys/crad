@@ -411,11 +411,15 @@ label.opcao, label.botao-grande { cursor: pointer; }
   .grade-catalogo { grid-template-columns: repeat(5, 1fr); }
 }
 @media (min-width: 1000px) {
-  /* início: logo numa faixa baixa e horizontal, para os módulos caberem sem rolar */
-  .marca-inicio { flex-direction: row; justify-content: center; gap: 14px; padding: 12px 32px; }
-  .marca-inicio img { width: 56px; }
-  .marca-inicio strong { font-size: 2rem; margin-top: 0; }
-  .marca-inicio small { font-size: 1rem; }
+  /* início: o logo no padrão (símbolo, CRAD e o nome embaixo), maior e à esquerda; o "Olá" ao lado */
+  .tela:has(> .marca-inicio) { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto 1fr; background: linear-gradient(var(--branco), var(--branco)) top / 100% 1px no-repeat; }
+  .tela > .marca-inicio { grid-area: 1 / 1; padding: 16px 24px 16px max(32px, calc((100vw - 1180px) / 2 + 32px)); border-bottom: 1px solid var(--azul-escuro-25); }
+  .tela:has(> .marca-inicio) > .topo { grid-area: 1 / 2; padding-left: 16px; }
+  .tela:has(> .marca-inicio) > .topo h1 { font-size: 2rem; }
+  .tela:has(> .marca-inicio) > .barra-sync, .tela:has(> .marca-inicio) > .conteudo { grid-column: 1 / -1; }
+  .marca-inicio img { width: 150px; }
+  .marca-inicio strong { font-size: 3rem; }
+  .marca-inicio small { font-size: 1.05rem; max-width: 260px; }
   .ligar-avisos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
   .ligar-avisos h2, .ligar-avisos p { flex: 1 1 100%; margin: 0; }
   .ligar-avisos button { width: auto; flex: 0 0 auto; padding-left: 28px; padding-right: 28px; }
