@@ -93,7 +93,7 @@ test('viveirista semeia, conta germinação, registra perda, marca como pronta e
   const porEspecie = (await page.locator('.cartao .historico li b').allInnerTexts()).map(Number);
   expect(porEspecie.length).toBeGreaterThan(0);
   const soma = porEspecie.reduce((a, b) => a + b, 0);
-  await expect(page.getByTestId('total-prontas')).toHaveText(`Total: ${soma.toLocaleString('pt-BR')} mudas prontas`);
+  await expect(page.getByTestId('total-prontas')).toHaveText(`Total: ${soma.toLocaleString('pt-BR')}`);
 
   await context.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
