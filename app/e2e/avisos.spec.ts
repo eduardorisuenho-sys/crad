@@ -30,6 +30,10 @@ test('com a notificação permitida, o aparelho se inscreve para receber avisos 
 });
 
 test('a tela inicial pede para ligar os avisos com som; "Agora não" esconde', async ({ page }) => {
+  // aparelho que ainda não respondeu à permissão (no navegador do GitHub ela começa bloqueada)
+  await page.addInitScript(() => {
+    if (typeof Notification !== 'undefined') Object.defineProperty(Notification, 'permission', { get: () => 'default' });
+  });
   await entrarComoGestora(page);
   const cartao = page.getByTestId('ligar-avisos');
   await expect(cartao).toContainText('o celular toca mesmo com o app fechado e a tela apagada');
