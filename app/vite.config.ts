@@ -51,7 +51,7 @@ export default defineConfig({
       },
       workbox: {
         // O app inteiro fica guardado no aparelho e abre sem internet.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'ajuda/*.jpg'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'ajuda/*.jpg', 'marca/abertura.*'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         // Avisos com o app fechado (Web Push).

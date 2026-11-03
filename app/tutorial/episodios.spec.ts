@@ -56,7 +56,8 @@ class Gravador {
 }
 
 async function contexto(browser: Browser, geo = ARVORE): Promise<[BrowserContext, Page]> {
-  const ctx = await browser.newContext({ permissions: ['geolocation'], geolocation: geo, acceptDownloads: true });
+  // reducedMotion: o logo aparece parado nas telas (sem a animação de abertura no meio)
+  const ctx = await browser.newContext({ permissions: ['geolocation'], geolocation: geo, acceptDownloads: true, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
   page.on('dialog', (d) => void d.accept());
   return [ctx, page];

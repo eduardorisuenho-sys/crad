@@ -13,7 +13,9 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   const marca = coletor.getByTestId('marca-inicio');
   await expect(marca).toContainText('CRAD');
   await expect(marca).toContainText('Centro de Recuperação de Áreas Degradadas');
-  expect(await marca.locator('img').evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth)).toBeGreaterThanOrEqual(480);
+  // a animação de abertura carrega (ou, se o aparelho não deixar tocar, o logo parado)
+  await expect(marca.locator('.logo-animado')).toBeVisible();
+  await expect.poll(() => marca.locator('.logo-animado').evaluate((e) => (e instanceof HTMLVideoElement ? e.readyState >= 2 : (e as HTMLImageElement).complete))).toBe(true);
   const alturaMarca = (await marca.boundingBox())!.y;
   expect(alturaMarca).toBeLessThan((await coletor.getByRole('heading', { name: 'Olá, Coletor' }).boundingBox())!.y);
   if (process.env.CRADS_FOTO_INICIO) { await coletor.evaluate(() => window.scrollTo(0, 0)); await coletor.screenshot({ path: process.env.CRADS_FOTO_INICIO, clip: { x: 0, y: 0, width: 400, height: 520 } }); }

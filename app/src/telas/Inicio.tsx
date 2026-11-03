@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { Contador, rotuloComPendencias } from '../componentes/Contador';
 import { Icone } from '../componentes/Icone';
+import { LogoAnimado } from '../componentes/LogoAnimado';
 import { LigarAvisos } from '../componentes/LigarAvisos';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
@@ -49,10 +50,11 @@ export function Inicio() {
       titulo={`Olá, ${sessao?.nome?.split(' ')[0] || 'bem-vindo'}`}
       voltar={false}
       acima={
-        // símbolo em alta resolução (481×512) e o nome em texto, nítido em qualquer tela
+        // animação de abertura (uma vez por abertura do app) e o nome do Centro em texto, nítido em qualquer tela
         <div className="marca-inicio" data-testid="marca-inicio">
-          <img src="/marca/simbolo.png" alt="" width={120} height={128} />
-          <strong>CRAD</strong>
+          <LogoAnimado />
+          {/* "CRAD" já está na animação; o texto fica para leitores de tela */}
+          <strong className="so-leitor">CRAD</strong>
           <small>Centro de Recuperação de Áreas Degradadas</small>
         </div>
       }

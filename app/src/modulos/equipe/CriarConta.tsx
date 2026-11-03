@@ -5,6 +5,7 @@ import { Icone } from '../../componentes/Icone';
 import { useApp } from '../../contexto';
 import { descobrirServidor, entrar } from '../../dados/sessao';
 import { criarConta, viveirosPublicos, type ViveiroPublico } from './api';
+import { LogoAnimado } from '../../componentes/LogoAnimado';
 
 type Escolha = 'solicitante' | 'coletor' | 'viveirista' | 'gestor';
 const OPCOES: { valor: Escolha; rotulo: string; dica: string; icone: string }[] = [
@@ -56,7 +57,9 @@ export function CriarConta() {
   return (
     <div className="tela tela-entrar">
       <div className="marca">
-        <img src="/marca/logo-completa.png" alt="CRAD — Centro de Recuperação de Áreas Degradadas" />
+        <LogoAnimado />
+        <strong className="so-leitor">CRAD</strong>
+        <small>Centro de Recuperação de Áreas Degradadas</small>
       </div>
       <h1 className="pergunta">Criar conta</h1>
       {erro && (

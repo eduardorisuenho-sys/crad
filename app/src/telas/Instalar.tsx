@@ -6,6 +6,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Icone } from '../componentes/Icone';
+import { LogoAnimado } from '../componentes/LogoAnimado';
 import { Pagina as Tela } from '../modulos/catalogo/Pagina';
 import { useInstalacao } from '../plataforma/instalacao';
 
@@ -56,9 +57,10 @@ export function Instalar() {
 
   return (
     <Tela titulo="Baixar o CRAD">
-      <div className="marca-inicio">
-        <img src="/marca/simbolo.png" alt="" width={120} height={128} />
-        <strong>CRAD</strong>
+<div className="marca-inicio">
+        <LogoAnimado />
+        {/* "CRAD" já está na animação; o texto fica para leitores de tela */}
+        <strong className="so-leitor">CRAD</strong>
         <small>Centro de Recuperação de Áreas Degradadas</small>
       </div>
       <p className="dica centro">Mudas nativas do Tocantins, da árvore matriz ao plantio. Funciona sem internet.</p>

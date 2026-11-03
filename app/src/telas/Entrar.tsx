@@ -4,6 +4,7 @@ import { Icone } from '../componentes/Icone';
 import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { useApp } from '../contexto';
 import { descobrirServidor, entrar } from '../dados/sessao';
+import { LogoAnimado } from '../componentes/LogoAnimado';
 
 export function Entrar() {
   const { db, definirSessao } = useApp();
@@ -29,7 +30,9 @@ export function Entrar() {
   return (
     <div className="tela tela-entrar">
       <div className="marca">
-        <img src="/marca/logo-completa.png" alt="CRAD — Centro de Recuperação de Áreas Degradadas" />
+        <LogoAnimado />
+        <strong className="so-leitor">CRAD</strong>
+        <small>Centro de Recuperação de Áreas Degradadas</small>
       </div>
       <form onSubmit={aoEnviar} className="formulario">
         <label>
