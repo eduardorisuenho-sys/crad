@@ -9,6 +9,7 @@
  *   recebe o quê e manda aqui: POST /enviar { envios: [{ inscricao, titulo, texto, rota }] }.
  * - Responde { enviados, mortas: [endpoints] } — inscrições que o celular
  *   cancelou, para o PocketBase apagar.
+ * - Com { atraso: segundos } (aviso de teste) responde na hora e envia depois.
  */
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -54,8 +55,7 @@ export async function enviar(envios, chaves, contato = CONTATO) {
   return { enviados, mortas };
 }
 
-export function iniciar(porta = PORTA) {
-  const chaves = carregarChaves();
+export function iniciar(porta = PORTA, chaves = carregarChaves()) {
   const servidor = createServer((req, res) => {
     if (req.method !== 'POST' || req.url !== '/enviar') {
       res.writeHead(404).end();
@@ -65,7 +65,15 @@ export function iniciar(porta = PORTA) {
     req.on('data', (c) => (corpo += c));
     req.on('end', async () => {
       try {
-        const r = await enviar(JSON.parse(corpo || '{}').envios, chaves);
+        const pedido = JSON.parse(corpo || '{}');
+        // aviso de teste: responde já e envia depois (a pessoa apaga a tela enquanto isso)
+        const atraso = Math.max(0, Math.min(60, Number(pedido.atraso) || 0));
+        if (atraso) {
+          setTimeout(() => void enviar(pedido.envios, chaves).catch((err) => console.error('falha no aviso de teste:', err)), atraso * 1000);
+          res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ agendados: (pedido.envios ?? []).length, atraso }));
+          return;
+        }
+        const r = await enviar(pedido.envios, chaves);
         res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(r));
       } catch (err) {
         res.writeHead(400).end(String(err));

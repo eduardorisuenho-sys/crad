@@ -75,4 +75,18 @@ describe.skipIf(!temPocketBase)('avisos no celular com o app fechado (Web Push)'
     // a inscrição "morta" foi apagada
     await expect.poll(async () => (await chamar(s, s.admin, 'GET', `/api/collections/inscricao_push/records?perPage=50`)).dados.items.map((i: { endpoint: string }) => i.endpoint).sort()).toEqual(['https://push.exemplo/gestor', 'https://push.exemplo/solicitante']);
   });
+
+  it('aviso de teste: chega no aparelho de quem pediu e diz onde a corrente quebrou', async () => {
+    const testar = (t: string, endpoint: string) => chamar(s, t, 'POST', '/api/crads/push/testar', { endpoint, atraso: 15 });
+    // quem nunca permitiu as notificações não tem inscrição
+    const novo = await criarUsuario(s, 'novo@push.local');
+    expect((await testar(novo.token, 'https://push.exemplo/novo')).dados).toMatchObject({ ok: false, motivo: 'sem_inscricao', aparelhos: 0 });
+    // inscrito: o carteiro recebe o aviso de teste só para os aparelhos dele
+    const r = (await testar(gestor.token, 'https://push.exemplo/gestor')).dados;
+    expect(r).toMatchObject({ ok: true, aparelhos: 1, desteAparelho: true, atraso: 15 });
+    expect(recebidos.filter((x) => x.titulo === 'Teste de aviso do CRAD').map((x) => x.inscricao.endpoint)).toEqual(['https://push.exemplo/gestor']);
+    // carteiro parado no servidor
+    await new Promise((ok) => carteiro.close(ok));
+    expect((await testar(gestor.token, 'https://push.exemplo/gestor')).dados).toMatchObject({ ok: false, motivo: 'carteiro' });
+  });
 });

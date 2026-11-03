@@ -103,6 +103,33 @@ export async function inscreverAvisosComAppFechado(servidor: string, token: stri
   }
 }
 
+export type ResultadoTeste = 'agendado' | 'sem-suporte' | 'sem-permissao' | 'sem-internet' | 'sem-inscricao' | 'carteiro';
+
+/**
+ * Aviso de teste: refaz a inscrição deste aparelho e pede ao servidor um aviso
+ * daqui a `atraso` segundos, para a pessoa apagar a tela e conferir o som.
+ */
+export async function testarAvisoComAppFechado(servidor: string, token: string, atraso = 15): Promise<ResultadoTeste> {
+  const inscricao = await inscreverAvisosComAppFechado(servidor, token);
+  if (inscricao === 'sem-suporte' || inscricao === 'sem-permissao') return inscricao;
+  if (inscricao === 'sem-servidor') return 'sem-internet';
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const endpoint = (await reg.pushManager.getSubscription())?.endpoint ?? '';
+    const r = await fetch(`${servidor.replace(/\/$/, '')}/api/crads/push/testar`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: token },
+      body: JSON.stringify({ endpoint, atraso }),
+    });
+    if (!r.ok) return 'sem-internet';
+    const d = (await r.json()) as { ok: boolean; motivo?: string; desteAparelho?: boolean };
+    if (d.ok) return d.desteAparelho ? 'agendado' : 'sem-inscricao';
+    return d.motivo === 'carteiro' ? 'carteiro' : 'sem-inscricao';
+  } catch {
+    return 'sem-internet';
+  }
+}
+
 /** Ao sair da conta: este aparelho deixa de receber os avisos dela. */
 export async function sairDosAvisos(servidor: string, token: string) {
   try {

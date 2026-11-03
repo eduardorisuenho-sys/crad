@@ -260,6 +260,12 @@ routerAdd("POST", "/api/crads/push/sair", (e) => {
   return e.json(200, crads.sairPush($app, e.auth, e.requestInfo().body));
 }, $apis.requireAuth("users"));
 
+// Aviso de teste (Ajustes): chega nos aparelhos de quem pediu, depois de alguns segundos.
+routerAdd("POST", "/api/crads/push/testar", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  return e.json(200, crads.testarPush($app, e.auth, e.requestInfo().body));
+}, $apis.requireAuth("users"));
+
 // Pedido novo, aprovação, retirada combinada, pedido de acesso: avisa quem precisa saber.
 onRecordAfterCreateSuccess((e) => {
   e.next();

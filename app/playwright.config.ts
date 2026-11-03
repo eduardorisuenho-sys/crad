@@ -7,6 +7,9 @@ const chromiumLocal = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 export default defineConfig({
   testDir: 'e2e',
   timeout: 60_000,
+  // um teste de cada vez: todos usam o mesmo servidor, e contadores (pendências, estoque)
+  // mudavam no meio de um teste por causa de outro rodando junto
+  workers: 1,
   globalSetup: './e2e/preparar.ts',
   use: {
     baseURL: 'http://localhost:4173',

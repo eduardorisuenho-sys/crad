@@ -1,14 +1,24 @@
 /** Ajuste dos avisos: som ligado/desligado e permissão de notificação do aparelho. */
 import { useEffect, useState } from 'react';
 import { useApp } from '../contexto';
-import { inscreverAvisosComAppFechado, ligarSom, pedirPermissaoNotificacao, permissaoNotificacao, somLigado, tocarSom, type ResultadoInscricao } from '../plataforma/notificar';
+import { inscreverAvisosComAppFechado, ligarSom, pedirPermissaoNotificacao, permissaoNotificacao, somLigado, testarAvisoComAppFechado, tocarSom, type ResultadoInscricao, type ResultadoTeste } from '../plataforma/notificar';
 import { Icone } from './Icone';
+
+const TEXTO_TESTE: Record<ResultadoTeste, string> = {
+  agendado: 'Pronto. Apague a tela agora: em 15 segundos o aviso de teste chega com som.',
+  'sem-suporte': 'Este navegador não recebe avisos com o app fechado. No iPhone, instale o app na tela inicial (Compartilhar → Adicionar à Tela de Início).',
+  'sem-permissao': 'As notificações não estão permitidas neste aparelho.',
+  'sem-internet': 'Sem internet agora. Tente de novo com sinal.',
+  'sem-inscricao': 'Este aparelho não ficou inscrito para receber avisos. Feche o app, abra de novo com internet e tente outra vez.',
+  carteiro: 'O servidor não conseguiu enviar o aviso: o carteiro de avisos está parado. Avise o administrador para rodar a atualização do servidor.',
+};
 
 export function AjusteAvisos() {
   const [som, setSom] = useState(somLigado());
   const { sessao } = useApp();
   const [permissao, setPermissao] = useState(permissaoNotificacao());
   const [fechado, setFechado] = useState<ResultadoInscricao | null>(null);
+  const [teste, setTeste] = useState<ResultadoTeste | 'enviando' | null>(null);
 
   // Já permitido: confere (e refaz, se preciso) a inscrição para avisos com o app fechado.
   useEffect(() => {
@@ -46,6 +56,24 @@ export function AjusteAvisos() {
         <p className="dica" data-testid="avisos-fechado">
           <Icone nome="certo" tamanho={18} /> Notificações do aparelho ligadas
           {fechado === 'ok' ? ': os avisos chegam mesmo com o app fechado.' : '.'}
+        </p>
+      )}
+      {permissao === 'granted' && sessao && (
+        <button
+          className="botao-secundario"
+          data-testid="testar-aviso"
+          disabled={teste === 'enviando'}
+          onClick={async () => {
+            setTeste('enviando');
+            setTeste(await testarAvisoComAppFechado(sessao.servidor, sessao.token));
+          }}
+        >
+          <Icone nome="aviso" /> {teste === 'enviando' ? 'Pedindo o aviso…' : 'Testar o aviso com a tela apagada'}
+        </button>
+      )}
+      {teste && teste !== 'enviando' && (
+        <p className={teste === 'agendado' ? 'mensagem' : 'mensagem alerta'} data-testid="resultado-teste" role="status">
+          {TEXTO_TESTE[teste]}
         </p>
       )}
       {permissao === 'granted' && fechado === 'sem-suporte' && (

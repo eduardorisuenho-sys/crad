@@ -14,6 +14,9 @@ self.addEventListener('push', (evento) => {
       badge: '/icones/icone-192.png',
       tag: d.titulo || 'crad',
       renotify: true,
+      // com som e vibração mesmo com a tela apagada (o som é o de notificação do celular)
+      silent: false,
+      timestamp: Date.now(),
       vibrate: [120, 60, 120],
       data: { rota: d.rota || '/' },
     }),

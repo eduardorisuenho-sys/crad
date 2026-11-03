@@ -22,5 +22,20 @@ test('com a notificação permitida, o aparelho se inscreve para receber avisos 
   await page.goto('/configuracoes');
   await expect(page.getByTestId('avisos-fechado')).toContainText('mesmo com o app fechado', { timeout: 15_000 });
   await expect.poll(async () => (await lerDoServidor('inscricao_push')).map((i) => i.endpoint)).toContain('https://push.exemplo/aparelho-teste');
+
+  // Aviso de teste: o servidor de testes não tem o carteiro rodando, e o app diz isso
+  await page.getByTestId('testar-aviso').click();
+  await expect(page.getByTestId('resultado-teste')).toContainText('carteiro de avisos está parado');
   await ctx.close();
+});
+
+test('a tela inicial pede para ligar os avisos com som; "Agora não" esconde', async ({ page }) => {
+  await entrarComoGestora(page);
+  const cartao = page.getByTestId('ligar-avisos');
+  await expect(cartao).toContainText('o celular toca mesmo com o app fechado e a tela apagada');
+  await cartao.getByRole('button', { name: 'Agora não' }).click();
+  await expect(cartao).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Olá, Gestora' })).toBeVisible();
+  await expect(page.getByTestId('ligar-avisos')).toHaveCount(0);
 });

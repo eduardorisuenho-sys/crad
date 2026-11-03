@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { BotaoInstalar } from '../componentes/BotaoInstalar';
 import { Contador, rotuloComPendencias } from '../componentes/Contador';
 import { Icone } from '../componentes/Icone';
+import { LigarAvisos } from '../componentes/LigarAvisos';
 import { Tela } from '../componentes/Tela';
 import { useApp } from '../contexto';
 import { usePendencias } from '../dados/usePendencias';
@@ -57,6 +58,7 @@ export function Inicio() {
       }
     >
       <BotaoInstalar />
+      <LigarAvisos />
       {semAcesso && (
         <section className="cartao aguardando-acesso" data-testid="aguardando-acesso">
           {pedido?.situacao === 'recusado' ? (

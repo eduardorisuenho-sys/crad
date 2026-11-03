@@ -1018,6 +1018,33 @@ export function sairPush(app: App, auth: RecordPB, corpo: { endpoint?: string })
   return { ok: true };
 }
 
+/**
+ * POST /api/crads/push/testar — aviso de teste para os aparelhos de quem pediu, depois de
+ * `atraso` segundos (dá tempo de apagar a tela). Diz onde a corrente quebrou, se quebrou:
+ * aparelho sem inscrição ou carteiro do servidor parado.
+ */
+export function testarPush(app: App, auth: RecordPB, corpo: { endpoint?: string; atraso?: number }) {
+  const minhas = app.findRecordsByFilter('inscricao_push', 'usuario_id = {:u}', '', 0, 0, { u: auth.id }) as RecordPB[];
+  const desteAparelho = minhas.some((i) => i.getString('endpoint') === String(corpo.endpoint ?? ''));
+  if (!minhas.length) return { ok: false, motivo: 'sem_inscricao', aparelhos: 0, desteAparelho };
+  const atraso = Math.max(0, Math.min(60, Number(corpo.atraso) || 0));
+  const envios = minhas.map((i) => ({
+    inscricao: { endpoint: i.getString('endpoint'), keys: { p256dh: i.getString('p256dh'), auth: i.getString('auth') } },
+    titulo: 'Teste de aviso do CRAD',
+    texto: 'Se você ouviu o som, os avisos com o app fechado estão funcionando.',
+    rota: '/configuracoes',
+  }));
+  const url = ($os?.getenv?.('CRADS_PUSH_URL') as string) || 'http://127.0.0.1:8091/enviar';
+  try {
+    const r = $http.send({ url, method: 'POST', body: JSON.stringify({ envios, atraso }), headers: { 'content-type': 'application/json' }, timeout: 5 });
+    if (r.statusCode !== 200) return { ok: false, motivo: 'carteiro', aparelhos: minhas.length, desteAparelho, detalhe: `carteiro respondeu ${r.statusCode}` };
+  } catch (err) {
+    return { ok: false, motivo: 'carteiro', aparelhos: minhas.length, desteAparelho, detalhe: String(err) };
+  }
+  auditar(app, { colecao: 'inscricao_push', registro_id: auth.id, acao: 'teste_aviso', antes: null, depois: { aparelhos: minhas.length, atraso }, usuario_id: auth.id });
+  return { ok: true, aparelhos: minhas.length, desteAparelho, atraso };
+}
+
 /** Quem recebe aviso desta mudança (mesma regra dos avisos com o app aberto). */
 export function enviosPush(app: App, nome: string, antesRec: RecordPB | null, depoisRec: RecordPB) {
   if (!existeColecao(nome)) return [];
@@ -1043,7 +1070,6 @@ export function enviosPush(app: App, nome: string, antesRec: RecordPB | null, de
   return envios;
 }
 
-/** Chamado pelos ganchos de gravação: manda os avisos ao carteiro (falha nunca atrapalha a gravação). */
 // ---------------------------------------------------------------- perfil na tabela de usuários
 
 const NOME_PERFIL: Record<string, string> = { coletor: 'Coletor', viveirista: 'Viveirista', gestor: 'Gestor' };
@@ -1089,6 +1115,7 @@ export function atualizarPerfis(app: App): number {
   return usuarios.length;
 }
 
+/** Chamado pelos ganchos de gravação: manda os avisos ao carteiro (falha nunca atrapalha a gravação). */
 export function avisarPush(app: App, nome: string, antesRec: RecordPB | null, depoisRec: RecordPB) {
   try {
     const envios = enviosPush(app, nome, antesRec, depoisRec);

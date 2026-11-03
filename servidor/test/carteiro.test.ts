@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 // @ts-expect-error módulo JS do carteiro (roda no servidor com Node)
-import { carregarChaves, enviar } from '../push/push.mjs';
+import { carregarChaves, enviar, iniciar } from '../push/push.mjs';
 // @ts-expect-error dependência do carteiro
 import webpush from '../push/node_modules/web-push/src/index.js';
 
@@ -35,6 +35,24 @@ describe('carteiro de avisos (Web Push)', () => {
     );
     expect(r).toEqual({ enviados: 1, mortas: ['https://push/morta'] });
     expect(chamadas[0]).toEqual(['https://push/ok', { titulo: 'Novo pedido de mudas', texto: 'DO-1', rota: '/doacao/1' }]);
+    spy.mockRestore();
+  });
+
+  it('aviso de teste: responde na hora e entrega depois do atraso', async () => {
+    const entregues: string[] = [];
+    const spy = vi.spyOn(webpush, 'sendNotification').mockImplementation(async (sub: { endpoint: string }) => {
+      entregues.push(sub.endpoint);
+      return { statusCode: 201 };
+    });
+    const srv = iniciar(0, { publicKey: 'p', privateKey: 'q' });
+    await new Promise((ok) => srv.once('listening', ok));
+    const porta = (srv.address() as { port: number }).port;
+    const envios = [{ inscricao: { endpoint: 'https://push/teste', keys: { p256dh: 'x', auth: 'y' } }, titulo: 'Teste', texto: 't', rota: '/' }];
+    const r = await fetch(`http://127.0.0.1:${porta}/enviar`, { method: 'POST', body: JSON.stringify({ envios, atraso: 1 }) });
+    expect(await r.json()).toEqual({ agendados: 1, atraso: 1 });
+    expect(entregues).toEqual([]);
+    await vi.waitFor(() => expect(entregues).toEqual(['https://push/teste']), { timeout: 3000 });
+    srv.close();
     spy.mockRestore();
   });
 });

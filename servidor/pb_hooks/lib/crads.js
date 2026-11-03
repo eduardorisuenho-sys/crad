@@ -74,6 +74,7 @@ __export(crads_exports, {
   receberArquivo: () => receberArquivo,
   reservarFaixas: () => reservarFaixas,
   sairPush: () => sairPush,
+  testarPush: () => testarPush,
   textoPerfil: () => textoPerfil,
   transparencia: () => transparencia,
   viveirosPublicos: () => viveirosPublicos
@@ -2391,6 +2392,31 @@ function sairPush(app, auth, corpo) {
   var _a;
   for (const r2 of app.findRecordsByFilter("inscricao_push", "endpoint = {:e} && usuario_id = {:u}", "", 0, 0, { e: String((_a = corpo.endpoint) != null ? _a : ""), u: auth.id })) app.delete(r2);
   return { ok: true };
+}
+function testarPush(app, auth, corpo) {
+  var _a;
+  const minhas = app.findRecordsByFilter("inscricao_push", "usuario_id = {:u}", "", 0, 0, { u: auth.id });
+  const desteAparelho = minhas.some((i) => {
+    var _a2;
+    return i.getString("endpoint") === String((_a2 = corpo.endpoint) != null ? _a2 : "");
+  });
+  if (!minhas.length) return { ok: false, motivo: "sem_inscricao", aparelhos: 0, desteAparelho };
+  const atraso = Math.max(0, Math.min(60, Number(corpo.atraso) || 0));
+  const envios = minhas.map((i) => ({
+    inscricao: { endpoint: i.getString("endpoint"), keys: { p256dh: i.getString("p256dh"), auth: i.getString("auth") } },
+    titulo: "Teste de aviso do CRAD",
+    texto: "Se voc\xEA ouviu o som, os avisos com o app fechado est\xE3o funcionando.",
+    rota: "/configuracoes"
+  }));
+  const url = ((_a = $os == null ? void 0 : $os.getenv) == null ? void 0 : _a.call($os, "CRADS_PUSH_URL")) || "http://127.0.0.1:8091/enviar";
+  try {
+    const r2 = $http.send({ url, method: "POST", body: JSON.stringify({ envios, atraso }), headers: { "content-type": "application/json" }, timeout: 5 });
+    if (r2.statusCode !== 200) return { ok: false, motivo: "carteiro", aparelhos: minhas.length, desteAparelho, detalhe: `carteiro respondeu ${r2.statusCode}` };
+  } catch (err) {
+    return { ok: false, motivo: "carteiro", aparelhos: minhas.length, desteAparelho, detalhe: String(err) };
+  }
+  auditar(app, { colecao: "inscricao_push", registro_id: auth.id, acao: "teste_aviso", antes: null, depois: { aparelhos: minhas.length, atraso }, usuario_id: auth.id });
+  return { ok: true, aparelhos: minhas.length, desteAparelho, atraso };
 }
 function enviosPush(app, nome, antesRec, depoisRec) {
   var _a;
