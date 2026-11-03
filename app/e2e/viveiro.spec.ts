@@ -87,6 +87,14 @@ test('viveirista semeia, conta germinação, registra perda, marca como pronta e
   await page.getByRole('button', { name: /Fechar inventário/ }).click();
   await expect(page.getByText(/Inventário fechado: 1 lote\(s\) contado\(s\), 1 ajuste/)).toBeVisible();
 
+  // Mudas prontas por espécie: o total é a soma das espécies
+  await page.goto('/viveiro');
+  await expect(page.getByTestId('total-prontas')).toBeVisible();
+  const porEspecie = (await page.locator('.cartao .historico li b').allInnerTexts()).map(Number);
+  expect(porEspecie.length).toBeGreaterThan(0);
+  const soma = porEspecie.reduce((a, b) => a + b, 0);
+  await expect(page.getByTestId('total-prontas')).toHaveText(`Total: ${soma.toLocaleString('pt-BR')} mudas prontas`);
+
   await context.setOffline(false);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
   const [lm] = (await lerDoServidor('lote_mudas')).filter((l) => l.sementes_semeadas === 200);

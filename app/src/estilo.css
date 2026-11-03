@@ -389,3 +389,4 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .perfis-video { display: flex; gap: 6px; flex-wrap: wrap; justify-content: inherit; }
 .video-ajuda { display: block; width: 100%; max-height: 70vh; aspect-ratio: 9 / 16; border-radius: 16px; background: #000; }
 .dica.centro { text-align: center; }
+.total-prontas { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--azul-escuro-25); font-size: 1.1rem; color: var(--azul-escuro); }

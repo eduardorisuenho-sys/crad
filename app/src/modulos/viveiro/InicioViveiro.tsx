@@ -105,6 +105,9 @@ export function InicioViveiro() {
               </li>
             ))}
           </ul>
+          <p className="total-prontas" data-testid="total-prontas">
+            Total: <b>{prontasPorEspecie.reduce((s, [, n]) => s + n, 0).toLocaleString('pt-BR')}</b> mudas prontas
+          </p>
         </section>
       )}
     </Tela>
