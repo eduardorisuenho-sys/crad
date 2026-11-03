@@ -390,3 +390,33 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .video-ajuda { display: block; width: 100%; max-height: 70vh; aspect-ratio: 9 / 16; border-radius: 16px; background: #000; }
 .dica.centro { text-align: center; }
 .total-prontas { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--azul-escuro-25); font-size: 1.1rem; color: var(--azul-escuro); }
+
+/* ---------- computador: a tela se ajusta à largura do monitor ---------- */
+@media (min-width: 1000px) {
+  /* barras de ponta a ponta; o conteúdo usa até 1180 px, alinhado com o título */
+  .tela { max-width: none; }
+  .topo, .barra-sync { padding-left: max(32px, calc((100vw - 1180px) / 2 + 32px)); padding-right: max(32px, calc((100vw - 1180px) / 2 + 32px)); }
+  .conteudo { width: 100%; max-width: 1180px; margin: 0 auto; padding: 24px 32px 32px; }
+  .topo h1 { font-size: 1.5rem; }
+  /* módulos espalhados pela largura */
+  .grade-blocos { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 28px 16px; }
+  /* formulários e passo a passo numa coluna confortável de ler */
+  .formulario, .assistente { width: 100%; max-width: 760px; margin-left: auto; margin-right: auto; }
+  /* listas em duas colunas */
+  .lista-videos, .conteudo > .lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .conteudo > .lista > .vazio { grid-column: 1 / -1; }
+  .ondas { height: 56px; }
+}
+@media (min-width: 1400px) {
+  .grade-catalogo { grid-template-columns: repeat(5, 1fr); }
+}
+@media (min-width: 1000px) {
+  /* início: logo numa faixa baixa e horizontal, para os módulos caberem sem rolar */
+  .marca-inicio { flex-direction: row; justify-content: center; gap: 14px; padding: 12px 32px; }
+  .marca-inicio img { width: 56px; }
+  .marca-inicio strong { font-size: 2rem; margin-top: 0; }
+  .marca-inicio small { font-size: 1rem; }
+  .ligar-avisos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .ligar-avisos h2, .ligar-avisos p { flex: 1 1 100%; margin: 0; }
+  .ligar-avisos button { width: auto; flex: 0 0 auto; padding-left: 28px; padding-right: 28px; }
+}
