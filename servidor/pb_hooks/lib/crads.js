@@ -1529,7 +1529,7 @@ function dependentesAtivos(nomeColecao, id, registrosDe) {
   return [...contagem].map(([colecao2, regs]) => ({ colecao: colecao2, quantidade: regs.length, exemplos: regs.slice(0, 3).map((r2) => rotuloRegistro(colecao2, r2)) }));
 }
 function mensagemDependentes(d2) {
-  const nome = (c) => c.replace(/_/g, " ").replace("lote mudas", "lote de mudas").replace("lote sementes", "lote de sementes").replace("inventario item", "item de invent\xE1rio").replace("doacao item", "item de pedido").replace("doacao", "pedido");
+  const nome = (c) => c.replace(/_/g, " ").replace("lote mudas", "lote de mudas").replace("lote sementes", "lote de sementes").replace("inventario item", "item de invent\xE1rio").replace("doacao item lote", "entrega de doa\xE7\xE3o").replace("doacao item", "item de pedido").replace("doacao", "pedido");
   const exemplos = (x) => {
     var _a;
     return ((_a = x.exemplos) == null ? void 0 : _a.length) && x.exemplos.some((e) => e && !/^[a-z0-9]{15}$/.test(e)) ? `: ${x.exemplos.join(", ")}${x.quantidade > x.exemplos.length ? "\u2026" : ""}` : "";
