@@ -86,7 +86,7 @@ describe.skipIf(!temPocketBase)('contas, equipe e permissões', () => {
 
   it('gestor cadastra viveirista; não pode cadastrar em viveiro alheio nem tirar o próprio acesso', async () => {
     const r = await chamar(s, gestor.token, 'POST', '/api/crads/equipe/pessoa', { nome: 'Ana Viveirista', email: 'ana@viveiro.local', senha: 'senha-ana-12', viveiro_id: VIV, perfil: 'viveirista' });
-    expect(r.dados).toEqual({ ok: true, conta_nova: true });
+    expect(r.dados).toEqual({ ok: true, conta_nova: true, viveiros: 1 });
     const ta = await entrar(s, 'ana@viveiro.local', 'senha-ana-12');
     expect((await chamar(s, ta, 'GET', '/api/crads/eu')).dados.perfisPorViveiro).toEqual({ [VIV]: ['viveirista'] });
     expect((await chamar(s, gestor.token, 'POST', '/api/crads/equipe/pessoa', { nome: 'X', email: 'x@x.local', senha: 'senha-xxx-12', viveiro_id: VIV2, perfil: 'coletor' })).dados.message).toMatch(/permissão/);
@@ -96,6 +96,32 @@ describe.skipIf(!temPocketBase)('contas, equipe e permissões', () => {
     const ana = eq.pessoas.find((p: { email: string }) => p.email === 'ana@viveiro.local').vinculos[0].id;
     expect((await chamar(s, gestor.token, 'POST', `/api/crads/equipe/vinculo/${ana}/remover`)).status).toBe(200);
     expect((await chamar(s, ta, 'GET', '/api/crads/eu')).dados.perfisPorViveiro).toEqual({});
+  });
+
+  it('a pessoa pede acesso a mais de um viveiro, ou a todos; o gestor cadastra em vários', async () => {
+    const pedidosDe = async (email: string) =>
+      (await chamar(s, s.admin, 'GET', `/api/collections/pedido_acesso/records?perPage=50&filter=${encodeURIComponent(`email = '${email}'`)}`)).dados.items.map((p: { viveiro_id: string }) => p.viveiro_id).sort();
+    // dois viveiros escolhidos: um pedido em cada (o gestor de cada um aprova o seu)
+    let r = await chamar(s, '', 'POST', '/api/crads/conta', { nome: 'Rui Coletor', email: 'rui@campo.local', senha: 'senha-rui-12', perfil: 'coletor', viveiro_ids: [VIV, VIV2] });
+    expect(r.dados).toEqual({ ok: true, pendente: true });
+    expect(await pedidosDe('rui@campo.local')).toEqual([VIV, VIV2].sort());
+    // "todos": um pedido por viveiro ativo
+    r = await chamar(s, '', 'POST', '/api/crads/conta', { nome: 'Lia Viveirista', email: 'lia@viveiro.local', senha: 'senha-lia-12', perfil: 'viveirista', viveiro_ids: 'todos' });
+    expect(r.dados.pendente).toBe(true);
+    const ativos = (await chamar(s, '', 'GET', '/api/crads/publico/viveiros')).dados.map((v: { id: string }) => v.id).sort();
+    expect(await pedidosDe('lia@viveiro.local')).toEqual(ativos);
+    // nenhum viveiro: recusa
+    expect((await chamar(s, '', 'POST', '/api/crads/conta', { nome: 'Sem Viveiro', email: 'sem@campo.local', senha: 'senha-sem-12', perfil: 'coletor', viveiro_ids: [] })).dados.message).toMatch(/pelo menos um viveiro/);
+    // o gestor de um viveiro só: "todos" = os viveiros dele
+    r = await chamar(s, gestor.token, 'POST', '/api/crads/equipe/pessoa', { nome: 'Bia Coletora', email: 'bia@campo.local', senha: 'senha-bia-12', viveiro_ids: 'todos', perfil: 'coletor' });
+    expect(r.dados).toMatchObject({ ok: true, viveiros: 1 });
+    expect((await chamar(s, await entrar(s, 'bia@campo.local', 'senha-bia-12'), 'GET', '/api/crads/eu')).dados.perfisPorViveiro).toEqual({ [VIV]: ['coletor'] });
+    // e não cadastra em viveiro que não é dele
+    expect((await chamar(s, gestor.token, 'POST', '/api/crads/equipe/pessoa', { nome: 'Bia Coletora', email: 'bia@campo.local', viveiro_ids: [VIV, VIV2], perfil: 'coletor' })).dados.message).toMatch(/permissão/);
+    // o administrador cadastra em dois viveiros de uma vez
+    r = await chamar(s, admin.token, 'POST', '/api/crads/equipe/pessoa', { nome: 'Bia Coletora', email: 'bia@campo.local', viveiro_ids: [VIV, VIV2], perfil: 'coletor' });
+    expect(r.dados).toMatchObject({ ok: true, conta_nova: false, viveiros: 2 });
+    expect((await chamar(s, await entrar(s, 'bia@campo.local', 'senha-bia-12'), 'GET', '/api/crads/eu')).dados.perfisPorViveiro).toEqual({ [VIV]: ['coletor'], [VIV2]: ['coletor'] });
   });
 
   it('a tabela de permissões vale no servidor e só o administrador muda', async () => {

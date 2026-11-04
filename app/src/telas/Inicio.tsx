@@ -44,6 +44,9 @@ export function Inicio() {
   // Conta nova de coletor/viveirista: ainda sem viveiro, aguardando o gestor.
   const semAcesso = !!sessao && !sessao.gestorGeral && !sessao.solicitante && !Object.keys(sessao.perfisPorViveiro ?? {}).length;
   const pedido = sessao?.pedidos_acesso?.[0];
+  // pediu acesso a mais de um viveiro: cita todos os que ainda esperam o gestor
+  const esperando = (sessao?.pedidos_acesso ?? []).filter((p) => p.situacao === 'pendente').map((p) => p.viveiro).filter(Boolean);
+  const ondeEspera = esperando.length > 1 ? ` no ${esperando.slice(0, -1).join(', no ')} e no ${esperando[esperando.length - 1]}` : pedido?.viveiro ? ` no ${pedido.viveiro}` : '';
 
   return (
     <Tela
@@ -70,7 +73,7 @@ export function Inicio() {
           ) : (
             <p>
               Seu pedido para trabalhar como <b>{pedido?.perfil ?? 'equipe'}</b>
-              {pedido?.viveiro ? ` no ${pedido.viveiro}` : ''} está com o gestor. Quando ele aprovar, os módulos aparecem aqui.
+              {ondeEspera} está com o gestor{esperando.length > 1 ? ' de cada viveiro' : ''}. Quando ele aprovar, os módulos aparecem aqui.
             </p>
           )}
           <button className="botao-secundario" onClick={() => void sincronizar()} disabled={estadoSync === 'sincronizando'}>

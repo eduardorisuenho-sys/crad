@@ -356,7 +356,7 @@ export function eu(app: App, auth: RecordPB) {
   const ctx = contextoDe(app, auth);
   const viveiros = new Map(todos(app, 'viveiro').map((v) => [v.id, String(v.nome)]));
   const pedidos = app
-    .findRecordsByFilter('pedido_acesso', 'usuario_id = {:u} && excluido = false', '-created', 5, 0, { u: auth.id })
+    .findRecordsByFilter('pedido_acesso', 'usuario_id = {:u} && excluido = false', '-created', 50, 0, { u: auth.id })
     .map((r: RecordPB) => ({ perfil: r.getString('perfil'), viveiro: viveiros.get(r.getString('viveiro_id')) ?? '', situacao: r.getString('situacao'), motivo: r.getString('motivo') }));
   return { ...ctx, nome: auth.getString('name'), email: auth.getString('email'), pedidos_acesso: pedidos };
 }
@@ -471,7 +471,15 @@ export function viveirosPublicos(app: App) {
  * POST /api/crads/conta — a própria pessoa cria a conta pelo celular.
  * Solicitante entra na hora; coletor e viveirista ficam aguardando o gestor.
  */
-export function criarConta(app: App, corpo: { nome?: string; email?: string; senha?: string; perfil?: string; viveiro_id?: string }) {
+/** Viveiros pedidos: uma lista, "todos" (os ativos agora) ou um só (versões antigas do app). Sem repetidos. */
+function viveirosPedidos(corpo: { viveiro_id?: string; viveiro_ids?: string[] | 'todos' }, todosPermitidos: () => string[]): string[] {
+  const ids = corpo.viveiro_ids === 'todos' ? todosPermitidos() : Array.isArray(corpo.viveiro_ids) ? corpo.viveiro_ids.map(String) : corpo.viveiro_id ? [String(corpo.viveiro_id)] : [];
+  const unicos = [...new Set(ids.filter(Boolean))];
+  if (!unicos.length) throw new Error('Escolha pelo menos um viveiro.');
+  return unicos;
+}
+
+export function criarConta(app: App, corpo: { nome?: string; email?: string; senha?: string; perfil?: string; viveiro_id?: string; viveiro_ids?: string[] | 'todos' }) {
   const d = validarConta(corpo);
   const perfil = String(corpo.perfil ?? 'solicitante');
   // gestor também pede: só um gestor (do viveiro ou geral) aprova, ver exigirPodeDarPerfil
@@ -485,11 +493,13 @@ export function criarConta(app: App, corpo: { nome?: string; email?: string; sen
     if (usuarioPorEmail(tx, d.email)) throw new Error('Este e-mail já tem conta. Toque em Entrar.');
     const u = novoUsuario(tx, { ...d, solicitante: perfil === 'solicitante' });
     if (perfil !== 'solicitante') {
-      const viveiroId = String(corpo.viveiro_id ?? '');
-      viveiroAtivo(tx, viveiroId);
-      const pedido = { id: novoId(), ...controle(u.id, viveiroId), usuario_id: u.id, nome: d.nome, email: d.email, perfil, situacao: 'pendente' };
-      gravar(tx, colecao('pedido_acesso'), pedido);
-      auditar(tx, { colecao: 'pedido_acesso', registro_id: pedido.id, acao: 'criar', antes: null, depois: pedido, usuario_id: u.id });
+      // um pedido por viveiro: o gestor de cada viveiro aprova o seu
+      for (const viveiroId of viveirosPedidos(corpo, () => viveirosPublicos(tx).map((v) => v.id))) {
+        viveiroAtivo(tx, viveiroId);
+        const pedido = { id: novoId(), ...controle(u.id, viveiroId), usuario_id: u.id, nome: d.nome, email: d.email, perfil, situacao: 'pendente' };
+        gravar(tx, colecao('pedido_acesso'), pedido);
+        auditar(tx, { colecao: 'pedido_acesso', registro_id: pedido.id, acao: 'criar', antes: null, depois: pedido, usuario_id: u.id });
+      }
       pendente = true;
     }
   });
@@ -548,24 +558,30 @@ function vincular(tx: App, ctx: ContextoUsuario, usuarioId: string, viveiroId: s
 }
 
 /** POST /api/crads/equipe/pessoa — o gestor cadastra alguém (ou dá mais um perfil a quem já tem conta). */
-export function equipeCadastrar(app: App, auth: RecordPB, corpo: { nome?: string; email?: string; senha?: string; viveiro_id?: string; perfil?: string }) {
+export function equipeCadastrar(app: App, auth: RecordPB, corpo: { nome?: string; email?: string; senha?: string; viveiro_id?: string; viveiro_ids?: string[] | 'todos'; perfil?: string }) {
   const ctx = contextoDe(app, auth);
-  const viveiroId = String(corpo.viveiro_id ?? '');
   const perfil = String(corpo.perfil ?? '');
-  exigirEquipe(ctx, viveiroId);
-  exigirPodeDarPerfil(ctx, viveiroId, perfil);
+  // "todos" = os viveiros ativos em que quem cadastra cuida da equipe
+  const viveiroIds = viveirosPedidos(corpo, () => {
+    const meus = viveirosDaEquipe(ctx);
+    return viveirosPublicos(app).map((v) => v.id).filter((id) => !meus || meus.includes(id));
+  });
+  for (const viveiroId of viveiroIds) {
+    exigirEquipe(ctx, viveiroId);
+    exigirPodeDarPerfil(ctx, viveiroId, perfil);
+  }
   let criada = false;
   app.runInTransaction((tx: App) => {
-    viveiroAtivo(tx, viveiroId);
+    for (const viveiroId of viveiroIds) viveiroAtivo(tx, viveiroId);
     const email = String(corpo.email ?? '').trim().toLowerCase();
     let u = EMAIL_OK.test(email) ? usuarioPorEmail(tx, email) : null;
     if (!u) {
       u = novoUsuario(tx, { ...validarConta(corpo), solicitante: false });
       criada = true;
     }
-    vincular(tx, ctx, u.id, viveiroId, perfil);
+    for (const viveiroId of viveiroIds) vincular(tx, ctx, u.id, viveiroId, perfil);
   });
-  return { ok: true, conta_nova: criada };
+  return { ok: true, conta_nova: criada, viveiros: viveiroIds.length };
 }
 
 /** POST /api/crads/equipe/pedido/{id} — aprova ou recusa um pedido de acesso. */

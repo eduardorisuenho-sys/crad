@@ -18,7 +18,7 @@ export function Equipe() {
   const [erro, setErro] = useState('');
   const [msg, setMsg] = useState('');
   const [ocupado, setOcupado] = useState(false);
-  const [novo, setNovo] = useState<{ nome: string; email: string; senha: string; viveiro_id: string; perfil: string } | null>(null);
+  const [novo, setNovo] = useState<{ nome: string; email: string; senha: string; viveiro_ids: string[] | 'todos'; perfil: string } | null>(null);
 
   const carregar = useCallback(async () => {
     if (!sessao) return;
@@ -117,7 +117,7 @@ export function Equipe() {
           </section>
 
           {!novo ? (
-            <button className="botao-grande" onClick={() => setNovo({ nome: '', email: '', senha: '', viveiro_id: dados.viveiros.length === 1 ? dados.viveiros[0].id : '', perfil: 'coletor' })}>
+            <button className="botao-grande" onClick={() => setNovo({ nome: '', email: '', senha: '', viveiro_ids: dados.viveiros.length === 1 ? [dados.viveiros[0].id] : [], perfil: 'coletor' })}>
               <Icone nome="mais" tamanho={36} /> <span>Cadastrar pessoa</span>
             </button>
           ) : (
@@ -136,12 +136,27 @@ export function Equipe() {
                 <input value={novo.senha} onChange={(e) => setNovo({ ...novo, senha: e.target.value })} minLength={8} placeholder="pelo menos 8 letras ou números" />
               </label>
               <fieldset className="meses">
-                <legend>Viveiro</legend>
-                {dados.viveiros.map((v) => (
-                  <button type="button" key={v.id} className={`chip ${novo.viveiro_id === v.id ? 'ativo' : ''}`} onClick={() => setNovo({ ...novo, viveiro_id: v.id })}>
-                    {v.nome}
+                <legend>Viveiros (um ou mais)</legend>
+                {dados.viveiros.length > 1 && (
+                  <button type="button" className={`chip ${novo.viveiro_ids === 'todos' ? 'ativo' : ''}`} aria-pressed={novo.viveiro_ids === 'todos'} onClick={() => setNovo({ ...novo, viveiro_ids: novo.viveiro_ids === 'todos' ? [] : 'todos' })}>
+                    Todos
                   </button>
-                ))}
+                )}
+                {dados.viveiros.map((v) => {
+                  const marcado = novo.viveiro_ids === 'todos' || novo.viveiro_ids.includes(v.id);
+                  const atuais = novo.viveiro_ids === 'todos' ? dados.viveiros.map((x) => x.id) : novo.viveiro_ids;
+                  return (
+                    <button
+                      type="button"
+                      key={v.id}
+                      className={`chip ${marcado ? 'ativo' : ''}`}
+                      aria-pressed={marcado}
+                      onClick={() => setNovo({ ...novo, viveiro_ids: marcado ? atuais.filter((id) => id !== v.id) : [...atuais, v.id] })}
+                    >
+                      {v.nome}
+                    </button>
+                  );
+                })}
               </fieldset>
               <fieldset className="meses">
                 <legend>Vai trabalhar como</legend>
@@ -156,7 +171,7 @@ export function Equipe() {
                 <button type="button" className="botao-secundario" onClick={() => setNovo(null)}>
                   Cancelar
                 </button>
-                <button className="botao-principal" disabled={ocupado || !novo.viveiro_id}>
+                <button className="botao-principal" disabled={ocupado || (novo.viveiro_ids !== 'todos' && !novo.viveiro_ids.length)}>
                   Cadastrar
                 </button>
               </div>

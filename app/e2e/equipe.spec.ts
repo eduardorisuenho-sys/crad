@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { entrarComoGestora, lerDoServidor, PB } from './apoio';
 
+const admin = { 'content-type': 'application/json', authorization: process.env.CRADS_PB_ADMIN! };
+
 test('coletor cria a conta pelo celular, a gestora aprova e libera "semear" na tabela de permissões', async ({ browser }) => {
   const sufixo = Date.now().toString(36);
   const email = `novo.coletor.${sufixo}@teste.local`;
@@ -12,10 +14,13 @@ test('coletor cria a conta pelo celular, a gestora aprova e libera "semear" na t
   await c.getByRole('link', { name: 'Criar conta' }).click();
   await expect(c.getByRole('button', { name: /Grupo Gestor/ })).toContainText('Precisa da aprovação de um gestor ou do administrador');
   await c.getByRole('button', { name: /Vou coletar sementes/ }).click();
-  // Com um viveiro só, ele já vem escolhido; com vários, a pessoa toca no dela.
+  // Com um viveiro só, ele já vem escolhido; com vários, a pessoa marca o dela e continua.
   const botaoViveiro = c.getByRole('button', { name: 'Viveiro Teste' });
   await expect(botaoViveiro.or(c.getByText('Vou coletar sementes · Viveiro Teste'))).toBeVisible();
-  if (await botaoViveiro.isVisible()) await botaoViveiro.click();
+  if (await botaoViveiro.isVisible()) {
+    await botaoViveiro.click();
+    await c.getByRole('button', { name: /^Continuar \(1 viveiro\)/ }).click();
+  }
   await expect(c.getByText('Vou coletar sementes · Viveiro Teste')).toBeVisible();
   await c.getByLabel('Nome completo').fill('Novo Coletor');
   await c.getByLabel('E-mail').fill(email);
@@ -92,4 +97,60 @@ test('no computador, a tabela mostra todos os perfis lado a lado e só o adminis
   await expect(tabela.getByLabel('Aprovar pedidos de mudas: Grupo gestor')).toBeChecked();
   await expect(tabela.getByLabel('Aprovar pedidos de mudas: Viveirista')).toBeEnabled();
   await ctx.close();
+});
+
+test('a pessoa pede acesso a mais de um viveiro; a gestora cadastra em todos de uma vez', async ({ browser }) => {
+  // um segundo viveiro
+  await fetch(`${PB()}/api/collections/viveiro/records`, { method: 'POST', headers: admin, body: JSON.stringify({ id: 'vivteste0000002', sigla: 'SEG', nome: 'Viveiro Dois', ativo: true }) });
+  const sufixo = Date.now().toString(36);
+  const email = `dois.viveiros.${sufixo}@teste.local`;
+  const cc = await browser.newContext();
+  const c = await cc.newPage();
+  await c.goto('/');
+  await c.evaluate((url) => localStorage.setItem('crads_servidor', url), PB());
+  await c.getByRole('link', { name: 'Criar conta' }).click();
+  await c.getByRole('button', { name: /Vou trabalhar no viveiro/ }).click();
+  await expect(c.getByText('Em quais viveiros?')).toBeVisible();
+  const continuar = c.getByRole('button', { name: /^Continuar/ });
+  await expect(continuar).toBeDisabled();
+  await c.getByRole('button', { name: 'Viveiro Teste' }).click();
+  await c.getByRole('button', { name: 'Viveiro Dois' }).click();
+  await expect(c.getByRole('button', { name: 'Viveiro Dois' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(continuar).toHaveText('Continuar (2 viveiros)');
+  await continuar.click();
+  await expect(c.getByText(/Vou trabalhar no viveiro · .*Viveiro Teste/)).toContainText('Viveiro Dois');
+  await c.getByLabel('Nome completo').fill('Dois Viveiros');
+  await c.getByLabel('E-mail').fill(email);
+  await c.getByLabel(/^Senha/).fill('senha-nova-123');
+  await c.getByRole('button', { name: 'Criar conta' }).click();
+  // a espera cita os dois viveiros; um pedido em cada
+  await expect(c.getByTestId('aguardando-acesso')).toContainText('Viveiro Teste');
+  await expect(c.getByTestId('aguardando-acesso')).toContainText('Viveiro Dois');
+  expect((await lerDoServidor('pedido_acesso')).filter((p) => p.email === email).map((p) => p.viveiro_id).sort()).toEqual(['vivteste0000001', 'vivteste0000002']);
+  await cc.close();
+
+  // a gestora (administradora) cadastra alguém em todos os viveiros
+  const cg = await browser.newContext();
+  const g = await cg.newPage();
+  await entrarComoGestora(g);
+  await g.goto('/equipe');
+  await g.getByRole('button', { name: /Cadastrar pessoa/ }).click();
+  await g.getByLabel('Nome completo').fill('Coletor de Todos');
+  const emailTodos = `todos.${sufixo}@teste.local`;
+  await g.getByLabel('E-mail').fill(emailTodos);
+  await g.getByLabel(/Senha/).fill('senha-todos-123');
+  await g.getByRole('group', { name: 'Viveiros (um ou mais)' }).getByRole('button', { name: 'Todos' }).click();
+  await g.getByRole('button', { name: 'Cadastrar', exact: true }).click();
+  await expect(g.getByText('Coletor de Todos foi cadastrado(a).', { exact: false })).toBeVisible();
+  const u = (await lerDoServidor('users')).find((x) => x.email === emailTodos)!;
+  const viveiros = (await lerDoServidor('viveiro')).filter((v) => v.ativo !== false && !v.excluido).map((v) => v.id).sort();
+  await expect
+    .poll(async () => (await lerDoServidor('usuario_viveiro')).filter((v) => v.usuario_id === u.id && !v.excluido).map((v) => v.viveiro_id).sort())
+    .toEqual(viveiros);
+  await cg.close();
+});
+
+// o segundo viveiro é só deste arquivo: com dois, a administradora teria de escolher o viveiro ao entrar nos outros testes
+test.afterAll(async () => {
+  await fetch(`${PB()}/api/collections/viveiro/records/vivteste0000002`, { method: 'PATCH', headers: admin, body: JSON.stringify({ excluido: true, ativo: false }) });
 });

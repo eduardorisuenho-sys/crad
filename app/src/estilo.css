@@ -428,3 +428,7 @@ label.opcao, label.botao-grande { cursor: pointer; }
 /* logomarca animada (abertura): espaço reservado (nada pula) e o branco do vídeo some no fundo branco */
 .logo-animado { display: block; height: auto; aspect-ratio: 400 / 494; mix-blend-mode: multiply; }
 .so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* escolher vários (ex.: viveiros ao criar a conta) */
+.botao-grande.escolha { border: 2px solid var(--azul-escuro-25); }
+.botao-grande.escolha.marcada { border-color: var(--verde); background: var(--verde-10); color: var(--verde); }

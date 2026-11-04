@@ -20,7 +20,9 @@ export function CriarConta() {
   const navegar = useNavigate();
   const [perfil, setPerfil] = useState<Escolha | null>(null);
   const [viveiros, setViveiros] = useState<ViveiroPublico[] | null>(null);
-  const [viveiro, setViveiro] = useState('');
+  // viveiros escolhidos (um, vários ou todos) e se a escolha já foi confirmada
+  const [escolhidos, setEscolhidos] = useState<string[] | 'todos'>([]);
+  const [viveirosOk, setViveirosOk] = useState(false);
   const [dados, setDados] = useState({ nome: '', email: '', senha: '' });
   const [verSenha, setVerSenha] = useState(false);
   const [erro, setErro] = useState('');
@@ -33,7 +35,10 @@ export function CriarConta() {
       .then(viveirosPublicos)
       .then((vs) => {
         setViveiros(vs);
-        if (vs.length === 1) setViveiro(vs[0].id);
+        if (vs.length === 1) {
+          setEscolhidos([vs[0].id]);
+          setViveirosOk(true);
+        }
       })
       .catch((e) => setErro((e as Error).message));
   }, [equipe, viveiros]);
@@ -44,7 +49,7 @@ export function CriarConta() {
     setEnviando(true);
     try {
       const servidor = await descobrirServidor();
-      await criarConta(servidor, { ...dados, email: dados.email.trim(), perfil: perfil!, viveiro_id: equipe ? viveiro : undefined });
+      await criarConta(servidor, { ...dados, email: dados.email.trim(), perfil: perfil!, viveiro_ids: equipe ? escolhidos : undefined });
       definirSessao(await entrar(db, servidor, dados.email.trim(), dados.senha));
       navegar('/', { replace: true });
     } catch (err) {
@@ -83,26 +88,47 @@ export function CriarConta() {
         </div>
       )}
 
-      {perfil && equipe && !viveiro && (
+      {perfil && equipe && !viveirosOk && (
         <div className="lista-grande">
-          <p className="passo">Em qual viveiro?</p>
+          <p className="passo">Em quais viveiros?</p>
+          <p className="dica">Marque um ou mais. O gestor de cada viveiro aprova o seu acesso.</p>
           {viveiros === null && !erro && <p className="vazio">Carregando…</p>}
-          {viveiros?.map((v) => (
-            <button key={v.id} className="botao-grande" onClick={() => setViveiro(v.id)}>
-              <Icone nome="viveiro" tamanho={40} /> <span>{v.nome}</span>
+          {viveiros && viveiros.length > 1 && (
+            <button type="button" className={`botao-grande escolha ${escolhidos === 'todos' ? 'marcada' : ''}`} aria-pressed={escolhidos === 'todos'} onClick={() => setEscolhidos(escolhidos === 'todos' ? [] : 'todos')}>
+              <Icone nome={escolhidos === 'todos' ? 'certo' : 'viveiro'} tamanho={40} /> <span>Todos os viveiros</span>
             </button>
-          ))}
+          )}
+          {viveiros?.map((v) => {
+            const marcado = escolhidos === 'todos' || escolhidos.includes(v.id);
+            return (
+              <button
+                type="button"
+                key={v.id}
+                className={`botao-grande escolha ${marcado ? 'marcada' : ''}`}
+                aria-pressed={marcado}
+                onClick={() => {
+                  const atuais = escolhidos === 'todos' ? viveiros.map((x) => x.id) : escolhidos;
+                  setEscolhidos(marcado ? atuais.filter((id) => id !== v.id) : [...atuais, v.id]);
+                }}
+              >
+                <Icone nome={marcado ? 'certo' : 'viveiro'} tamanho={40} /> <span>{v.nome}</span>
+              </button>
+            );
+          })}
+          <button className="botao-principal" disabled={escolhidos !== 'todos' && !escolhidos.length} onClick={() => setViveirosOk(true)}>
+            Continuar{escolhidos === 'todos' ? ' (todos os viveiros)' : escolhidos.length ? ` (${escolhidos.length} ${escolhidos.length === 1 ? 'viveiro' : 'viveiros'})` : ''}
+          </button>
           <button className="link" onClick={() => setPerfil(null)}>
             Voltar
           </button>
         </div>
       )}
 
-      {perfil && (!equipe || viveiro) && (
+      {perfil && (!equipe || viveirosOk) && (
         <form className="formulario" onSubmit={enviar}>
           <p className="passo">
             {OPCOES.find((o) => o.valor === perfil)!.rotulo}
-            {equipe && viveiros ? ` · ${viveiros.find((v) => v.id === viveiro)?.nome ?? ''}` : ''}
+            {equipe && viveiros ? ` · ${escolhidos === 'todos' ? 'todos os viveiros' : viveiros.filter((v) => escolhidos.includes(v.id)).map((v) => v.nome).join(', ')}` : ''}
           </p>
           <label>
             Nome completo
@@ -119,7 +145,7 @@ export function CriarConta() {
           <label className="linha-check">
             <input type="checkbox" checked={verSenha} onChange={(e) => setVerSenha(e.target.checked)} /> Mostrar a senha
           </label>
-          {equipe && <p className="dica">Depois de criar, o gestor do viveiro precisa aprovar o seu acesso.</p>}
+          {equipe && <p className="dica">Depois de criar, o gestor de cada viveiro precisa aprovar o seu acesso.</p>}
           <button className="botao-principal" disabled={enviando}>
             {enviando ? 'Criando…' : 'Criar conta'}
           </button>
@@ -127,9 +153,10 @@ export function CriarConta() {
             type="button"
             className="link"
             onClick={() => {
-              if (equipe && viveiro && (viveiros?.length ?? 0) > 1) setViveiro('');
+              if (equipe && (viveiros?.length ?? 0) > 1) setViveirosOk(false);
               else {
-                setViveiro('');
+                setEscolhidos([]);
+                setViveirosOk(false);
                 setPerfil(null);
               }
             }}

@@ -1832,7 +1832,7 @@ function reservarFaixas(app, auth, corpo) {
 function eu(app, auth) {
   const ctx = contextoDe(app, auth);
   const viveiros = new Map(todos(app, "viveiro").map((v) => [v.id, String(v.nome)]));
-  const pedidos = app.findRecordsByFilter("pedido_acesso", "usuario_id = {:u} && excluido = false", "-created", 5, 0, { u: auth.id }).map((r2) => {
+  const pedidos = app.findRecordsByFilter("pedido_acesso", "usuario_id = {:u} && excluido = false", "-created", 50, 0, { u: auth.id }).map((r2) => {
     var _a;
     return { perfil: r2.getString("perfil"), viveiro: (_a = viveiros.get(r2.getString("viveiro_id"))) != null ? _a : "", situacao: r2.getString("situacao"), motivo: r2.getString("motivo") };
   });
@@ -1924,6 +1924,12 @@ function viveirosPublicos(app) {
     return { id: v.id, nome: String(v.nome), sigla: String((_a = v.sigla) != null ? _a : "") };
   }).sort((a, b2) => a.nome.localeCompare(b2.nome, "pt-BR"));
 }
+function viveirosPedidos(corpo, todosPermitidos) {
+  const ids = corpo.viveiro_ids === "todos" ? todosPermitidos() : Array.isArray(corpo.viveiro_ids) ? corpo.viveiro_ids.map(String) : corpo.viveiro_id ? [String(corpo.viveiro_id)] : [];
+  const unicos = [...new Set(ids.filter(Boolean))];
+  if (!unicos.length) throw new Error("Escolha pelo menos um viveiro.");
+  return unicos;
+}
 function criarConta(app, corpo) {
   var _a;
   const d2 = validarConta(corpo);
@@ -1933,15 +1939,15 @@ function criarConta(app, corpo) {
   if (app.findRecordsByFilter("users", "created >= {:t}", "", 201, 0, { t: umaHora }).length > 200) throw new Error("Muitos cadastros agora. Tente de novo mais tarde.");
   let pendente = false;
   app.runInTransaction((tx) => {
-    var _a2;
     if (usuarioPorEmail(tx, d2.email)) throw new Error("Este e-mail j\xE1 tem conta. Toque em Entrar.");
     const u = novoUsuario(tx, __spreadProps(__spreadValues({}, d2), { solicitante: perfil === "solicitante" }));
     if (perfil !== "solicitante") {
-      const viveiroId = String((_a2 = corpo.viveiro_id) != null ? _a2 : "");
-      viveiroAtivo(tx, viveiroId);
-      const pedido = __spreadProps(__spreadValues({ id: novoId() }, controle(u.id, viveiroId)), { usuario_id: u.id, nome: d2.nome, email: d2.email, perfil, situacao: "pendente" });
-      gravar(tx, colecao("pedido_acesso"), pedido);
-      auditar(tx, { colecao: "pedido_acesso", registro_id: pedido.id, acao: "criar", antes: null, depois: pedido, usuario_id: u.id });
+      for (const viveiroId of viveirosPedidos(corpo, () => viveirosPublicos(tx).map((v) => v.id))) {
+        viveiroAtivo(tx, viveiroId);
+        const pedido = __spreadProps(__spreadValues({ id: novoId() }, controle(u.id, viveiroId)), { usuario_id: u.id, nome: d2.nome, email: d2.email, perfil, situacao: "pendente" });
+        gravar(tx, colecao("pedido_acesso"), pedido);
+        auditar(tx, { colecao: "pedido_acesso", registro_id: pedido.id, acao: "criar", antes: null, depois: pedido, usuario_id: u.id });
+      }
       pendente = true;
     }
   });
@@ -1992,25 +1998,30 @@ function vincular(tx, ctx, usuarioId, viveiroId, perfil) {
   auditar(tx, { colecao: "usuario_viveiro", registro_id: reg.id, acao: "criar", antes: null, depois: reg, usuario_id: ctx.id });
 }
 function equipeCadastrar(app, auth, corpo) {
-  var _a, _b;
+  var _a;
   const ctx = contextoDe(app, auth);
-  const viveiroId = String((_a = corpo.viveiro_id) != null ? _a : "");
-  const perfil = String((_b = corpo.perfil) != null ? _b : "");
-  exigirEquipe(ctx, viveiroId);
-  exigirPodeDarPerfil(ctx, viveiroId, perfil);
+  const perfil = String((_a = corpo.perfil) != null ? _a : "");
+  const viveiroIds = viveirosPedidos(corpo, () => {
+    const meus = viveirosDaEquipe(ctx);
+    return viveirosPublicos(app).map((v) => v.id).filter((id) => !meus || meus.includes(id));
+  });
+  for (const viveiroId of viveiroIds) {
+    exigirEquipe(ctx, viveiroId);
+    exigirPodeDarPerfil(ctx, viveiroId, perfil);
+  }
   let criada = false;
   app.runInTransaction((tx) => {
     var _a2;
-    viveiroAtivo(tx, viveiroId);
+    for (const viveiroId of viveiroIds) viveiroAtivo(tx, viveiroId);
     const email = String((_a2 = corpo.email) != null ? _a2 : "").trim().toLowerCase();
     let u = EMAIL_OK.test(email) ? usuarioPorEmail(tx, email) : null;
     if (!u) {
       u = novoUsuario(tx, __spreadProps(__spreadValues({}, validarConta(corpo)), { solicitante: false }));
       criada = true;
     }
-    vincular(tx, ctx, u.id, viveiroId, perfil);
+    for (const viveiroId of viveiroIds) vincular(tx, ctx, u.id, viveiroId, perfil);
   });
-  return { ok: true, conta_nova: criada };
+  return { ok: true, conta_nova: criada, viveiros: viveiroIds.length };
 }
 function equipeResponder(app, auth, id, corpo) {
   const ctx = contextoDe(app, auth);

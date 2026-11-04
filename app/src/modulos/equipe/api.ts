@@ -22,7 +22,7 @@ export interface ViveiroPublico {
 }
 export const viveirosPublicos = (servidor: string) => pedir<ViveiroPublico[]>(`${base(servidor)}/api/crads/publico/viveiros`);
 
-export const criarConta = (servidor: string, d: { nome: string; email: string; senha: string; perfil: string; viveiro_id?: string }) =>
+export const criarConta = (servidor: string, d: { nome: string; email: string; senha: string; perfil: string; viveiro_ids?: string[] | 'todos' }) =>
   pedir<{ ok: boolean; pendente: boolean }>(`${base(servidor)}/api/crads/conta`, { method: 'POST', body: JSON.stringify(d) });
 
 export interface DadosEquipe {
@@ -38,8 +38,8 @@ const comLogin = (s: Sessao, metodo = 'GET', corpo?: unknown): RequestInit => ({
 });
 
 export const lerEquipe = (s: Sessao) => pedir<DadosEquipe>(`${base(s.servidor)}/api/crads/equipe`, comLogin(s));
-export const cadastrarPessoa = (s: Sessao, d: { nome: string; email: string; senha: string; viveiro_id: string; perfil: string }) =>
-  pedir<{ ok: boolean; conta_nova: boolean }>(`${base(s.servidor)}/api/crads/equipe/pessoa`, comLogin(s, 'POST', d));
+export const cadastrarPessoa = (s: Sessao, d: { nome: string; email: string; senha: string; viveiro_ids: string[] | 'todos'; perfil: string }) =>
+  pedir<{ ok: boolean; conta_nova: boolean; viveiros: number }>(`${base(s.servidor)}/api/crads/equipe/pessoa`, comLogin(s, 'POST', d));
 export const responderPedido = (s: Sessao, id: string, aprovar: boolean, motivo = '') => pedir(`${base(s.servidor)}/api/crads/equipe/pedido/${id}`, comLogin(s, 'POST', { aprovar, motivo }));
 export const removerAcesso = (s: Sessao, vinculoId: string) => pedir(`${base(s.servidor)}/api/crads/equipe/vinculo/${vinculoId}/remover`, comLogin(s, 'POST', {}));
 
