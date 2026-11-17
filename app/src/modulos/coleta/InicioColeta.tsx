@@ -6,6 +6,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Icone } from '../../componentes/Icone';
+import { escolherFoto, FotoDaLista, PARTES_COLETA, useFotosDe } from '../../componentes/FotoDaLista';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { mostrarNumero } from '../../plataforma/numero';
@@ -20,6 +21,8 @@ export function InicioColeta() {
   const [params] = useSearchParams();
   // o viveiro vê as coletas de todos (para pesar e semear); o coletor, as suas
   const minhas = coletas.filter((c) => equipeViveiro || c.coletor_id === sessao?.id || c.versao === 0).slice(0, 10);
+  // foto da semente (da coleta ou, sem ela, da matriz) no começo de cada coleta
+  const fotos = useFotosDe(minhas.flatMap((c) => [c.id, String(c.matriz_id ?? '')]).filter(Boolean));
   const loteDe = useLiveQuery(async () => {
     const lotes = new Set((await repo.listar('lote_sementes')).map((l) => l.id));
     const ligs = (await db.colecao('lote_sementes_coleta').toArray()).filter((l) => !l.excluido && lotes.has(String(l.lote_sementes_id)));
@@ -54,7 +57,7 @@ export function InicioColeta() {
               const lote = loteDe?.get(c.id);
               const conteudo = (
                 <>
-                  <Icone nome="semente" />
+                  <FotoDaLista foto={escolherFoto(fotos, [c.id, c.matriz_id], PARTES_COLETA)} icone="semente" alt="Semente da coleta" />
                   <div>
                     <strong>
                       {c.matriz_id ? String(m?.codigo ?? '') : 'Sem matriz'} · {nomes?.get(String(m?.especie_id ?? c.especie_id)) ?? ''}

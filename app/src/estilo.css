@@ -439,3 +439,8 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .qr-do-app .qr svg { width: 100%; height: 100%; }
 .qr-do-app p { margin: 0; color: var(--azul-escuro); max-width: 320px; }
 .qr-do-app small { color: var(--suave); }
+
+/* foto no começo do item da lista (tronco da matriz, semente da coleta) */
+.foto-lista { flex: none; display: block; line-height: 0; }
+.foto-lista .miniatura { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; }
+.foto-lista .carimbo-data { left: 2px; bottom: 2px; font-size: 0.56rem; padding: 2px 3px; border-radius: 4px; }

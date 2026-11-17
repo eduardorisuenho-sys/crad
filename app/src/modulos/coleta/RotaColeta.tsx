@@ -11,6 +11,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { coordenadaValida, distanciaMetros, podeColetar, type MatrizResumo } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
+import { escolherFoto, FotoDaLista, PARTES_MATRIZ, useFotosDe } from '../../componentes/FotoDaLista';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { acompanharPosicao, type PosicaoGps } from '../../plataforma/gps';
@@ -56,6 +57,8 @@ export function RotaColeta() {
       .filter((p) => !soFruto || p.fruto)
       .sort((a, b) => Number(b.fruto) - Number(a.fruto) || (a.dist ?? Infinity) - (b.dist ?? Infinity));
   }, [matrizes, feno, gps, soFruto]);
+  // foto do tronco no começo de cada matriz da rota
+  const fotosMatrizes = useFotosDe(pontos.map((p) => p.m.id));
 
   const escolhida = pontos.find((p) => p.m.id === escolhidaId) ?? null;
   // no mapa: só a matriz escolhida, ou todas
@@ -182,7 +185,7 @@ export function RotaColeta() {
             {pontos.map((p) => (
               <li key={p.m.id}>
                 <button className="item-lista botao-lista" onClick={() => escolher(p.m.id)}>
-                  <Icone nome="arvore" />
+                  <FotoDaLista foto={escolherFoto(fotosMatrizes, [p.m.id], PARTES_MATRIZ)} icone="arvore" alt={`Tronco da matriz ${String(p.m.codigo)}`} />
                   <div>
                     <strong>{String(p.m.codigo)}</strong>
                     <small>{nomes?.get(String(p.m.especie_id)) ?? ''}</small>

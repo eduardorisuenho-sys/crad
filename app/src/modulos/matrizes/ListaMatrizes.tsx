@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
 import { metasPorEspecie, normalizarBusca, parametro } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
+import { escolherFoto, FotoDaLista, PARTES_MATRIZ, useFotosDe } from '../../componentes/FotoDaLista';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 
@@ -36,6 +37,8 @@ export function ListaMatrizes() {
   }, [matrizes, filtro, busca, nomes]); // eslint-disable-line react-hooks/exhaustive-deps
   const metas = useMemo(() => metasPorEspecie(matrizes as never, meta), [matrizes, meta]);
 
+  // foto do tronco no começo de cada matriz (sem foto, o desenho)
+  const fotos = useFotosDe(lista.map((m) => m.id));
   return (
     <Tela titulo="Matrizes">
       <div className="acoes">
@@ -83,7 +86,7 @@ export function ListaMatrizes() {
             {lista.map((m) => (
               <li key={m.id}>
                 <Link to={`/matrizes/${m.id}`} className="item-lista">
-                  <Icone nome="arvore" />
+                  <FotoDaLista foto={escolherFoto(fotos, [m.id], PARTES_MATRIZ)} icone="arvore" alt={`Tronco da matriz ${String(m.codigo)}`} />
                   <div>
                     <strong>{String(m.codigo)}</strong>
                     <small>{m.especie_id ? nome(m.especie_id) : 'a identificar'}</small>

@@ -10,6 +10,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { coordenadaValida, distanciaMetros, normalizarBusca, podeColetar, type MatrizResumo } from '@crads/dominio';
 import { BotaoFoto } from '../../componentes/BotaoFoto';
 import { Icone } from '../../componentes/Icone';
+import { escolherFoto, FotoDaLista, PARTES_MATRIZ, useFotosDe } from '../../componentes/FotoDaLista';
 import { MiniaturaBlob } from '../../componentes/Miniatura';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -68,6 +69,8 @@ export function NovaColeta() {
       }))
       .sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
   }, [matrizes, busca, gps, nomes]);
+  // foto do tronco ajuda a reconhecer a árvore no campo
+  const fotosMatrizes = useFotosDe(lista.map(({ m }) => m.id));
   const naoAprovadas = matrizes.filter((m) => !podeColetar(m as MatrizResumo) && busca && normalizarBusca(String(m.codigo)).includes(normalizarBusca(busca)));
 
   async function salvar() {
@@ -140,7 +143,7 @@ export function NovaColeta() {
                     setEtapa('quantidade');
                   }}
                 >
-                  <Icone nome="arvore" />
+                  <FotoDaLista foto={escolherFoto(fotosMatrizes, [m.id], PARTES_MATRIZ)} icone="arvore" alt={`Tronco da matriz ${String(m.codigo)}`} />
                   <div>
                     <strong>{String(m.codigo)}</strong>
                     <small>{nomes?.get(String(m.especie_id)) ?? ''}</small>

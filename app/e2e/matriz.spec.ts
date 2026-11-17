@@ -31,7 +31,8 @@ test('coletor cadastra matriz em campo sem internet, com GPS, fotos, plaqueta e 
   await expect(page.getByRole('button', { name: 'Continuar' })).toBeDisabled();
   await page.locator('label', { hasText: 'Árvore inteira' }).locator('input').setInputFiles(foto);
   await page.locator('label', { hasText: 'Folhas' }).locator('input').setInputFiles(foto);
-  await expect(page.locator('label.opcao.ativa')).toHaveCount(2);
+  await page.locator('label', { hasText: 'Tronco e casca' }).locator('input').setInputFiles(foto);
+  await expect(page.locator('label.opcao.ativa')).toHaveCount(3);
   await page.getByRole('button', { name: 'Continuar' }).click();
   // 4. Árvore
   await page.getByLabel('Altura (metros, aproximada)').fill('14');
@@ -70,6 +71,11 @@ test('coletor cadastra matriz em campo sem internet, com GPS, fotos, plaqueta e 
   await expect(page.getByText(`${codigo}`)).toBeVisible();
   await page.getByRole('button', { name: 'Cancelar cadastro' }).click();
 
+  // Na lista, a matriz aparece com a foto do tronco no lugar do desenho
+  await page.goto('/matrizes');
+  await page.getByRole('button', { name: /^Todas/ }).click();
+  await expect(page.getByRole('img', { name: `Tronco da matriz ${codigo}` })).toBeVisible();
+
   // Abrir pela plaqueta (digitando o código, já que o teste não tem câmera)
   await page.goto('/ler-qr');
   await page.getByLabel('Código da plaqueta').fill(codigo.toLowerCase());
@@ -82,7 +88,7 @@ test('coletor cadastra matriz em campo sem internet, com GPS, fotos, plaqueta e 
   const [m] = (await lerDoServidor('matriz')).filter((x) => x.codigo === codigo);
   expect(m).toMatchObject({ grau_certeza: 'certo', metodo_identificacao: 'manual', altura_m: 14, dap_cm: 38, lat: ARVORE.latitude, autorizacao_proprietario: true });
   const fotos = (await lerDoServidor('foto')).filter((f) => f.registro_id === m.id);
-  expect(fotos.map((f) => f.parte).sort()).toEqual(['arvore', 'folha']);
+  expect(fotos.map((f) => f.parte).sort()).toEqual(['arvore', 'folha', 'tronco']);
   expect(fotos.every((f) => String(f.arquivo).endsWith('.jpg') && String(f.miniatura).endsWith('.jpg'))).toBe(true);
   expect((await lerDoServidor('dados_pessoais')).some((d) => d.telefone === '63 90000-0001')).toBe(true);
   expect((await lerDoServidor('fenologia')).filter((f) => f.matriz_id === m.id)).toEqual([expect.objectContaining({ fases: ['flor'] })]);
