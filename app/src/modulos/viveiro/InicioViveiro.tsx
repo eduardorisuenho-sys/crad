@@ -31,8 +31,10 @@ export function InicioViveiro() {
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
   }, [ativos]);
   const lista = ativos.filter((l) => !fase || (fase === 'pronta') === pronta(l));
-  // foto das mudas (a mais recente do lote) no começo de cada lote
-  const fotos = useFotosDe(lista.map((l) => l.lote.id));
+  // foto das mudas no começo de cada lote: a do próprio lote ou, sem ela, a de outro lote da
+  // mesma espécie (como no catálogo)
+  const fotos = useFotosDe(ativos.map((l) => l.lote.id));
+  const lotesDaEspecie = (especie: unknown) => ativos.filter((l) => l.lote.especie_id === especie).map((l) => l.lote.id);
 
   return (
     <Tela titulo="Viveiro">
@@ -77,7 +79,7 @@ export function InicioViveiro() {
           return (
             <li key={lote.id}>
               <Link to={`/viveiro/lotes/${lote.id}`} className="item-lista">
-                <FotoDaLista foto={escolherFoto(fotos, [lote.id], PARTES_MUDAS)} icone="muda" alt={`Mudas do lote ${String(lote.codigo)}`} />
+                <FotoDaLista foto={escolherFoto(fotos, [lote.id, ...lotesDaEspecie(lote.especie_id)], PARTES_MUDAS)} icone="muda" alt={`Mudas do lote ${String(lote.codigo)}`} />
                 <div>
                   <strong>
                     {String(lote.codigo)} · {nomes?.get(String(lote.especie_id)) ?? ''}
