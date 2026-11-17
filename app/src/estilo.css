@@ -432,3 +432,10 @@ label.opcao, label.botao-grande { cursor: pointer; }
 /* escolher vários (ex.: viveiros ao criar a conta) */
 .botao-grande.escolha { border: 2px solid var(--azul-escuro-25); }
 .botao-grande.escolha.marcada { border-color: var(--verde); background: var(--verde-10); color: var(--verde); }
+
+/* QR Code do app (Ajustes e Baixar o CRAD) */
+.qr-do-app { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.qr-do-app .qr { background: #fff; padding: 12px; border-radius: 12px; box-sizing: content-box; }
+.qr-do-app .qr svg { width: 100%; height: 100%; }
+.qr-do-app p { margin: 0; color: var(--azul-escuro); max-width: 320px; }
+.qr-do-app small { color: var(--suave); }

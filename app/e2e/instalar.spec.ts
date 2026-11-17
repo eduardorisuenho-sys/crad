@@ -40,4 +40,16 @@ test('o gestor encaminha o app pelo WhatsApp a partir de Ajustes', async ({ page
   const href = await page.getByTestId('convidar-whatsapp').getAttribute('href');
   expect(href).toMatch(/^https:\/\/wa\.me\/\?text=/);
   expect(decodeURIComponent(href!)).toContain('/instalar');
+
+  // logo abaixo: QR Code para outra pessoa ler com a câmera e abrir a página de baixar o app
+  const botaoQr = page.getByTestId('mostrar-qr-app');
+  expect(await page.getByTestId('convidar-whatsapp').evaluate((a) => a.nextElementSibling?.getAttribute('data-testid'))).toBe('mostrar-qr-app');
+  await botaoQr.click();
+  const qr = page.getByTestId('qr-app');
+  const origem = new URL(page.url()).origin;
+  await expect(qr.locator('.qr')).toHaveAttribute('aria-label', `QR code ${origem}/instalar`);
+  await expect(qr.locator('svg')).toBeVisible();
+  await expect(qr).toContainText('apontar a câmera do celular');
+  await botaoQr.click();
+  await expect(qr).toHaveCount(0);
 });

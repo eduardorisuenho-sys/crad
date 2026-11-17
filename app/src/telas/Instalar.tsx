@@ -6,6 +6,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Icone } from '../componentes/Icone';
+import { QrDoApp } from '../componentes/QrDoApp';
 import { LogoAnimado } from '../componentes/LogoAnimado';
 import { Pagina as Tela } from '../modulos/catalogo/Pagina';
 import { useInstalacao } from '../plataforma/instalacao';
@@ -109,6 +110,7 @@ export function Instalar() {
       <a className="botao-secundario" href={linkWhatsApp(window.location.origin)} target="_blank" rel="noopener noreferrer">
         <Icone nome="compartilhar" /> Enviar pelo WhatsApp
       </a>
+      <QrDoApp />
     </Tela>
   );
 }

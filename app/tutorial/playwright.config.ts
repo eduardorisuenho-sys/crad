@@ -2,7 +2,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import { existsSync } from 'node:fs';
 
-const chromiumLocal = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+// No ambiente de nuvem o Chromium já vem instalado (a pasta muda com a versão).
+const chromiumLocal = ['/opt/pw-browsers/chromium', '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find((c) => existsSync(c)) ?? '';
 
 export default defineConfig({
   testDir: '.',
@@ -13,7 +14,7 @@ export default defineConfig({
     baseURL: 'http://localhost:4173',
     ...devices['Pixel 5'],
     locale: 'pt-BR',
-    launchOptions: existsSync(chromiumLocal) ? { executablePath: chromiumLocal } : {},
+    launchOptions: chromiumLocal ? { executablePath: chromiumLocal } : {},
   },
   webServer: { command: 'npx vite preview --port 4173 --strictPort', cwd: '..', port: 4173, reuseExistingServer: true },
 });

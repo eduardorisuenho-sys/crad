@@ -9,6 +9,7 @@ import { sairDosAvisos } from '../plataforma/notificar';
 import { Icone } from '../componentes/Icone';
 import { Tela } from '../componentes/Tela';
 import { linkWhatsApp } from './Instalar';
+import { QrDoApp } from '../componentes/QrDoApp';
 import { useApp } from '../contexto';
 import { idDispositivo, reservarFaixas, sair } from '../dados/sessao';
 import { espacoUsado, formatarBytes } from '../plataforma/armazenamento';
@@ -59,6 +60,7 @@ export function Configuracoes() {
       <a className="botao-secundario" href={linkWhatsApp(window.location.origin)} target="_blank" rel="noopener noreferrer" data-testid="convidar-whatsapp">
         <Icone nome="compartilhar" /> Enviar o app pelo WhatsApp
       </a>
+      <QrDoApp />
       <dl className="ficha">
         <dt>Versão do app</dt>
         <dd data-testid="versao">

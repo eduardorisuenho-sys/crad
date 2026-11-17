@@ -13,6 +13,7 @@ const CAMINHOS: Record<string, string> = {
   casa: 'M3 11l9-8 9 8M5 10v11h14V10',
   voltar: 'M15 5l-7 7 7 7',
   video: 'M3 5h18v14H3zM10 9v6l5-3z',
+  qr: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z',
   mais: 'M12 5v14M5 12h14',
   lapis: 'M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4',
   viveiro: 'M3 21V10l9-6 9 6v11M3 21h18M8 21v-6h8v6',
