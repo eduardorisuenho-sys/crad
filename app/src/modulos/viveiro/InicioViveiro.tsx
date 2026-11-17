@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
 import { atrasado, dataPrevistaPronta, taxaGerminacao } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
+import { escolherFoto, FotoDaLista, PARTES_MUDAS, useFotosDe } from '../../componentes/FotoDaLista';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
 import { nomesEspecies } from '../coleta/dados';
@@ -30,6 +31,8 @@ export function InicioViveiro() {
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
   }, [ativos]);
   const lista = ativos.filter((l) => !fase || (fase === 'pronta') === pronta(l));
+  // foto das mudas (a mais recente do lote) no começo de cada lote
+  const fotos = useFotosDe(lista.map((l) => l.lote.id));
 
   return (
     <Tela titulo="Viveiro">
@@ -74,7 +77,7 @@ export function InicioViveiro() {
           return (
             <li key={lote.id}>
               <Link to={`/viveiro/lotes/${lote.id}`} className="item-lista">
-                <Icone nome="muda" />
+                <FotoDaLista foto={escolherFoto(fotos, [lote.id], PARTES_MUDAS)} icone="muda" alt={`Mudas do lote ${String(lote.codigo)}`} />
                 <div>
                   <strong>
                     {String(lote.codigo)} · {nomes?.get(String(lote.especie_id)) ?? ''}

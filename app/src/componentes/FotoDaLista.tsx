@@ -12,6 +12,7 @@ import { Miniatura } from './Miniatura';
 /** Partes preferidas para cada lista (a primeira que tiver foto vale). */
 export const PARTES_MATRIZ = ['tronco', 'casca', 'arvore'];
 export const PARTES_COLETA = ['semente', 'fruto'];
+export const PARTES_MUDAS = ['muda'];
 
 /** Todas as fotos ativas dos registros, por registro. */
 export function useFotosDe(ids: string[]): Map<string, Registro[]> | undefined {
@@ -28,7 +29,8 @@ export function useFotosDe(ids: string[]): Map<string, Registro[]> | undefined {
 /** A melhor foto: percorre os registros em ordem e, em cada um, as partes preferidas. */
 export function escolherFoto(fotos: Map<string, Registro[]> | undefined, registros: unknown[], partes: string[]): Registro | undefined {
   for (const id of registros) {
-    const doRegistro = fotos?.get(String(id ?? '')) ?? [];
+    // a foto mais recente primeiro (as mudas crescem)
+    const doRegistro = [...(fotos?.get(String(id ?? '')) ?? [])].sort((a, b) => String(b.tirada_em ?? b.criado_no_aparelho_em ?? '').localeCompare(String(a.tirada_em ?? a.criado_no_aparelho_em ?? '')));
     for (const p of partes) {
       const f = doRegistro.find((x) => x.parte === p);
       if (f) return f;

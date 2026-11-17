@@ -85,6 +85,8 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, li
   await expect.poll(() => noCatalogo('Árvore-do-estoque'), { timeout: 20_000 }).toBe(40);
   await v.goto('/viveiro');
   await expect(v.getByText('Liberar para doação')).toHaveCount(0);
+  // na lista do viveiro, o lote aparece com a foto das mudas no lugar do desenho
+  await expect(v.getByRole('img', { name: /^Mudas do lote / }).first()).toBeVisible();
 
   // 2) no catálogo, com a foto das mudas
   const cg = await browser.newContext();
