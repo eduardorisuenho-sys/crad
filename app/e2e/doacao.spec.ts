@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { abrirModulo, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo } from './apoio';
+import { abrirModulo, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
 
 const ESPECIE = 'Árvore-da-doação';
 
@@ -186,4 +186,22 @@ test('o administrador muda o texto do termo e os próximos pedidos usam o novo',
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
   await expect.poll(async () => String((await lerDoServidor('parametro')).find((p) => p.chave === 'termo_compromisso')?.valor ?? ''), { timeout: 20_000 }).toMatch(/^TERMO DE COMPROMISSO/);
   await cg.close();
+});
+
+test('pedido com várias espécies mostra o total de mudas (pedidas, aprovadas, entregues) e na análise', async ({ page }) => {
+  const admin = { 'content-type': 'application/json', authorization: process.env.CRADS_PB_ADMIN! };
+  const criar = async (col: string, dados: object) => (await (await fetch(`${PB()}/api/collections/${col}/records`, { method: 'POST', headers: admin, body: JSON.stringify(dados) })).json()) as { id: string };
+  const especies = (await lerDoServidor('especie')).filter((e) => !e.excluido).slice(0, 2);
+  const pessoa = await criar('pessoa', { nome: 'Pede Duas Espécies' });
+  const d = await criar('doacao', { codigo: 'DO-2026-977', solicitante_pessoa_id: pessoa.id, situacao: 'enviada', viveiro_id: 'vivteste0000001', termo_aceito_em: '2026-11-18', termo_texto: 'Termo aceito' });
+  await criar('doacao_item', { doacao_id: d.id, especie_id: especies[0].id, qtd_pedida: 12, viveiro_id: 'vivteste0000001' });
+  await criar('doacao_item', { doacao_id: d.id, especie_id: especies[1].id, qtd_pedida: 8, viveiro_id: 'vivteste0000001' });
+  await entrarComoGestora(page);
+  await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
+  await page.goto(`/doacao/${d.id}`);
+  await expect(page.getByTestId('total-pedido')).toHaveText(/^Total\s*20\s*—\s*0$/);
+  await page.getByRole('button', { name: 'Analisar pedido' }).click();
+  await expect(page.getByTestId('total-analise')).toContainText('Total: pediu 20');
+  // o pedido é só deste teste: não fica contando como pendência nos outros
+  await fetch(`${PB()}/api/collections/doacao/records/${d.id}`, { method: 'PATCH', headers: admin, body: JSON.stringify({ excluido: true }) });
 });

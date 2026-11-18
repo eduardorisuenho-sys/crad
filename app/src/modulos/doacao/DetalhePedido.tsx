@@ -186,6 +186,16 @@ export function DetalhePedido() {
               </tr>
             ))}
           </tbody>
+          {itens.length > 1 && (
+            <tfoot>
+              <tr data-testid="total-pedido">
+                <th scope="row">Total</th>
+                <td>{itens.reduce((t, i) => t + Number(i.qtd_pedida ?? 0), 0).toLocaleString('pt-BR')}</td>
+                <td>{SITUACOES_EM_ANALISE.includes(situacao) ? '—' : itens.reduce((t, i) => t + Number(i.qtd_aprovada ?? 0), 0).toLocaleString('pt-BR')}</td>
+                <td>{itens.reduce((t, i) => t + entregue(i), 0).toLocaleString('pt-BR')}</td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </section>
 
@@ -225,6 +235,16 @@ export function DetalhePedido() {
               </label>
             );
           })}
+          {itens.length > 1 && (
+            <p className="total-prontas" data-testid="total-analise">
+              Total: pediu <b>{itens.reduce((t, i) => t + Number(i.qtd_pedida ?? 0), 0).toLocaleString('pt-BR')}</b> · vai aprovar{' '}
+              <b>
+                {itens
+                  .reduce((t, i) => t + (Number(aprovadas[i.id] ?? Math.min(Number(i.qtd_pedida), disp?.get(String(i.especie_id)) ?? 0)) || 0), 0)
+                  .toLocaleString('pt-BR')}
+              </b>
+            </p>
+          )}
           <label>
             Observação (obrigatória para recusar)
             <input value={justificativa} onChange={(e) => setJustificativa(e.target.value)} />
