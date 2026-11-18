@@ -100,6 +100,8 @@ export const GRAUS_CERTEZA = ['certo', 'provavel', 'a_identificar'] as const;
 export const PARTES_PLANTA = ['arvore', 'tronco', 'casca', 'folha', 'ramo', 'flor', 'fruto', 'semente', 'muda', 'outro'] as const;
 /** fotos obrigatórias no cadastro da matriz */
 export const FOTOS_OBRIGATORIAS_MATRIZ = ['arvore', 'tronco', 'folha'] as const;
+/** assuntos do Manual do viveirista */
+export const ASSUNTOS_MANUAL = ['germinacao', 'producao', 'pragas', 'plantio', 'outro'] as const;
 export const FENOFASES = ['folha', 'flor', 'fruto_verde', 'fruto_maduro', 'sem_folha'] as const;
 /** embalagens usadas hoje (planilha de controle de mudas) */
 export const RECIPIENTES = ['tubete', 'saquinho', 'sementeira', 'outros'] as const;
@@ -272,6 +274,17 @@ export const COLECOES: Colecao[] = [
     porViveiro: false,
     publico: true,
     campos: [r('especie_id', 'especie', true), o('parte', PARTES_PLANTA, true), arq('arquivo'), arq('miniatura'), t('credito'), t('licenca'), d('tirada_em')],
+    indices: ['especie_id'],
+    leitura: 'todos',
+    escrita: SO_GESTOR,
+  },
+  {
+    // Manual do viveirista: material técnico e prático (germinação, produção…) em PDF.
+    // Quem entrou no app lê; o gestor inclui, troca e tira.
+    nome: 'manual',
+    natureza: 'cadastro',
+    porViveiro: false,
+    campos: [t('titulo', true), t('resumo'), r('especie_id', 'especie'), o('assunto', ASSUNTOS_MANUAL), t('fonte'), arq('arquivo')],
     indices: ['especie_id'],
     leitura: 'todos',
     escrita: SO_GESTOR,

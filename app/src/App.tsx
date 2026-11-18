@@ -50,6 +50,7 @@ import { EstoqueInicial } from './modulos/viveiro/EstoqueInicial';
 import { Lixeira } from './modulos/lixeira/Lixeira';
 import { RelatorioServico } from './modulos/coleta/RelatorioServico';
 import { ListaAjuda, VideoAjuda } from './modulos/ajuda/Ajuda';
+import { Manuais } from './modulos/manuais/Manuais';
 
 function Rotas() {
   const { sessao, carregando, viveiroId, escolherViveiro } = useApp();
@@ -107,6 +108,7 @@ function Rotas() {
       <Route path="/coleta/lotes/:id" element={<DetalheLote />} />
       <Route path="/coleta/:id" element={<FichaColeta />} />
       <Route path="/viveiro" element={<InicioViveiro />} />
+      <Route path="/manuais" element={<Manuais />} />
       <Route path="/viveiro/semeadura" element={<NovaSemeadura />} />
       <Route path="/viveiro/lotes/:id" element={<DetalheLoteMudas />} />
       <Route path="/viveiro/estoque-inicial" element={<EstoqueInicial />} />

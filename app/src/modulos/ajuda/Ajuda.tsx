@@ -85,6 +85,11 @@ export function ListaAjuda() {
       <a className="botao-secundario" href="/ajuda/manual-crad.pdf" download>
         <Icone nome="baixar" /> Manual em PDF
       </a>
+      {sessao && (
+        <Link to="/manuais" className="botao-secundario">
+          <Icone nome="catalogo" /> Manual do viveirista (germinação e produção)
+        </Link>
+      )}
       <VoltarInicio />
     </Tela>
   );

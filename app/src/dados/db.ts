@@ -79,7 +79,8 @@ export class BancoCrads extends Dexie {
       lojas[c.nome] = ['id', ...idx].join(', ');
     }
     // Ao mudar o esquema, aumente a versão (o Dexie migra os índices sozinho).
-    this.version(4).stores(lojas);
+    // 5: manual (Manual do viveirista)
+    this.version(5).stores(lojas);
   }
 
   colecao(nome: string): Table<Registro, string> {

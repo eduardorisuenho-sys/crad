@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { entrarComoColetor, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, PB } from './apoio';
 
 const ESTATICAS = [
-  '/', '/ajuda', '/ajuda/3', '/avisos', '/catalogo', '/coleta', '/coleta/nova', '/coleta/relatorio', '/coleta/rota',
+  '/', '/ajuda', '/ajuda/3', '/manuais', '/avisos', '/catalogo', '/coleta', '/coleta/nova', '/coleta/relatorio', '/coleta/rota',
   '/configuracoes', '/doacao', '/doacao/novo', '/equipe', '/especies', '/especies/importar', '/identificar', '/instalar', '/lixeira', '/matrizes', '/matrizes/nova',
   '/municipios', '/permissoes', '/pos-plantio', '/relatorios', '/relatorios/rastreio', '/transparencia', '/viveiro', '/viveiro-atual', '/viveiro/estoque-inicial',
   '/viveiro/inventario', '/viveiro/semeadura', '/viveiros',

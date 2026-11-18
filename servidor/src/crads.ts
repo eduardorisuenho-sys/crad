@@ -1131,6 +1131,40 @@ export function atualizarPerfis(app: App): number {
   return usuarios.length;
 }
 
+// ---------------------------------------------------------------- manual do viveirista
+
+/** Manuais que já vêm com o servidor (PDF em deploy/manuais). Entram uma vez; o gestor pode trocar ou tirar. */
+export const MANUAIS_INICIAIS = [
+  {
+    id: 'manualpequiga03',
+    titulo: 'Germinação de Pequi',
+    resumo: 'Quebra de dormência dos caroços com ácido giberélico (GA3): preparo, tratamento, semeadura e acompanhamento.',
+    assunto: 'germinacao',
+    nome_cientifico: 'Caryocar brasiliense',
+    fonte: 'PEREIRA, A. V. et al. Quebra da dormência de sementes de pequi. Planaltina, DF: Embrapa Cerrados, 2004 (Boletim de Pesquisa e Desenvolvimento, 136).',
+    arquivo: 'germinacao-pequi.pdf',
+  },
+];
+
+/** Ao ligar: cadastra os manuais iniciais que nunca existiram aqui (excluído ou apagado de vez não volta). */
+export function semearManuais(app: App, pasta: string, arquivoDe: (caminho: string) => unknown): number {
+  let n = 0;
+  for (const m of MANUAIS_INICIAIS) {
+    const jaTeve = buscar(app, 'manual', m.id) || app.findRecordsByFilter('auditoria', 'registro_id = {:r}', '', 1, 0, { r: m.id }).length;
+    if (jaTeve) continue;
+    app.runInTransaction((tx: App) => {
+      const especie = tx.findRecordsByFilter('especie', 'nome_cientifico = {:n} && excluido = false', '', 1, 0, { n: m.nome_cientifico })[0];
+      const reg = { id: m.id, versao: 1, excluido: false, criado_no_aparelho_em: hojeISO(), titulo: m.titulo, resumo: m.resumo, assunto: m.assunto, fonte: m.fonte, especie_id: especie ? especie.id : null };
+      const rec = gravar(tx, colecao('manual'), reg as Registro);
+      rec.set('arquivo', arquivoDe(`${pasta}/${m.arquivo}`));
+      tx.save(rec);
+      auditar(tx, { colecao: 'manual', registro_id: m.id, acao: 'criar', antes: null, depois: { titulo: m.titulo, arquivo: m.arquivo }, usuario_id: '' });
+    });
+    n++;
+  }
+  return n;
+}
+
 /** Chamado pelos ganchos de gravação: manda os avisos ao carteiro (falha nunca atrapalha a gravação). */
 export function avisarPush(app: App, nome: string, antesRec: RecordPB | null, depoisRec: RecordPB) {
   try {

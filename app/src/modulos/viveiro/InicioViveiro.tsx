@@ -50,6 +50,12 @@ export function InicioViveiro() {
           </Link>
         )}
       </div>
+      <Link to="/manuais" className="botao-grande" data-testid="manual-viveirista">
+        <Icone nome="catalogo" tamanho={36} />
+        <span>
+          Manual do viveirista<small className="dica-botao">Germinação de sementes e produção de mudas</small>
+        </span>
+      </Link>
       {pode('estoque_inicial') && (
         <Link to="/viveiro/estoque-inicial" className="botao-grande verde">
           <Icone nome="mais" tamanho={36} />

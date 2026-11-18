@@ -444,3 +444,12 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .foto-lista { flex: none; display: block; line-height: 0; }
 .foto-lista .miniatura { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; }
 .foto-lista .carimbo-data { left: 2px; bottom: 2px; font-size: 0.56rem; padding: 2px 3px; border-radius: 4px; }
+
+/* Manual do viveirista */
+.manual { display: flex; flex-direction: column; gap: 10px; }
+.manual-topo { display: flex; gap: 12px; align-items: center; color: var(--azul); }
+.manual-topo div { display: flex; flex-direction: column; color: var(--azul-escuro); }
+.manual-topo small, .manual .fonte, .manual .guardado { color: var(--suave); }
+.manual p { margin: 0; color: var(--azul-escuro); }
+.manual .guardado { display: flex; gap: 4px; align-items: center; }
+.link.perigo { color: var(--azul-escuro); align-self: flex-start; }

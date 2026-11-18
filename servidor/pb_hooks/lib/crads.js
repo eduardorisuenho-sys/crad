@@ -39,6 +39,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var crads_exports = {};
 __export(crads_exports, {
   COLECOES_SINCRONIZADAS: () => COLECOES_SINCRONIZADAS,
+  MANUAIS_INICIAIS: () => MANUAIS_INICIAIS,
   analisarDoacao: () => analisarDoacao,
   antesDeGravarPeloPainel: () => antesDeGravarPeloPainel,
   apagarConta: () => apagarConta,
@@ -74,6 +75,7 @@ __export(crads_exports, {
   receberArquivo: () => receberArquivo,
   reservarFaixas: () => reservarFaixas,
   sairPush: () => sairPush,
+  semearManuais: () => semearManuais,
   testarPush: () => testarPush,
   textoPerfil: () => textoPerfil,
   transparencia: () => transparencia,
@@ -136,6 +138,7 @@ var o = (nome, opcoes, obrigatorio = false, multiplo = false) => ({
 var BIOMAS = ["amazonia", "caatinga", "cerrado", "mata_atlantica", "pampa", "pantanal"];
 var GRAUS_CERTEZA = ["certo", "provavel", "a_identificar"];
 var PARTES_PLANTA = ["arvore", "tronco", "casca", "folha", "ramo", "flor", "fruto", "semente", "muda", "outro"];
+var ASSUNTOS_MANUAL = ["germinacao", "producao", "pragas", "plantio", "outro"];
 var FENOFASES = ["folha", "flor", "fruto_verde", "fruto_maduro", "sem_folha"];
 var RECIPIENTES = ["tubete", "saquinho", "sementeira", "outros"];
 var TIPOS_LOCAL_MATRIZ = ["app", "mata", "praca", "propriedade_rural", "beira_estrada", "outro"];
@@ -303,6 +306,17 @@ var COLECOES = [
     porViveiro: false,
     publico: true,
     campos: [r("especie_id", "especie", true), o("parte", PARTES_PLANTA, true), arq("arquivo"), arq("miniatura"), t("credito"), t("licenca"), d("tirada_em")],
+    indices: ["especie_id"],
+    leitura: "todos",
+    escrita: SO_GESTOR
+  },
+  {
+    // Manual do viveirista: material técnico e prático (germinação, produção…) em PDF.
+    // Quem entrou no app lê; o gestor inclui, troca e tira.
+    nome: "manual",
+    natureza: "cadastro",
+    porViveiro: false,
+    campos: [t("titulo", true), t("resumo"), r("especie_id", "especie"), o("assunto", ASSUNTOS_MANUAL), t("fonte"), arq("arquivo")],
     indices: ["especie_id"],
     leitura: "todos",
     escrita: SO_GESTOR
@@ -2486,6 +2500,34 @@ function atualizarPerfis(app) {
   const usuarios = app.findRecordsByFilter("users", "", "", 0, 0);
   for (const u of usuarios) atualizarPerfil(app, u.id);
   return usuarios.length;
+}
+var MANUAIS_INICIAIS = [
+  {
+    id: "manualpequiga03",
+    titulo: "Germina\xE7\xE3o de Pequi",
+    resumo: "Quebra de dorm\xEAncia dos caro\xE7os com \xE1cido giber\xE9lico (GA3): preparo, tratamento, semeadura e acompanhamento.",
+    assunto: "germinacao",
+    nome_cientifico: "Caryocar brasiliense",
+    fonte: "PEREIRA, A. V. et al. Quebra da dorm\xEAncia de sementes de pequi. Planaltina, DF: Embrapa Cerrados, 2004 (Boletim de Pesquisa e Desenvolvimento, 136).",
+    arquivo: "germinacao-pequi.pdf"
+  }
+];
+function semearManuais(app, pasta, arquivoDe) {
+  let n2 = 0;
+  for (const m of MANUAIS_INICIAIS) {
+    const jaTeve = buscar(app, "manual", m.id) || app.findRecordsByFilter("auditoria", "registro_id = {:r}", "", 1, 0, { r: m.id }).length;
+    if (jaTeve) continue;
+    app.runInTransaction((tx) => {
+      const especie = tx.findRecordsByFilter("especie", "nome_cientifico = {:n} && excluido = false", "", 1, 0, { n: m.nome_cientifico })[0];
+      const reg = { id: m.id, versao: 1, excluido: false, criado_no_aparelho_em: hojeISO(), titulo: m.titulo, resumo: m.resumo, assunto: m.assunto, fonte: m.fonte, especie_id: especie ? especie.id : null };
+      const rec = gravar(tx, colecao("manual"), reg);
+      rec.set("arquivo", arquivoDe(`${pasta}/${m.arquivo}`));
+      tx.save(rec);
+      auditar(tx, { colecao: "manual", registro_id: m.id, acao: "criar", antes: null, depois: { titulo: m.titulo, arquivo: m.arquivo }, usuario_id: "" });
+    });
+    n2++;
+  }
+  return n2;
 }
 function avisarPush(app, nome, antesRec, depoisRec) {
   var _a, _b, _c;
