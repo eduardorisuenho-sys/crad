@@ -213,3 +213,23 @@ export function totaisDoacoes(doacoes: Reg[], itens: Reg[], programaDoacoes?: Se
   }
   return t;
 }
+
+/** Programa cujas doações não precisam comprovar o plantio (o programa acompanha por conta própria). */
+export const PROGRAMA_SEM_COMPROVACAO = 'plantandoagua01';
+
+/**
+ * Mudas retiradas e ainda sem comprovação do plantio (registro de plantio com foto). Quem pediu
+ * só pode pedir de novo depois de comprovar. Doações do Plantando Água não precisam.
+ * `doacoes`: os pedidos da pessoa (já filtrados por quem chama).
+ */
+export function retiradasSemComprovacao(doacoes: Reg[], plantios: Reg[], fotos: Reg[], historicoProgramas: Reg[]): Reg[] {
+  const comFoto = new Set(ativos(fotos).filter((f) => f.entidade === 'plantio').map((f) => String(f.registro_id)));
+  const comprovadas = new Set(ativos(plantios).filter((p) => comFoto.has(p.id)).map((p) => String(p.doacao_id)));
+  return ativos(doacoes).filter((d) => d.situacao === 'retirada' && !comprovadas.has(d.id) && !marcadaNoPrograma(historicoProgramas, d.id, PROGRAMA_SEM_COMPROVACAO));
+}
+
+export function mensagemSemComprovacao(pendentes: Reg[]): string {
+  const codigos = pendentes.map((d) => String(d.codigo ?? '')).filter(Boolean);
+  const quais = codigos.length > 1 ? `dos pedidos ${codigos.slice(0, -1).join(', ')} e ${codigos[codigos.length - 1]}` : `do pedido ${codigos[0] ?? 'anterior'}`;
+  return `Antes de pedir mudas de novo, comprove o plantio ${quais}: em Pós-plantio, registre o plantio com fotos. (Doações do Plantando Água não precisam.)`;
+}

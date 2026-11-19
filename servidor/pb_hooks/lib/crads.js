@@ -49,6 +49,7 @@ __export(crads_exports, {
   auditarPainel: () => auditarPainel,
   avisarPush: () => avisarPush,
   catalogoPublico: () => catalogoPublico,
+  consultarPendenciasPlantio: () => consultarPendenciasPlantio,
   contatoDoacao: () => contatoDoacao,
   contextoDe: () => contextoDe,
   criarConta: () => criarConta,
@@ -70,6 +71,7 @@ __export(crads_exports, {
   loteAutomatico: () => loteAutomatico,
   lotesAutomaticosPendentes: () => lotesAutomaticosPendentes,
   paraObjeto: () => paraObjeto,
+  pendenciasPlantio: () => pendenciasPlantio,
   rastreioPublico: () => rastreioPublico,
   receber: () => receber,
   receberArquivo: () => receberArquivo,
@@ -1184,6 +1186,21 @@ function marcadaNoPrograma(historico, doacaoId, programaId) {
   });
   return h.length ? h[h.length - 1].acao === "marcou" : false;
 }
+var PROGRAMA_SEM_COMPROVACAO = "plantandoagua01";
+function retiradasSemComprovacao(doacoes, plantios, fotos, historicoProgramas) {
+  const comFoto = new Set(ativos(fotos).filter((f) => f.entidade === "plantio").map((f) => String(f.registro_id)));
+  const comprovadas = new Set(ativos(plantios).filter((p) => comFoto.has(p.id)).map((p) => String(p.doacao_id)));
+  return ativos(doacoes).filter((d2) => d2.situacao === "retirada" && !comprovadas.has(d2.id) && !marcadaNoPrograma(historicoProgramas, d2.id, PROGRAMA_SEM_COMPROVACAO));
+}
+function mensagemSemComprovacao(pendentes) {
+  var _a;
+  const codigos = pendentes.map((d2) => {
+    var _a2;
+    return String((_a2 = d2.codigo) != null ? _a2 : "");
+  }).filter(Boolean);
+  const quais = codigos.length > 1 ? `dos pedidos ${codigos.slice(0, -1).join(", ")} e ${codigos[codigos.length - 1]}` : `do pedido ${(_a = codigos[0]) != null ? _a : "anterior"}`;
+  return `Antes de pedir mudas de novo, comprove o plantio ${quais}: em P\xF3s-plantio, registre o plantio com fotos. (Doa\xE7\xF5es do Plantando \xC1gua n\xE3o precisam.)`;
+}
 
 // ../dominio/src/catalogo.ts
 function dataDaFoto(f) {
@@ -1725,6 +1742,7 @@ function enviar(app, auth, corpo) {
     let res = null;
     try {
       app.runInTransaction((tx) => {
+        var _a2, _b2, _c, _d, _e;
         try {
           const feita = tx.findFirstRecordByFilter("sync_op", "op_id = {:o}", { o: op.op_id });
           const anterior = JSON.parse(JSON.stringify(feita)).resultado;
@@ -1736,6 +1754,18 @@ function enviar(app, auth, corpo) {
         const col = existeColecao(op.colecao) ? colecao(op.colecao) : null;
         const atualRec = col ? buscar(tx, col.nome, op.registro_id) : null;
         const atual = col && atualRec ? paraObjeto(col, atualRec) : null;
+        if (op.colecao === "doacao" && op.tipo === "criar" && !atual) {
+          const dados = (_a2 = op.dados) != null ? _a2 : {};
+          const pendentes = pendenciasPlantio(tx, String((_b2 = dados.solicitante_usuario_id) != null ? _b2 : ""), String((_c = dados.solicitante_pessoa_id) != null ? _c : ""));
+          if (pendentes.length) {
+            res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: "rejeitada", motivo: mensagemSemComprovacao(pendentes) };
+            return;
+          }
+        }
+        if (op.colecao === "doacao_item" && op.tipo === "criar" && !atual && !buscar(tx, "doacao", String((_e = (_d = op.dados) == null ? void 0 : _d.doacao_id) != null ? _e : ""))) {
+          res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: "rejeitada", motivo: "O pedido destas mudas n\xE3o foi registrado." };
+          return;
+        }
         const opSegura = __spreadProps(__spreadValues({}, op), { dispositivo_id: dispositivo || op.dispositivo_id });
         const d2 = resolverOperacao(opSegura, atual, ctx, porta(tx, dispositivo));
         if (col && d2.gravar) {
@@ -2528,6 +2558,46 @@ function semearManuais(app, pasta, arquivoDe) {
     n2++;
   }
   return n2;
+}
+var soDigitos = (v) => String(v != null ? v : "").replace(/\D/g, "");
+function pedidosDaPessoa(app, usuarioId, pessoaId) {
+  const pessoas = new Set(pessoaId ? [pessoaId] : []);
+  if (usuarioId) for (const p of app.findRecordsByFilter("pessoa", "usuario_id = {:u} && excluido = false", "", 0, 0, { u: usuarioId })) pessoas.add(p.id);
+  const documentos = /* @__PURE__ */ new Set();
+  for (const id of pessoas)
+    for (const dp of app.findRecordsByFilter("dados_pessoais", "pessoa_id = {:p}", "", 0, 0, { p: id })) {
+      const doc = soDigitos(dp.getString("documento"));
+      if (doc.length >= 11) documentos.add(doc);
+    }
+  if (documentos.size) {
+    for (const dp of todos(app, "dados_pessoais")) if (documentos.has(soDigitos(dp.documento))) pessoas.add(String(dp.pessoa_id));
+  }
+  return todos(app, "doacao").filter((d2) => usuarioId && d2.solicitante_usuario_id === usuarioId || pessoas.has(String(d2.solicitante_pessoa_id)));
+}
+function pendenciasPlantio(app, usuarioId, pessoaId) {
+  const doacoes = pedidosDaPessoa(app, usuarioId, pessoaId);
+  if (!doacoes.some((d2) => d2.situacao === "retirada")) return [];
+  const ids = new Set(doacoes.map((d2) => d2.id));
+  const plantios = todos(app, "plantio").filter((p) => ids.has(String(p.doacao_id)));
+  const dosPlantios = new Set(plantios.map((p) => p.id));
+  const fotos = todos(app, "foto").filter((f) => f.entidade === "plantio" && dosPlantios.has(String(f.registro_id)));
+  const historico = todos(app, "doacao_programa_historico").filter((h) => ids.has(String(h.doacao_id)));
+  return retiradasSemComprovacao(doacoes, plantios, fotos, historico);
+}
+function consultarPendenciasPlantio(app, auth, corpo) {
+  const ctx = contextoDe(app, auth);
+  const documento = soDigitos(corpo.documento);
+  let pendentes;
+  if (documento) {
+    const equipe2 = ctx.gestorGeral || Object.values(ctx.perfisPorViveiro).some((ps) => ps.length > 0);
+    if (!equipe2) throw new Error("S\xF3 a equipe consulta pelo documento.");
+    const pessoa = todos(app, "dados_pessoais").find((dp) => soDigitos(dp.documento) === documento);
+    pendentes = pessoa ? pendenciasPlantio(app, "", String(pessoa.pessoa_id)) : [];
+  } else pendentes = pendenciasPlantio(app, auth.id, "");
+  return { pendentes: pendentes.map((d2) => {
+    var _a;
+    return { id: d2.id, codigo: String((_a = d2.codigo) != null ? _a : "") };
+  }), mensagem: pendentes.length ? mensagemSemComprovacao(pendentes) : "" };
 }
 function avisarPush(app, nome, antesRec, depoisRec) {
   var _a, _b, _c;

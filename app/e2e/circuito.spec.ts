@@ -7,7 +7,12 @@
  * avisos → retirada a menos → baixa e sobra de volta ao catálogo → rastreio.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
+import { dispensarComprovacaoDoSolicitante, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
+
+// o solicitante já tem retiradas sem plantio comprovado; aqui o assunto é o pedido
+let desfazer: () => Promise<void> = async () => {};
+test.beforeAll(async () => void (desfazer = await dispensarComprovacaoDoSolicitante()));
+test.afterAll(() => desfazer());
 
 test.use({ actionTimeout: 20_000 });
 

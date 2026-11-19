@@ -15,6 +15,7 @@ import { servidorPublico } from '../catalogo/api';
 import { nomesEspecies } from '../coleta/dados';
 import { listaMunicipios, municipioDoNome, municipioDoPonto } from '../municipios/dados';
 import { IconeAgua } from './BotaoPlantandoAgua';
+import { consultarComprovacao, type Consulta } from './comprovacao';
 import { disponivelLocal, disponivelPublico, FINALIDADES, marcarPrograma } from './dados';
 
 type Etapa = 'viveiro' | 'mudas' | 'plantio' | 'pessoa' | 'conferir';
@@ -45,6 +46,14 @@ export function NovoPedido() {
   const [lerTermo, setLerTermo] = useState(false);
   const [publico, setPublico] = useState<Awaited<ReturnType<typeof disponivelPublico>> | null>(null);
   const [erroCatalogo, setErroCatalogo] = useState('');
+  // quem já retirou mudas comprova o plantio com fotos antes de pedir de novo (Plantando Água não precisa)
+  const [semComprovar, setSemComprovar] = useState<Consulta | null>(null);
+  const [conferindo, setConferindo] = useState(false);
+
+  useEffect(() => {
+    if (equipe || !sessao) return;
+    void consultarComprovacao(db, sessao.servidor, sessao.token).then((c) => setSemComprovar(c?.pendentes.length ? c : null));
+  }, [db, equipe, sessao]);
 
   useEffect(() => {
     if (equipe) return;
@@ -123,6 +132,21 @@ export function NovoPedido() {
 
   return (
     <Tela titulo={equipe ? 'Pedido no balcão' : 'Pedir mudas'}>
+      {semComprovar ? (
+        <div className="assistente" data-testid="comprovar-plantio">
+          <h2 className="pergunta">Primeiro, mostre o plantio</h2>
+          <p className="mensagem alerta">{semComprovar.mensagem}</p>
+          {semComprovar.pendentes.map((p) => (
+            <Link key={p.id} to={`/pos-plantio/novo/${p.id}`} className="botao-principal">
+              <Icone nome="plantio" /> Registrar o plantio do pedido {p.codigo} com fotos
+            </Link>
+          ))}
+          <Link to="/" className="botao-secundario">
+            <Icone nome="casa" /> Voltar à tela inicial
+          </Link>
+        </div>
+      ) : (
+        <>
       {etapa === 'viveiro' && (
         <div className="assistente">
           <h2 className="pergunta">De qual viveiro?</h2>
@@ -256,11 +280,19 @@ export function NovoPedido() {
       {etapa === 'pessoa' && (
         <form
           className="formulario"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             const f = faltaNaPessoa(pessoa);
             setFaltas(f);
-            if (!f.length) setEtapa('conferir');
+            if (f.length) return;
+            // no balcão, a equipe confere pelo CPF/CNPJ se a pessoa comprovou os plantios anteriores
+            if (equipe && sessao) {
+              setConferindo(true);
+              const c = await consultarComprovacao(db, sessao.servidor, sessao.token, pessoa.documento);
+              setConferindo(false);
+              if (c?.pendentes.length) return setFaltas([c.mensagem]);
+            }
+            setEtapa('conferir');
           }}
         >
           <h2 className="pergunta">{equipe ? 'Quem está pedindo?' : 'Seus dados'}</h2>
@@ -290,7 +322,9 @@ export function NovoPedido() {
           </label>
           <p className="dica">CPF, CNPJ e telefone só são vistos pelo gestor.</p>
           {listaFaltas}
-          <button className="botao-principal">Continuar</button>
+          <button className="botao-principal" disabled={conferindo}>
+            {conferindo ? 'Aguarde…' : 'Continuar'}
+          </button>
           {voltar('plantio')}
         </form>
       )}
@@ -345,6 +379,8 @@ export function NovoPedido() {
           {!aceito && <p className="dica">Marque “Li e aceito” para enviar o pedido.</p>}
           {voltar('pessoa')}
         </div>
+      )}
+        </>
       )}
     </Tela>
   );

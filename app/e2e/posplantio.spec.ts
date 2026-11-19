@@ -6,6 +6,18 @@ import { abrirModulo, entrarComoGestora, entrarComoSolicitante, lerDoServidor } 
 const foto = fileURLToPath(new URL('./fixtures/foto.jpg', import.meta.url));
 const LOCAL = { latitude: -10.18, longitude: -48.33, accuracy: 7 };
 
+test('quem retirou mudas e não comprovou o plantio não faz pedido novo: o app leva ao pós-plantio', async ({ page }) => {
+  await entrarComoSolicitante(page);
+  await page.goto('/doacao/novo');
+  const aviso = page.getByTestId('comprovar-plantio');
+  await expect(aviso).toContainText('Antes de pedir mudas de novo, comprove o plantio');
+  await expect(aviso).toContainText('DO-2026-901');
+  await expect(aviso).toContainText('Doações do Plantando Água não precisam.');
+  await expect(page.getByLabel(/^Quantidade de/)).toHaveCount(0);
+  await aviso.getByRole('link', { name: 'Registrar o plantio do pedido DO-2026-901 com fotos' }).click();
+  await expect(page).toHaveURL(/\/pos-plantio\/novo\//);
+});
+
 test('solicitante registra o plantio e o acompanhamento sem internet; foto longe do local fica para conferência; vistoria da gestora', async ({ browser }) => {
   const ctx = await browser.newContext({ permissions: ['geolocation'], geolocation: LOCAL });
   const s = await ctx.newPage();
@@ -78,4 +90,13 @@ test('solicitante registra o plantio e o acompanhamento sem internet; foto longe
   expect(texto).toMatch(/GPS -?\d+\.\d{5}, -?\d+\.\d{5}/);
   expect(texto).not.toMatch(/000\.000\.000|9000\d-/);
   await cg.close();
+});
+
+test('com o plantio registrado com fotos, o pedido DO-2026-901 deixa de travar pedidos novos', async ({ page }) => {
+  await entrarComoSolicitante(page);
+  await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
+  await page.goto('/doacao/novo');
+  // pode ainda haver outros pedidos retirados nos testes anteriores; o 901 já não aparece
+  await expect(page.getByRole('heading', { name: /Primeiro, mostre o plantio|De qual viveiro\?|Quais mudas e quantas\?/ })).toBeVisible();
+  await expect(page.getByText('DO-2026-901')).toHaveCount(0);
 });

@@ -6,6 +6,8 @@
  */
 import {
   COLECOES,
+  mensagemSemComprovacao,
+  retiradasSemComprovacao,
   TIPOS_COM_ANO,
   colecao,
   disponivelPorLote,
@@ -237,6 +239,20 @@ export function enviar(app: App, auth: RecordPB, corpo: { dispositivo_id?: strin
         const col = existeColecao(op.colecao) ? colecao(op.colecao) : null;
         const atualRec = col ? buscar(tx, col.nome, op.registro_id) : null;
         const atual = col && atualRec ? paraObjeto(col, atualRec) : null;
+        // Pedido novo de quem retirou mudas e ainda não comprovou o plantio (com foto): recusa.
+        if (op.colecao === 'doacao' && op.tipo === 'criar' && !atual) {
+          const dados = (op.dados ?? {}) as Registro;
+          const pendentes = pendenciasPlantio(tx, String(dados.solicitante_usuario_id ?? ''), String(dados.solicitante_pessoa_id ?? ''));
+          if (pendentes.length) {
+            res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: 'rejeitada', motivo: mensagemSemComprovacao(pendentes) };
+            return;
+          }
+        }
+        // item de um pedido que não foi registrado (recusado acima): não fica solto
+        if (op.colecao === 'doacao_item' && op.tipo === 'criar' && !atual && !buscar(tx, 'doacao', String((op.dados as Registro)?.doacao_id ?? ''))) {
+          res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: 'rejeitada', motivo: 'O pedido destas mudas não foi registrado.' };
+          return;
+        }
         const opSegura: Operacao = { ...op, dispositivo_id: dispositivo || op.dispositivo_id };
         const d = resolverOperacao(opSegura, atual, ctx, porta(tx, dispositivo));
 
@@ -1163,6 +1179,57 @@ export function semearManuais(app: App, pasta: string, arquivoDe: (caminho: stri
     n++;
   }
   return n;
+}
+
+// ---------------------------------------------------------------- comprovação do plantio
+
+const soDigitos = (v: unknown) => String(v ?? '').replace(/\D/g, '');
+
+/**
+ * Pedidos da mesma pessoa: pela conta, pela ficha ou pelo mesmo CPF/CNPJ (no balcão cada
+ * pedido cria uma ficha nova). Só o servidor compara documentos; o aparelho não vê.
+ */
+function pedidosDaPessoa(app: App, usuarioId: string, pessoaId: string): Registro[] {
+  const pessoas = new Set<string>(pessoaId ? [pessoaId] : []);
+  if (usuarioId) for (const p of app.findRecordsByFilter('pessoa', 'usuario_id = {:u} && excluido = false', '', 0, 0, { u: usuarioId })) pessoas.add(p.id);
+  const documentos = new Set<string>();
+  for (const id of pessoas)
+    for (const dp of app.findRecordsByFilter('dados_pessoais', 'pessoa_id = {:p}', '', 0, 0, { p: id })) {
+      const doc = soDigitos(dp.getString('documento'));
+      if (doc.length >= 11) documentos.add(doc);
+    }
+  if (documentos.size) for (const dp of todos(app, 'dados_pessoais')) if (documentos.has(soDigitos(dp.documento))) pessoas.add(String(dp.pessoa_id));
+  return todos(app, 'doacao').filter((d) => (usuarioId && d.solicitante_usuario_id === usuarioId) || pessoas.has(String(d.solicitante_pessoa_id)));
+}
+
+/** Retiradas da pessoa sem plantio comprovado com foto (fora do Plantando Água). */
+export function pendenciasPlantio(app: App, usuarioId: string, pessoaId: string): Registro[] {
+  const doacoes = pedidosDaPessoa(app, usuarioId, pessoaId);
+  if (!doacoes.some((d) => d.situacao === 'retirada')) return [];
+  const ids = new Set(doacoes.map((d) => d.id));
+  const plantios = todos(app, 'plantio').filter((p) => ids.has(String(p.doacao_id)));
+  const dosPlantios = new Set(plantios.map((p) => p.id));
+  const fotos = todos(app, 'foto').filter((f) => f.entidade === 'plantio' && dosPlantios.has(String(f.registro_id)));
+  const historico = todos(app, 'doacao_programa_historico').filter((h) => ids.has(String(h.doacao_id)));
+  return retiradasSemComprovacao(doacoes, plantios, fotos, historico) as Registro[];
+}
+
+/**
+ * POST /api/crads/doacao/pendencias-plantio — antes de começar um pedido: falta comprovar
+ * algum plantio? Sem `documento`, de quem está usando o app; com ele (equipe no balcão),
+ * da pessoa com esse CPF/CNPJ. Devolve só os códigos dos pedidos.
+ */
+export function consultarPendenciasPlantio(app: App, auth: RecordPB, corpo: { documento?: string }) {
+  const ctx = contextoDe(app, auth);
+  const documento = soDigitos(corpo.documento);
+  let pendentes: Registro[];
+  if (documento) {
+    const equipe = ctx.gestorGeral || Object.values(ctx.perfisPorViveiro).some((ps) => ps.length > 0);
+    if (!equipe) throw new Error('Só a equipe consulta pelo documento.');
+    const pessoa = todos(app, 'dados_pessoais').find((dp) => soDigitos(dp.documento) === documento);
+    pendentes = pessoa ? pendenciasPlantio(app, '', String(pessoa.pessoa_id)) : [];
+  } else pendentes = pendenciasPlantio(app, auth.id, '');
+  return { pendentes: pendentes.map((d) => ({ id: d.id, codigo: String(d.codigo ?? '') })), mensagem: pendentes.length ? mensagemSemComprovacao(pendentes) : '' };
 }
 
 /** Chamado pelos ganchos de gravação: manda os avisos ao carteiro (falha nunca atrapalha a gravação). */

@@ -318,6 +318,13 @@ O que o Módulo 5 entrega:
   - **até 30 mudas de cada espécie por pedido** (parâmetro
     `limite_mudas_por_especie`); o total do pedido não tem limite. O que
     passa do disponível também é bloqueado;
+  - **plantio comprovado antes de pedir de novo:** quem já retirou mudas só
+    faz um pedido novo depois de registrar o plantio **com fotos** em
+    Pós-plantio. A tela diz quais pedidos faltam e leva direto ao registro.
+    No balcão, a equipe é avisada pelo CPF/CNPJ (o aparelho não vê o
+    documento de ninguém: quem compara é o servidor). Quem decide é o
+    servidor, que também recusa o pedido feito sem internet. **Doações do
+    Plantando Água não precisam comprovar**;
   - CPF, CNPJ e telefone ficam na tabela que só o gestor lê. A exceção é o
     telefone, que quem entrega as mudas vê depois da aprovação para combinar a
     retirada (fica registrado na auditoria).

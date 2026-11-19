@@ -4,7 +4,12 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { escreverXlsx } from '../../dominio/src/index';
-import { abrirModulo, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
+import { dispensarComprovacaoDoSolicitante, abrirModulo, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
+
+// o solicitante já tem retiradas sem plantio comprovado; aqui o assunto é o pedido
+let desfazer: () => Promise<void> = async () => {};
+test.beforeAll(async () => void (desfazer = await dispensarComprovacaoDoSolicitante()));
+test.afterAll(() => desfazer());
 
 test('viveirista cadastra sem internet as mudas que já estavam no viveiro: uma espécie, lista e planilha', async ({ page, context }) => {
   await entrarComoViveirista(page);

@@ -260,6 +260,16 @@ routerAdd("POST", "/api/crads/push/sair", (e) => {
   return e.json(200, crads.sairPush($app, e.auth, e.requestInfo().body));
 }, $apis.requireAuth("users"));
 
+// Antes de pedir mudas: falta comprovar o plantio de alguma retirada?
+routerAdd("POST", "/api/crads/doacao/pendencias-plantio", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  try {
+    return e.json(200, crads.consultarPendenciasPlantio($app, e.auth, e.requestInfo().body));
+  } catch (err) {
+    throw new ForbiddenError(String(err).replace(/^Error: /, ""));
+  }
+}, $apis.requireAuth("users"));
+
 // Aviso de teste (Ajustes): chega nos aparelhos de quem pediu, depois de alguns segundos.
 routerAdd("POST", "/api/crads/push/testar", (e) => {
   const crads = require(`${__hooks}/lib/crads.js`);

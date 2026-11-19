@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { abrirModulo, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
+import { dispensarComprovacaoDoSolicitante, abrirModulo, entrarComoGestora, entrarComoSolicitante, entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
+
+// o solicitante já tem retiradas sem plantio comprovado; aqui o assunto é o pedido
+let desfazer: () => Promise<void> = async () => {};
+test.beforeAll(async () => void (desfazer = await dispensarComprovacaoDoSolicitante()));
+test.afterAll(() => desfazer());
 
 const ESPECIE = 'Árvore-da-doação';
 

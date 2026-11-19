@@ -1,4 +1,7 @@
 import { expect, type Page } from '@playwright/test';
+import { PROGRAMA_SEM_COMPROVACAO, retiradasSemComprovacao } from '../../dominio/src/index';
+
+type Reg = Record<string, unknown> & { id: string };
 
 export const PB = () => process.env.CRADS_PB_URL!;
 
@@ -37,4 +40,27 @@ export async function noCatalogo(nomePopular: string): Promise<number> {
   const r = await fetch(`${PB()}/api/crads/publico/catalogo`);
   const { itens } = await r.json();
   return itens.find((i: { nomes_populares: string[] }) => i.nomes_populares.includes(nomePopular))?.total ?? 0;
+}
+
+/**
+ * Para os testes em que o solicitante só precisa fazer um pedido: as retiradas
+ * dele ainda sem plantio comprovado passam, por um tempo, para o Plantando Água
+ * (que não precisa comprovar). Devolve a função que desfaz a marcação.
+ */
+export async function dispensarComprovacaoDoSolicitante(): Promise<() => Promise<void>> {
+  const [usuario] = (await lerDoServidor('users')).filter((u) => u.email === 'solicitante@teste.local');
+  const [doacoes, plantios, fotos, historico] = await Promise.all(['doacao', 'plantio', 'foto', 'doacao_programa_historico'].map(lerDoServidor));
+  const pendentes = retiradasSemComprovacao(doacoes.filter((d) => d.solicitante_usuario_id === usuario.id) as Reg[], plantios as Reg[], fotos as Reg[], historico as Reg[]);
+  const marcar = (acao: 'marcou' | 'desmarcou') =>
+    Promise.all(
+      pendentes.map((d) =>
+        fetch(`${PB()}/api/collections/doacao_programa_historico/records`, {
+          method: 'POST',
+          headers: { authorization: process.env.CRADS_PB_ADMIN!, 'content-type': 'application/json' },
+          body: JSON.stringify({ doacao_id: d.id, programa_id: PROGRAMA_SEM_COMPROVACAO, acao, motivo: 'teste', viveiro_id: d.viveiro_id, criado_no_aparelho_em: new Date().toISOString() }),
+        }),
+      ),
+    );
+  await marcar('marcou');
+  return async () => void (await marcar('desmarcou'));
 }
