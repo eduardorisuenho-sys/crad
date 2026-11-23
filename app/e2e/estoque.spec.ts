@@ -61,7 +61,7 @@ test('viveirista cadastra sem internet as mudas que já estavam no viveiro: uma 
   await expect(page.getByTestId('germinacao')).toHaveCount(0);
 });
 
-test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, limite por espécie, combinar a retirada e baixa no estoque', async ({ browser }) => {
+test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, pedido só até o estoque, combinar a retirada e baixa no estoque', async ({ browser }) => {
   test.setTimeout(180_000);
   // espécie não publicada (como as importadas da lista oficial): as mudas prontas aparecem mesmo assim
   const admin = { authorization: process.env.CRADS_PB_ADMIN!, 'content-type': 'application/json' };
@@ -117,10 +117,10 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, li
   const s = await cs.newPage();
   await entrarComoSolicitante(s);
   await s.goto('/doacao/novo');
-  // até 30 mudas de cada espécie (o total do pedido não tem limite)
-  await s.getByLabel('Quantidade de Árvore-do-estoque').fill('31');
+  // sem limite por espécie, mas nunca mais do que o estoque
+  await s.getByLabel('Quantidade de Árvore-do-estoque').fill('41');
   await s.getByRole('button', { name: /Continuar/ }).click();
-  await expect(s.getByText('Cada pedido pode ter até 30 mudas de Árvore-do-estoque.')).toBeVisible();
+  await expect(s.getByText('Há 40 mudas de Árvore-do-estoque disponíveis.')).toBeVisible();
   await s.getByLabel('Quantidade de Árvore-do-estoque').fill('10');
   await s.getByRole('button', { name: 'Continuar (10 mudas)' }).click();
   await s.getByRole('button', { name: 'Escola ou quintal' }).click();

@@ -11,6 +11,7 @@ import {
   TIPOS_COM_ANO,
   colecao,
   disponivelPorLote,
+  bloqueiosPedido,
   parametro,
   planejarReservas,
   matrizDe,
@@ -245,6 +246,13 @@ export function enviar(app: App, auth: RecordPB, corpo: { dispositivo_id?: strin
           const pendentes = pendenciasPlantio(tx, String(dados.solicitante_usuario_id ?? ''), String(dados.solicitante_pessoa_id ?? ''));
           if (pendentes.length) {
             res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: 'rejeitada', motivo: mensagemSemComprovacao(pendentes) };
+            return;
+          }
+          // ninguém pede mais mudas do que o viveiro tem (o pedido pode ter sido feito sem internet, com o estoque antigo)
+          const itens = (corpo.operacoes ?? []).filter((o) => o.colecao === 'doacao_item' && o.tipo === 'criar' && (o.dados as Registro)?.doacao_id === op.registro_id).map((o) => o.dados as Registro);
+          const acima = itens.length ? acimaDoEstoque(tx, String(dados.viveiro_id ?? ''), itens) : [];
+          if (acima.length) {
+            res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: 'rejeitada', motivo: `O viveiro não tem mudas para este pedido. ${acima.join(' ')} Faça o pedido de novo.` };
             return;
           }
         }
@@ -823,8 +831,6 @@ export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { it
       const item = itens.find((i: Registro) => i.id === itemId);
       if (!item) throw new Error('Item do pedido não encontrado.');
       if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error('Quantidade aprovada inválida.');
-      const limite = lerParametro<number>(tx, 'limite_mudas_por_especie', viveiroId);
-      if (q > limite) throw new Error(`Cada pedido pode ter até ${limite} mudas de cada espécie.`);
     }
     const aprovados = itens.map((i: Registro) => ({ item: i, qtd: pedidoAprovado.get(i.id) ?? 0 }));
     const situacao = situacaoAposAnalise(aprovados.map((a: { item: Registro; qtd: number }) => ({ qtd_pedida: Number(a.item.qtd_pedida), qtd_aprovada: a.qtd })));
@@ -1189,6 +1195,24 @@ const soDigitos = (v: unknown) => String(v ?? '').replace(/\D/g, '');
  * Pedidos da mesma pessoa: pela conta, pela ficha ou pelo mesmo CPF/CNPJ (no balcão cada
  * pedido cria uma ficha nova). Só o servidor compara documentos; o aparelho não vê.
  */
+/** Itens do pedido acima do que o viveiro tem disponível agora (saldo dos lotes prontos − reservas ativas). */
+function acimaDoEstoque(app: App, viveiroId: string, itens: Registro[]): string[] {
+  const doViveiro = (n: string) => todos(app, n).filter((r) => r.viveiro_id === viveiroId);
+  const lotes = doViveiro('lote_mudas');
+  const porLote = disponivelPorLote({ lotesMudas: lotes, movimentos: doViveiro('movimento_estoque_mudas'), reservas: doViveiro('reserva') });
+  const porEspecie = new Map<string, number>();
+  for (const l of lotes) if (porLote.has(l.id)) porEspecie.set(String(l.especie_id), (porEspecie.get(String(l.especie_id)) ?? 0) + (porLote.get(l.id) ?? 0));
+  const especies = new Set(itens.map((i) => String(i.especie_id)));
+  const nomes = new Map<string, string>();
+  for (const n of todos(app, 'nome_popular')) if (especies.has(String(n.especie_id)) && !nomes.has(String(n.especie_id))) nomes.set(String(n.especie_id), String(n.nome));
+  for (const e of especies) if (!nomes.has(e)) {
+    const esp = buscar(app, 'especie', e);
+    if (esp) nomes.set(e, String(esp.get('nome_cientifico')));
+  }
+  const pedidos = itens.map((i) => ({ especie_id: String(i.especie_id), quantidade: Number(i.qtd_pedida) || 0 }));
+  return bloqueiosPedido(pedidos, porEspecie, nomes).filter((b) => b.startsWith('Há '));
+}
+
 function pedidosDaPessoa(app: App, usuarioId: string, pessoaId: string): Registro[] {
   const pessoas = new Set<string>(pessoaId ? [pessoaId] : []);
   if (usuarioId) for (const p of app.findRecordsByFilter('pessoa', 'usuario_id = {:u} && excluido = false', '', 0, 0, { u: usuarioId })) pessoas.add(p.id);

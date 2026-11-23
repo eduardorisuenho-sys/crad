@@ -3,7 +3,7 @@
  * gestão cadastra ou importa da lista oficial, sem "publicar"):
  * espécie → coleta sem matriz → lote de sementes automático → semeadura →
  * germinação → em formação (fora do catálogo, com o motivo) → pronta →
- * catálogo → pedido (limite por espécie) → recusa e aprovação em parte →
+ * catálogo → pedido (até o estoque) → recusa e aprovação em parte →
  * avisos → retirada a menos → baixa e sobra de volta ao catálogo → rastreio.
  */
 import { expect, test, type Page } from '@playwright/test';
@@ -149,14 +149,15 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   await expect(g.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
   await expect.poll(() => noCatalogo(IMPORTADA), { timeout: 20_000 }).toBe(40);
 
-  // ---- 6. solicitante: limite de 30 por espécie, pedido com duas espécies (total 50, sem limite no total)
+  // ---- 6. solicitante: só até o estoque, pedido com duas espécies (total 50)
   const cs = await browser.newContext({ acceptDownloads: true });
   const s = await cs.newPage();
   await entrarComoSolicitante(s);
   await s.goto('/doacao/novo');
-  await s.getByLabel(`Quantidade de ${NOVA}`).fill('31');
+  // não há limite por espécie, só o estoque: pedir mais do que há é bloqueado
+  await s.getByLabel(`Quantidade de ${NOVA}`).fill('86');
   await s.getByRole('button', { name: /Continuar/ }).click();
-  await expect(s.getByText(`Cada pedido pode ter até 30 mudas de ${NOVA}.`)).toBeVisible();
+  await expect(s.getByText(`Há 85 mudas de ${NOVA} disponíveis.`)).toBeVisible();
   const pedidoA = await pedir(s, [[NOVA, 30], [IMPORTADA, 20]]);
   // e um segundo pedido, que vai ser recusado
   const pedidoB = await pedir(s, [[IMPORTADA, 5]], 'Beira de rio ou nascente');

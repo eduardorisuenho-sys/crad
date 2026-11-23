@@ -100,7 +100,7 @@ erDiagram
 | `usuario_viveiro` | usuário, viveiro, `perfil` (coletor, viveirista, gestor). Uma pessoa pode ter perfis diferentes em viveiros diferentes. |
 | `pessoa` | nome, tipo (física ou jurídica), instituição, município. É usada para solicitante, proprietário de área e recebedor. |
 | `dados_pessoais` | `pessoa_id`, CPF/CNPJ, telefone, e-mail. **Só o gestor lê.** |
-| `parametro` | `chave`, `valor` (JSON), `viveiro_id` (vazio quando é geral), editado pelo gestor e auditado. Exemplos: `meta_matrizes_por_especie=12`, `min_matrizes_por_lote`, `distancia_min_matrizes_m`, `prazo_retirada_dias`, `limite_mudas_por_pedido`, `perfis_aprovadores=["gestor"]`, `dias_sessao_offline`. |
+| `parametro` | `chave`, `valor` (JSON), `viveiro_id` (vazio quando é geral), editado pelo gestor e auditado. Exemplos: `meta_matrizes_por_especie=12`, `min_matrizes_por_lote`, `distancia_min_matrizes_m`, `prazo_retirada_dias`, `perfis_aprovadores=["gestor"]`, `dias_sessao_offline`. |
 | `meta` | indicador, alvo, ano, recorte (viveiro, espécie ou programa) |
 | `dispositivo` | usuário, nome, última sincronização, versão do pacote de campo |
 | `faixa_codigo` | dispositivo, tipo (MT, LS, LM, DO), ano, início, fim, último usado |
@@ -228,7 +228,7 @@ serão ajustadas à especificação.
   espécie estão a menos de `distancia_min_matrizes_m` (possível parentesco)
   **[hipótese]**; painel da meta de matrizes por espécie (ex.: 12).
 - **Bloqueios:** matriz “a identificar” não forma lote para o catálogo
-  **[hipótese]**; pedido acima do disponível ou do limite por pedido é
+  **[hipótese]**; pedido acima do disponível (estoque) é
   bloqueado; aprovação só pelos perfis em `perfis_aprovadores`; retirada fora
   do prazo é bloqueada até nova aprovação **[hipótese]**.
 - **Cálculos:** taxa de germinação = germinadas ÷ semeadas; perdas no viveiro;

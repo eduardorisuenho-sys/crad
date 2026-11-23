@@ -564,7 +564,6 @@ var PARAMETROS_PADRAO = {
   min_matrizes_por_lote: { valor: 12, descricao: "M\xEDnimo de matrizes num lote de sementes antes do alerta de diversidade" },
   distancia_min_matrizes_m: { valor: 100, descricao: "Dist\xE2ncia m\xEDnima entre matrizes da mesma esp\xE9cie (metros)" },
   prazo_retirada_dias: { valor: 30, descricao: "Dias para retirar as mudas depois da aprova\xE7\xE3o" },
-  limite_mudas_por_especie: { valor: 30, descricao: "M\xE1ximo de mudas de cada esp\xE9cie num pedido (o total do pedido n\xE3o tem limite)" },
   perfis_aprovadores: { valor: ["gestor"], descricao: "Perfis que podem aprovar doa\xE7\xF5es" },
   dias_sessao_offline: { valor: 30, descricao: "Dias que o aparelho pode ficar sem entrar na internet antes de pedir login de novo" },
   fotos_obrigatorias_matriz: { valor: ["arvore", "folha"], descricao: "Fotos que o coletor precisa tirar para salvar a matriz" },
@@ -1148,6 +1147,19 @@ var SITUACOES_EM_ANALISE = ["enviada", "em_analise"];
 var SITUACOES_APROVADAS = ["aprovada", "aprovada_parcial"];
 function reservaAtiva(r2, hoje) {
   return !r2.excluido && r2.situacao === "ativa" && (!r2.valida_ate || dia(r2.valida_ate) >= dia(hoje));
+}
+function bloqueiosPedido(itens, disponivelPorEspecie, nomes) {
+  var _a, _b;
+  const b2 = [];
+  const validos = itens.filter((i) => i.quantidade > 0);
+  if (!validos.length) b2.push("Escolha pelo menos uma esp\xE9cie.");
+  for (const i of validos) {
+    const nome = (_a = nomes == null ? void 0 : nomes.get(i.especie_id)) != null ? _a : i.especie_id;
+    if (!Number.isInteger(i.quantidade)) b2.push(`Quantidade de ${nome} deve ser um n\xFAmero inteiro.`);
+    const disp = (_b = disponivelPorEspecie.get(i.especie_id)) != null ? _b : 0;
+    if (i.quantidade > disp) b2.push(`H\xE1 ${disp} mudas de ${nome} dispon\xEDveis.`);
+  }
+  return b2;
 }
 function planejarReservas(itens, lotes) {
   var _a, _b;
@@ -1742,7 +1754,7 @@ function enviar(app, auth, corpo) {
     let res = null;
     try {
       app.runInTransaction((tx) => {
-        var _a2, _b2, _c, _d, _e;
+        var _a2, _b2, _c, _d, _e, _f, _g;
         try {
           const feita = tx.findFirstRecordByFilter("sync_op", "op_id = {:o}", { o: op.op_id });
           const anterior = JSON.parse(JSON.stringify(feita)).resultado;
@@ -1761,8 +1773,17 @@ function enviar(app, auth, corpo) {
             res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: "rejeitada", motivo: mensagemSemComprovacao(pendentes) };
             return;
           }
+          const itens = ((_d = corpo.operacoes) != null ? _d : []).filter((o2) => {
+            var _a3;
+            return o2.colecao === "doacao_item" && o2.tipo === "criar" && ((_a3 = o2.dados) == null ? void 0 : _a3.doacao_id) === op.registro_id;
+          }).map((o2) => o2.dados);
+          const acima = itens.length ? acimaDoEstoque(tx, String((_e = dados.viveiro_id) != null ? _e : ""), itens) : [];
+          if (acima.length) {
+            res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: "rejeitada", motivo: `O viveiro n\xE3o tem mudas para este pedido. ${acima.join(" ")} Fa\xE7a o pedido de novo.` };
+            return;
+          }
         }
-        if (op.colecao === "doacao_item" && op.tipo === "criar" && !atual && !buscar(tx, "doacao", String((_e = (_d = op.dados) == null ? void 0 : _d.doacao_id) != null ? _e : ""))) {
+        if (op.colecao === "doacao_item" && op.tipo === "criar" && !atual && !buscar(tx, "doacao", String((_g = (_f = op.dados) == null ? void 0 : _f.doacao_id) != null ? _g : ""))) {
           res = { op_id: op.op_id, colecao: op.colecao, registro_id: op.registro_id, status: "rejeitada", motivo: "O pedido destas mudas n\xE3o foi registrado." };
           return;
         }
@@ -2250,8 +2271,6 @@ function analisarDoacao(app, auth, id, corpo) {
       const item = itens.find((i) => i.id === itemId);
       if (!item) throw new Error("Item do pedido n\xE3o encontrado.");
       if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error("Quantidade aprovada inv\xE1lida.");
-      const limite = lerParametro(tx, "limite_mudas_por_especie", viveiroId);
-      if (q > limite) throw new Error(`Cada pedido pode ter at\xE9 ${limite} mudas de cada esp\xE9cie.`);
     }
     const aprovados = itens.map((i) => {
       var _a2;
@@ -2560,6 +2579,23 @@ function semearManuais(app, pasta, arquivoDe) {
   return n2;
 }
 var soDigitos = (v) => String(v != null ? v : "").replace(/\D/g, "");
+function acimaDoEstoque(app, viveiroId, itens) {
+  var _a, _b;
+  const doViveiro = (n2) => todos(app, n2).filter((r2) => r2.viveiro_id === viveiroId);
+  const lotes = doViveiro("lote_mudas");
+  const porLote = disponivelPorLote({ lotesMudas: lotes, movimentos: doViveiro("movimento_estoque_mudas"), reservas: doViveiro("reserva") });
+  const porEspecie = /* @__PURE__ */ new Map();
+  for (const l of lotes) if (porLote.has(l.id)) porEspecie.set(String(l.especie_id), ((_a = porEspecie.get(String(l.especie_id))) != null ? _a : 0) + ((_b = porLote.get(l.id)) != null ? _b : 0));
+  const especies = new Set(itens.map((i) => String(i.especie_id)));
+  const nomes = /* @__PURE__ */ new Map();
+  for (const n2 of todos(app, "nome_popular")) if (especies.has(String(n2.especie_id)) && !nomes.has(String(n2.especie_id))) nomes.set(String(n2.especie_id), String(n2.nome));
+  for (const e of especies) if (!nomes.has(e)) {
+    const esp = buscar(app, "especie", e);
+    if (esp) nomes.set(e, String(esp.get("nome_cientifico")));
+  }
+  const pedidos = itens.map((i) => ({ especie_id: String(i.especie_id), quantidade: Number(i.qtd_pedida) || 0 }));
+  return bloqueiosPedido(pedidos, porEspecie, nomes).filter((b2) => b2.startsWith("H\xE1 "));
+}
 function pedidosDaPessoa(app, usuarioId, pessoaId) {
   const pessoas = new Set(pessoaId ? [pessoaId] : []);
   if (usuarioId) for (const p of app.findRecordsByFilter("pessoa", "usuario_id = {:u} && excluido = false", "", 0, 0, { u: usuarioId })) pessoas.add(p.id);

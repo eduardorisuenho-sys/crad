@@ -25,7 +25,7 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
   const enviar = (t: string, ops: Operacao[]) => chamar(s, t, 'POST', '/api/crads/sync/enviar', { dispositivo_id: 'aparelho0000010', operacoes: ops });
   const catalogo = async () => (await chamar(s, '', 'GET', '/api/crads/publico/catalogo')).dados.itens[0]?.total ?? 0;
 
-  async function novoPedido(qtd: number) {
+  async function novoPedido(qtd: number, esperado = ['aplicada', 'aplicada', 'aplicada']) {
     const doacao = gerarId();
     const item = gerarId();
     const pessoa = gerarId();
@@ -34,8 +34,8 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
       op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: `DO-P-TEST-${qtd}`, solicitante_pessoa_id: pessoa, situacao: 'enviada', viveiro_id: VIV, finalidade: 'teste', termo_aceito_em: '2026-10-16', termo_texto: 'Termo de compromisso aceito' } }),
       op({ colecao: 'doacao_item', registro_id: item, tipo: 'criar', dados: { doacao_id: doacao, especie_id: especie, qtd_pedida: qtd, viveiro_id: VIV } }),
     ]);
-    expect(r.dados.resultados.map((x: { status: string }) => x.status)).toEqual(['aplicada', 'aplicada', 'aplicada']);
-    return { doacao, item };
+    expect(r.dados.resultados.map((x: { status: string }) => x.status)).toEqual(esperado);
+    return { doacao, item, resultados: r.dados.resultados as { status: string; motivo?: string }[] };
   }
 
   beforeAll(async () => {
@@ -47,8 +47,6 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
       op({ colecao: 'viveiro', registro_id: VIV, tipo: 'criar', dados: { sigla: 'DOA', nome: 'Viveiro Doação', ativo: true } }),
       op({ colecao: 'usuario_viveiro', tipo: 'criar', dados: { usuario_id: viveirista.id, perfil: 'viveirista', viveiro_id: VIV } }),
       op({ colecao: 'especie', registro_id: especie, tipo: 'criar', dados: { nome_cientifico: 'Doacia teste', publicada: true } }),
-      // estes testes usam pedidos grandes: o limite por espécie (padrão 30) fica alto aqui
-      op({ colecao: 'parametro', tipo: 'criar', dados: { chave: 'limite_mudas_por_especie', valor: 1000 } }),
       op({ colecao: 'lote_mudas', registro_id: loteNovo, tipo: 'criar', dados: { codigo: 'LM-2026-002-A', lote_sementes_id: 'x', especie_id: especie, data_semeadura: '2026-05-01', fase_atual: 'pronta', viveiro_id: VIV } }),
       op({ colecao: 'lote_mudas', registro_id: loteVelho, tipo: 'criar', dados: { codigo: 'LM-2026-001-A', lote_sementes_id: 'x', especie_id: especie, data_semeadura: '2026-01-01', fase_atual: 'pronta', viveiro_id: VIV } }),
       op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: loteVelho, tipo: 'entrada', quantidade: 30, data: '2026-03-01', viveiro_id: VIV } }),
@@ -81,10 +79,17 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
     expect((await chamar(s, gestor.token, 'POST', `/api/crads/doacao/${p.doacao}/analisar`, { itens: [] })).status).toBe(400);
   });
 
-  it('não reserva mais do que existe', async () => {
-    const p = await novoPedido(95);
-    const r = await chamar(s, gestor.token, 'POST', `/api/crads/doacao/${p.doacao}/analisar`, { itens: [{ item_id: p.item, qtd_aprovada: 95 }] });
+  it('não pede nem reserva mais do que existe; não há limite por espécie', async () => {
+    // pedido acima do estoque (feito sem internet, com o estoque antigo): recusado no envio
+    const acima = await novoPedido(95, ['aplicada', 'rejeitada', 'rejeitada']);
+    expect(acima.resultados[1].motivo).toBe('O viveiro não tem mudas para este pedido. Há 90 mudas de Doacia teste disponíveis. Faça o pedido de novo.');
+    // tudo o que há (90, acima das antigas 30 por espécie) pode ser pedido
+    const p = await novoPedido(90);
+    // o estoque baixou depois do pedido: a análise também não reserva o que não existe
+    await enviar(gestor.token, [op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: loteNovo, tipo: 'perda', quantidade: 5, data: '2026-08-01', viveiro_id: VIV } })]);
+    const r = await chamar(s, gestor.token, 'POST', `/api/crads/doacao/${p.doacao}/analisar`, { itens: [{ item_id: p.item, qtd_aprovada: 90 }] });
     expect(r).toMatchObject({ status: 400, dados: { message: expect.stringMatching(/Faltam 5 mudas/) } });
+    await enviar(gestor.token, [op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: loteNovo, tipo: 'entrada', quantidade: 5, data: '2026-08-02', viveiro_id: VIV } })]);
     expect(await catalogo()).toBe(90);
   });
 

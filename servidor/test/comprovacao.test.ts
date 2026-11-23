@@ -35,7 +35,12 @@ describe.skipIf(!temPocketBase)('comprovar o plantio antes de pedir mudas de nov
     s = await subirServidor();
     admin = await criarUsuario(s, 'admin@comprova.local', { gestor_geral: true });
     sol = await criarUsuario(s, 'sol@comprova.local', { solicitante: true });
-    await enviar(admin.token, [op({ colecao: 'viveiro', registro_id: VIV, tipo: 'criar', dados: { sigla: 'CMP', nome: 'Viveiro Comprova', ativo: true } })]);
+    await enviar(admin.token, [
+      op({ colecao: 'viveiro', registro_id: VIV, tipo: 'criar', dados: { sigla: 'CMP', nome: 'Viveiro Comprova', ativo: true } }),
+      // mudas prontas para os pedidos (ninguém pede mais do que o estoque)
+      op({ colecao: 'lote_mudas', registro_id: 'lotecomprova001', tipo: 'criar', dados: { codigo: 'LM-2026-050-A', lote_sementes_id: 'x', especie_id: 'especie0000001x', data_semeadura: '2026-01-01', fase_atual: 'pronta', viveiro_id: VIV } }),
+      op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: 'lotecomprova001', tipo: 'entrada', quantidade: 1000, data: '2026-03-01', viveiro_id: VIV } }),
+    ]);
     const pessoa = await criar('pessoa', { nome: 'Quem Plantou', usuario_id: sol.id });
     await criar('dados_pessoais', { pessoa_id: pessoa.id, documento: '529.982.247-25' });
     retirada = (await criar('doacao', { codigo: 'DO-2026-501', solicitante_pessoa_id: pessoa.id, solicitante_usuario_id: sol.id, situacao: 'retirada', viveiro_id: VIV })).id;

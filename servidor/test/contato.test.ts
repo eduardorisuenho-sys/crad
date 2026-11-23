@@ -57,16 +57,19 @@ describe.skipIf(!temPocketBase)('contato para combinar a retirada', () => {
     expect(aud).toEqual([expect.objectContaining({ registro_id: doacao, usuario_id: viveirista.id })]);
   });
 
-  it('limite de 30 mudas por espécie também vale na análise', async () => {
+  it('não há limite por espécie: a análise aprova tudo o que há no estoque', async () => {
     const doacao = gerarId();
     const item = gerarId();
     await enviar(admin.token, [
       op({ colecao: 'especie', registro_id: 'espcontato00001', tipo: 'criar', dados: { nome_cientifico: 'Contatia teste', publicada: true } }),
+      op({ colecao: 'lote_mudas', registro_id: 'lotecontato0001', tipo: 'criar', dados: { codigo: 'LM-2026-060-A', lote_sementes_id: 'x', especie_id: 'espcontato00001', data_semeadura: '2026-01-01', fase_atual: 'pronta', viveiro_id: VIV } }),
+      op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: 'lotecontato0001', tipo: 'entrada', quantidade: 50, data: '2026-03-01', viveiro_id: VIV } }),
       op({ colecao: 'pessoa', registro_id: 'pescontato00001', tipo: 'criar', dados: { nome: 'Balcão' } }),
       op({ colecao: 'doacao', registro_id: doacao, tipo: 'criar', dados: { codigo: 'DO-2026-951', solicitante_pessoa_id: 'pescontato00001', situacao: 'enviada', viveiro_id: VIV, termo_aceito_em: '2026-10-16', termo_texto: 'Termo de compromisso aceito' } }),
       op({ colecao: 'doacao_item', registro_id: item, tipo: 'criar', dados: { doacao_id: doacao, especie_id: 'espcontato00001', qtd_pedida: 50, viveiro_id: VIV } }),
     ]);
-    const r = await chamar(s, admin.token, 'POST', `/api/crads/doacao/${doacao}/analisar`, { itens: [{ item_id: item, qtd_aprovada: 31 }] });
-    expect(r.dados.message).toMatch(/até 30 mudas/);
+    const r = await chamar(s, admin.token, 'POST', `/api/crads/doacao/${doacao}/analisar`, { itens: [{ item_id: item, qtd_aprovada: 50 }] });
+    expect(r.status, JSON.stringify(r.dados)).toBe(200);
+    expect(r.dados.doacao.situacao).toBe('aprovada');
   });
 });

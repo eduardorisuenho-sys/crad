@@ -315,9 +315,10 @@ O que o Módulo 5 entrega:
     pedido do balcão;
   - o pedido traz espécies e quantidades, finalidade, município, local (com
     ponto do GPS), área e dados do solicitante. **Não precisa de ofício**;
-  - **até 30 mudas de cada espécie por pedido** (parâmetro
-    `limite_mudas_por_especie`); o total do pedido não tem limite. O que
-    passa do disponível também é bloqueado;
+  - **sem limite de mudas por espécie, mas nunca mais do que o estoque:** a
+    tela bloqueia o que passa do disponível, e o servidor recusa o pedido
+    que chegar acima do estoque (por exemplo, feito sem internet com o
+    estoque antigo). Na análise, só se reserva o que existe;
   - **plantio comprovado antes de pedir de novo:** quem já retirou mudas só
     faz um pedido novo depois de registrar o plantio **com fotos** em
     Pós-plantio. A tela diz quais pedidos faltam e leva direto ao registro.

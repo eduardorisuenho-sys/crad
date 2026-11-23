@@ -72,7 +72,6 @@ export function NovoPedido() {
   const nomesLocais = useLiveQuery(() => nomesEspecies(db), [db]);
   const municipios = useLiveQuery(() => listaMunicipios(db), [db]) ?? [];
   const parametros = useLiveQuery(() => db.colecao('parametro').toArray(), [db]) ?? [];
-  const limite = parametro<number>(parametros, 'limite_mudas_por_especie', viveiro);
   const disponivel = equipe ? local ?? new Map<string, number>() : publico?.porViveiro.get(viveiro ?? '') ?? new Map<string, number>();
   const nomes = equipe ? nomesLocais : publico?.nomes;
   const itens = useMemo(() => Object.entries(quantidades).map(([especie_id, q]) => ({ especie_id, quantidade: lerNumero(q) ?? 0 })).filter((i) => i.quantidade > 0), [quantidades]);
@@ -89,7 +88,7 @@ export function NovoPedido() {
   });
 
   function conferirMudas() {
-    const b = bloqueiosPedido(itens, disponivel, limite, nomes);
+    const b = bloqueiosPedido(itens, disponivel, nomes);
     setErros(b);
     if (!b.length) setEtapa('plantio');
   }
@@ -182,7 +181,6 @@ export function NovoPedido() {
       {etapa === 'mudas' && (
         <div className="assistente">
           <h2 className="pergunta">Quais mudas e quantas?</h2>
-          <p className="dica">Até {limite} mudas de cada espécie.</p>
           <ul className="lista">
             {[...disponivel.entries()]
               .filter(([, d]) => d > 0)
@@ -198,7 +196,7 @@ export function NovoPedido() {
                     type="number"
                     inputMode="numeric"
                     min="0"
-                    max={Math.min(d, limite)}
+                    max={d}
                     step="1"
                     aria-label={`Quantidade de ${nomes?.get(id) ?? id}`}
                     value={quantidades[id] ?? ''}
