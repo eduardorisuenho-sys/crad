@@ -91,7 +91,7 @@ export function InicioViveiro() {
                     {String(lote.codigo)} · {nomes?.get(String(lote.especie_id)) ?? ''}
                   </strong>
                   <small>
-                    {lote.fase_atual === 'pronta' ? 'Pronta para doação' : 'Em formação'} · {saldo} mudas{taxa !== null ? ` · germinação ${mostrarNumero(taxa)}%` : ''}
+                    {lote.fase_atual === 'pronta' ? 'Pronta para doação' : lote.pronta_em ? `Em formação · entra para doação em ${new Date(String(lote.pronta_em).slice(0, 10) + 'T12:00').toLocaleDateString('pt-BR')}` : 'Em formação'} · {saldo} mudas{taxa !== null ? ` · germinação ${mostrarNumero(taxa)}%` : ''}
                   </small>
                 </div>
                 {atrasado(previsao, lote.fase_atual as string, hoje) && <span className="selo">atrasado</span>}

@@ -38,16 +38,20 @@ export interface ItemEstoqueInicial {
   fase: string;
   canteiro?: string;
   observacao?: string;
+  /** ainda não estão prontas: dia em que entram para doação sozinhas (AAAA-MM-DD) */
+  pronta_em?: string;
   /** linha da planilha (1 = cabeçalho) */
   linha?: number;
 }
 
-export function bloqueiosEstoqueInicial(itens: { quantidade: number; fase: string }[]): string[] {
+export function bloqueiosEstoqueInicial(itens: { quantidade: number; fase: string; pronta_em?: string }[], hoje = new Date().toISOString()): string[] {
   const b: string[] = [];
   if (!itens.some((i) => i.quantidade > 0)) b.push('Informe a quantidade de pelo menos uma espécie.');
   for (const i of itens) {
     if (i.quantidade && (!Number.isInteger(i.quantidade) || i.quantidade < 0)) b.push('Use números inteiros nas quantidades.');
     if (!(FASES_MUDA as readonly string[]).includes(i.fase)) b.push(`Fase desconhecida: ${i.fase}.`);
+    if (i.fase !== 'pronta' && !i.pronta_em) b.push('Diga quando as mudas ficarão prontas para doação.');
+    if (i.fase !== 'pronta' && i.pronta_em && i.pronta_em.slice(0, 10) <= hoje.slice(0, 10)) b.push('A data em que ficarão prontas precisa ser depois de hoje. Se já estão prontas, marque “Já estão prontas”.');
   }
   return [...new Set(b)];
 }

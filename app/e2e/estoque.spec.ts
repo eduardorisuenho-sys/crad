@@ -35,6 +35,14 @@ test('viveirista cadastra sem internet as mudas que já estavam no viveiro: uma 
   await page.getByRole('button', { name: /Salvar todas \(1\)/ }).click();
   await expect(page.getByTestId('estoque-ok')).toContainText('7 mudas de 1 espécie(s)');
 
+  // 2b) ainda não prontas: entram em formação e viram "pronta" sozinhas na data
+  await page.getByLabel('Quantidade de Árvore-de-campo-fictícia').fill('9');
+  await page.getByRole('button', { name: 'Ainda não estão prontas' }).click();
+  await page.getByRole('button', { name: '3 meses' }).click();
+  await expect(page.getByTestId('aviso-pronta')).toContainText('entra para doação sozinho');
+  await page.getByRole('button', { name: /Salvar todas \(1\)/ }).click();
+  await expect(page.getByTestId('estoque-ok')).toContainText('entram para doação sozinhas em');
+
   // 3) planilha
   const arquivo = join(tmpdir(), `estoque-${Date.now()}.xlsx`);
   writeFileSync(arquivo, escreverXlsx([{ nome: 'Estoque', linhas: [['Espécie', 'Quantidade'], ['Árvore-de-campo-fictícia', 15], ['Espécie que não existe', 3]] }]));
@@ -54,6 +62,9 @@ test('viveirista cadastra sem internet as mudas que já estavam no viveiro: uma 
   expect(lotes.length).toBeGreaterThanOrEqual(3);
   for (const l of lotes) expect(String(l.codigo)).toMatch(/^LM-\d{4}-I-\d{3}$/);
   expect(lotes.find((l) => l.canteiro === 'canteiro 9')?.fase_atual).toBe('pronta');
+  const emFormacao = lotes.find((l) => l.pronta_em);
+  expect(emFormacao?.fase_atual).toBe('crescimento');
+  expect(String(emFormacao?.pronta_em).slice(0, 10) > new Date().toISOString().slice(0, 10)).toBe(true);
 
   await page.goto('/viveiro');
   await page.locator('.item-lista', { hasText: /LM-\d{4}-I-/ }).first().click();

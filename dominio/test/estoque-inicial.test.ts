@@ -70,3 +70,13 @@ describe('estoque inicial (mudas que já estavam no viveiro)', () => {
     expect(r.lote_sementes).toBeUndefined();
   });
 });
+
+describe('mudas ainda não prontas', () => {
+  it('pede a data em que ficarão prontas, depois de hoje', () => {
+    const hoje = '2026-11-23';
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento' }], hoje)).toContain('Diga quando as mudas ficarão prontas para doação.');
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento', pronta_em: '2026-11-23' }], hoje).join(' ')).toMatch(/depois de hoje/);
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento', pronta_em: '2027-02-23' }], hoje)).toEqual([]);
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'pronta' }], hoje)).toEqual([]);
+  });
+});

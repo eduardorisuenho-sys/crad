@@ -54,6 +54,7 @@ import {
   type ResultadoOperacao,
   notificacaoPara,
   resumoAprovacao,
+  lotesParaLiberar,
   loteDaColeta,
 } from '../../dominio/src/index';
 
@@ -861,6 +862,26 @@ export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { it
     resultado = { doacao: paraObjeto(colecao('doacao'), salvo), reservas: plano.reservas };
   });
   return resultado;
+}
+
+/**
+ * Lotes registrados como "ainda não prontos" com a data em que ficam prontos:
+ * quando a data chega, o lote passa a "pronta" e entra para doação sozinho.
+ * Roda a cada 15 minutos (e pode ser chamada à mão).
+ */
+export function liberarLotesProntos(app: App, hoje = hojeISO()) {
+  let lotes = 0;
+  app.runInTransaction((tx: App) => {
+    const candidatos = tx.findRecordsByFilter('lote_mudas', "excluido = false && fase_atual != 'pronta' && pronta_em != ''", '', 0, 0).map((r: RecordPB) => paraObjeto(colecao('lote_mudas'), r));
+    for (const l of lotesParaLiberar(candidatos as Registro[], hoje)) {
+      gravar(tx, colecao('lote_mudas'), { ...l, fase_atual: 'pronta', versao: Number(l.versao) + 1, atualizado_por: null });
+      const controle = { versao: 1, excluido: false, criado_por: null, atualizado_por: null, criado_no_aparelho_em: hoje, viveiro_id: l.viveiro_id };
+      gravar(tx, colecao('evento_lote_mudas'), { id: novoId(), ...controle, lote_mudas_id: l.id, tipo: 'mudanca_fase', data: hoje.slice(0, 10), fase_nova: 'pronta', observacao: 'Liberado para doação automaticamente na data indicada no registro.' });
+      auditar(tx, { colecao: 'lote_mudas', registro_id: l.id, acao: 'liberar_automatico', antes: { fase_atual: l.fase_atual }, depois: { fase_atual: 'pronta' }, usuario_id: 'sistema' });
+      lotes++;
+    }
+  });
+  return { lotes };
 }
 
 /** Nome que o povo conhece (o primeiro nome popular) ou o científico. */

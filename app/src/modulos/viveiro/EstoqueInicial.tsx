@@ -16,10 +16,9 @@ import { cadastrarEstoqueInicial } from './estoque';
 import { BotaoFoto } from '../../componentes/BotaoFoto';
 import { MiniaturaBlob } from '../../componentes/Miniatura';
 import { gravarFoto, prepararFoto, type FotoPendente } from '../matrizes/fotos';
+import { faseEscolhida, PRONTA_AGORA, QuandoPronta, type EscolhaPronta } from './QuandoPronta';
 
 type Modo = 'escolher' | 'uma' | 'lista' | 'planilha';
-// As mudas que já estavam no viveiro entram prontas para doação.
-const fase = 'pronta';
 
 export function EstoqueInicial() {
   const { db, repo, pode, viveiroId } = useApp();
@@ -29,6 +28,8 @@ export function EstoqueInicial() {
   const [msg, setMsg] = useState('');
   const [erro, setErro] = useState('');
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
+  // prontas para doação agora, ou só a partir de uma data
+  const [pronta, setPronta] = useState<EscolhaPronta>(PRONTA_AGORA);
 
   // ---- uma espécie por vez
   const [especie, setEspecie] = useState('');
@@ -61,7 +62,8 @@ export function EstoqueInicial() {
     if (b.length) return setErro(b.join(' '));
     const ids = await cadastrarEstoqueInicial(repo, itens);
     const total = itens.reduce((s, i) => s + i.quantidade, 0);
-    setMsg(`${total} mudas de ${ids.length} espécie(s) cadastradas. ${depois}`);
+    const quando = itens[0]?.pronta_em ? ` Ficam em formação e entram para doação sozinhas em ${new Date(`${itens[0].pronta_em}T12:00`).toLocaleDateString('pt-BR')}.` : '';
+    setMsg(`${total} mudas de ${ids.length} espécie(s) cadastradas.${quando} ${depois}`.trim());
     return ids;
   }
 
@@ -91,7 +93,7 @@ export function EstoqueInicial() {
 
       {modo === 'escolher' && (
         <div className="lista-grande">
-          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. Elas entram como prontas para doação. A origem das sementes fica como “não registrada”.</p>
+          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. Você diz se já estão prontas para doação ou quando ficarão prontas (nesse dia elas entram para doação sozinhas). A origem das sementes fica como “não registrada”.</p>
           <button className="botao-grande" onClick={() => setModo('uma')}>
             <Icone nome="muda" tamanho={40} />
             <span>
@@ -124,13 +126,14 @@ export function EstoqueInicial() {
           className="formulario"
           onSubmit={async (e) => {
             e.preventDefault();
-            const ok = await gravar([{ especie_id: especie, quantidade: Number(qtd), fase, canteiro }], '');
+            const ok = await gravar([{ especie_id: especie, quantidade: Number(qtd), canteiro, ...faseEscolhida(pronta) }], '');
             if (ok && foto) await gravarFoto(db, repo, 'lote_mudas', ok[0], viveiroId ?? undefined, foto);
             if (ok) {
               setFoto(null);
               setEspecie('');
               setQtd('');
               setCanteiro('');
+              setPronta(PRONTA_AGORA);
             }
           }}
         >
@@ -149,6 +152,7 @@ export function EstoqueInicial() {
             Onde estão? (opcional)
             <input value={canteiro} onChange={(e) => setCanteiro(e.target.value)} placeholder="Ex.: canteiro 3" />
           </label>
+          <QuandoPronta valor={pronta} aoMudar={setPronta} />
           <button className="botao-principal">
             <Icone nome="certo" /> Salvar
           </button>
@@ -180,16 +184,20 @@ export function EstoqueInicial() {
                 </li>
               ))}
           </ul>
+          <QuandoPronta valor={pronta} aoMudar={setPronta} />
           <button
             className="botao-principal"
             onClick={async () => {
               const ok = await gravar(
                 Object.entries(qtds)
                   .filter(([, q]) => Number(q) > 0)
-                  .map(([especie_id, q]) => ({ especie_id, quantidade: Number(q), fase })),
+                  .map(([especie_id, q]) => ({ especie_id, quantidade: Number(q), ...faseEscolhida(pronta) })),
                 'Confira em Viveiro.',
               );
-              if (ok) setQtds({});
+              if (ok) {
+                setQtds({});
+                setPronta(PRONTA_AGORA);
+              }
             }}
           >
             <Icone nome="certo" /> Salvar todas ({Object.values(qtds).filter((q) => Number(q) > 0).length})
@@ -201,7 +209,7 @@ export function EstoqueInicial() {
         <>
           <section className="cartao">
             <h2>1. Baixe o modelo</h2>
-            <p>Colunas: Espécie (nome popular ou científico), Quantidade, Canteiro e Observação.</p>
+            <p>Colunas: Espécie (nome popular ou científico), Quantidade, Canteiro e Observação. Pela planilha as mudas entram prontas para doação; as que ainda não estão prontas, registre em “Uma espécie por vez” ou “Várias de uma vez”.</p>
             <button
               className="botao-secundario"
               onClick={() => baixar(new Blob([escreverXlsx([{ nome: 'Estoque inicial', linhas: modeloPlanilhaEstoque() }]) as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'modelo-estoque-inicial.xlsx')}

@@ -149,4 +149,20 @@ describe.skipIf(!temPocketBase)('cenários: do estoque à retirada, com gente di
     expect((await chamar(s, gestor.token, 'POST', `/api/crads/lixeira/lote_mudas/${outro}/restaurar`)).status).toBe(200);
     expect(await noCatalogo(ipe)).toBe(12);
   });
+
+  it('lote registrado "ainda não pronto" só entra para doação na data indicada, sozinho', async () => {
+    const lote = gerarId();
+    const antes = await noCatalogo(treino);
+    const v = await enviar(viveirista.token, [
+      op({ colecao: 'lote_mudas', registro_id: lote, tipo: 'criar', dados: { codigo: 'LM-P-CEN-9', especie_id: treino, fase_atual: 'crescimento', pronta_em: '2099-06-01', origem: 'estoque_inicial', viveiro_id: VIV } }),
+      op({ colecao: 'movimento_estoque_mudas', tipo: 'criar', dados: { lote_mudas_id: lote, tipo: 'entrada', quantidade: 70, data: '2026-03-01', viveiro_id: VIV } }),
+    ]);
+    expect(status(v)).toEqual(['aplicada', 'aplicada']);
+    expect(await noCatalogo(treino)).toBe(antes); // em formação: não aparece para doação
+    expect((await chamar(s, s.admin, 'POST', '/api/crads/manutencao/liberar-lotes', { hoje: '2099-05-31T12:00:00Z' })).dados).toEqual({ lotes: 0 });
+    expect((await chamar(s, s.admin, 'POST', '/api/crads/manutencao/liberar-lotes', { hoje: '2099-06-01T03:00:00Z' })).dados).toEqual({ lotes: 1 });
+    expect(await noCatalogo(treino)).toBe(antes + 70);
+    // já liberado: não mexe de novo
+    expect((await chamar(s, s.admin, 'POST', '/api/crads/manutencao/liberar-lotes', { hoje: '2099-06-02T03:00:00Z' })).dados).toEqual({ lotes: 0 });
+  });
 });

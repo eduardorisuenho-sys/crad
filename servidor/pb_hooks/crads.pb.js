@@ -304,6 +304,23 @@ onRecordAfterUpdateSuccess((e) => {
   require(`${__hooks}/lib/crads.js`).lotesAutomaticosPendentes($app, `excluido = false && matriz_id = '${e.record.id}'`);
 }, "matriz");
 
+// Lotes registrados "ainda não prontos": na data indicada entram para doação sozinhos.
+cronAdd("crads_liberar_lotes", "*/15 * * * *", () => {
+  try {
+    const r = require(`${__hooks}/lib/crads.js`).liberarLotesProntos($app);
+    if (r.lotes) console.log(`lotes liberados para doação: ${r.lotes}`);
+  } catch (err) {
+    console.log("liberar lotes: " + String(err));
+  }
+});
+
+// Para testes e manutenção: só o superusuário.
+routerAdd("POST", "/api/crads/manutencao/liberar-lotes", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  const hoje = e.requestInfo().body.hoje;
+  return e.json(200, crads.liberarLotesProntos($app, hoje || undefined));
+}, $apis.requireSuperuserAuth());
+
 // Coletas que ficaram sem lote (antigas, ou de matriz identificada depois): confere a cada 15 minutos.
 cronAdd("crads_lotes_pendentes", "*/15 * * * *", () => {
   try {

@@ -8,7 +8,9 @@ import {
   disponivel,
   entradaPorContagem,
   proximasFases,
+  lotesParaLiberar,
   saldoMudas,
+  somarMeses,
   taxaGerminacao,
 } from '../src/viveiro';
 
@@ -81,5 +83,23 @@ describe('inventário', () => {
       { lote_mudas_id: 'a', diferenca: -4 },
       { lote_mudas_id: 'd', diferenca: 3 },
     ]);
+  });
+});
+
+describe('lote que fica pronto sozinho', () => {
+  it('soma meses sem pular para o mês seguinte', () => {
+    expect(somarMeses('2026-11-23', 3)).toBe('2027-02-23');
+    expect(somarMeses('2027-01-31', 1)).toBe('2027-02-28');
+  });
+  it('libera só os em formação cuja data chegou', () => {
+    const lotes = [
+      { id: 'a', fase_atual: 'crescimento', pronta_em: '2027-02-23', situacao: 'ativo' },
+      { id: 'b', fase_atual: 'crescimento', pronta_em: '2027-02-24', situacao: 'ativo' },
+      { id: 'c', fase_atual: 'pronta', pronta_em: '2027-01-01', situacao: 'ativo' },
+      { id: 'd', fase_atual: 'crescimento', situacao: 'ativo' },
+      { id: 'e', fase_atual: 'crescimento', pronta_em: '2027-01-01', situacao: 'encerrado' },
+      { id: 'f', fase_atual: 'crescimento', pronta_em: '2027-01-01', excluido: true },
+    ];
+    expect(lotesParaLiberar(lotes, '2027-02-23T03:17:00Z').map((l) => l.id)).toEqual(['a']);
   });
 });

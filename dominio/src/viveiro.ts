@@ -76,6 +76,27 @@ export function dataPrevistaPronta(dataSemeadura: string | null | undefined, mes
   return d.toISOString().slice(0, 10);
 }
 
+/** Data de hoje + N meses (AAAA-MM-DD), para "fica pronta em 3 meses". */
+export function somarMeses(hoje: string, meses: number): string {
+  const d = new Date(`${hoje.slice(0, 10)}T12:00:00Z`);
+  const dia = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + meses);
+  // 31/01 + 1 mês = 28 ou 29/02, não 03/03
+  const ultimo = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(dia, ultimo));
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Lotes registrados em formação com data para ficar prontos que já chegou:
+ * entram para doação sozinhos (o servidor confere todo dia).
+ */
+export function lotesParaLiberar<T extends { fase_atual?: unknown; pronta_em?: unknown; situacao?: unknown; excluido?: unknown }>(lotes: T[], hoje: string): T[] {
+  const dia = hoje.slice(0, 10);
+  return lotes.filter((l) => !l.excluido && l.situacao !== 'encerrado' && l.fase_atual !== 'pronta' && !!l.pronta_em && String(l.pronta_em).slice(0, 10) <= dia);
+}
+
 /** Lote atrasado: passou da data prevista e ainda não está pronto. */
 export function atrasado(previsao: string | null, fase: string | null | undefined, hoje: string): boolean {
   return !!previsao && fase !== 'pronta' && hoje.slice(0, 10) > previsao;

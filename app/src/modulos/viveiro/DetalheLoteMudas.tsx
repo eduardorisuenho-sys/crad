@@ -151,6 +151,12 @@ export function DetalheLoteMudas() {
             </dd>
           </>
         )}
+        {faseAtual !== 'pronta' && lote.pronta_em ? (
+          <>
+            <dt>Entra para doação em</dt>
+            <dd data-testid="pronta-em">{new Date(String(lote.pronta_em).slice(0, 10) + 'T12:00').toLocaleDateString('pt-BR')} (automático)</dd>
+          </>
+        ) : null}
         {previsao && (
           <>
             <dt>Previsão de ficar pronta</dt>

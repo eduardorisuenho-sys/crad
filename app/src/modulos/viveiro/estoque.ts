@@ -14,6 +14,8 @@ export async function cadastrarEstoqueInicial(repo: Repositorio, itens: ItemEsto
       fase_atual: i.fase,
       situacao: 'ativo',
       canteiro: i.canteiro || null,
+      // ainda não prontas: nesse dia o servidor muda para "pronta" e o lote entra para doação
+      pronta_em: i.fase === 'pronta' ? null : i.pronta_em || null,
       observacao_origem: i.observacao || 'Mudas que já estavam no viveiro antes do app (origem das sementes não registrada).',
     });
     await repo.salvar('movimento_estoque_mudas', { lote_mudas_id: lote.id, tipo: 'entrada', quantidade: i.quantidade, data: hoje, referencia: 'estoque inicial' });
