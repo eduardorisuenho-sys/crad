@@ -31,6 +31,14 @@ describe('notificações', () => {
     expect(notificacaoPara('doacao', antes, negado, viveirista)).toBeNull();
   });
 
+  it('quem pediu recebe as quantidades aprovadas', () => {
+    const antes = { ...pedido, situacao: 'enviada' };
+    const parcial = { ...antes, situacao: 'aprovada_parcial', atualizado_por: 'g', aprovacao_resumo: 'Aprovadas 150 de 200 mudas: aroeira 96 de 96; jatobá 54 de 104.' };
+    const n = notificacaoPara('doacao', antes, parcial, solicitante);
+    expect(n?.titulo).toBe('Seu pedido de mudas foi aprovado em parte');
+    expect(n?.texto).toContain('jatobá 54 de 104');
+  });
+
   it('retirada combinada avisa quem pediu, com o dia', () => {
     const antes = { ...pedido, situacao: 'aprovada', atualizado_por: 'g' };
     const n = notificacaoPara('doacao', antes, { ...antes, retirada_combinada: '2026-12-01', atualizado_por: 'vv' }, solicitante);

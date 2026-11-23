@@ -477,6 +477,8 @@ export const COLECOES: Colecao[] = [
       r('analisado_por', 'users'),
       d('analisado_em'),
       t('justificativa'),
+      // quantas mudas foram aprovadas de cada espécie (texto do aviso para quem pediu)
+      t('aprovacao_resumo'),
       d('retirar_ate'),
       // retirada combinada entre o viveiro e quem pediu
       d('retirada_combinada'),

@@ -48,7 +48,6 @@ test('pedido no balcão: registrar, aprovar e dar baixa no mesmo aparelho', asyn
   const codigo = (await page.getByRole('heading', { level: 1 }).innerText()).replace('Pedido ', '').trim();
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
 
-  await page.getByRole('button', { name: 'Analisar pedido' }).click();
   await page.getByRole('button', { name: 'Aprovar e reservar' }).click();
   await expect(page.getByText('Pedido aprovado e mudas reservadas.')).toBeVisible();
   await expect.poll(() => noCatalogo(ESPECIE), { timeout: 20_000 }).toBe(antes - 1);

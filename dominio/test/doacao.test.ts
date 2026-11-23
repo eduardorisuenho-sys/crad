@@ -10,6 +10,7 @@ import {
   podeAprovar,
   prazoRetirada,
   reservaAtiva,
+  resumoAprovacao,
   situacaoAposAnalise,
   totaisDoacoes,
 } from '../src/doacao';
@@ -173,5 +174,11 @@ describe('baixa da retirada sem travar', () => {
     expect(planejarBaixa(reservas, itens, { i1: 0, i2: 0 }, livres)).toEqual({ erro: 'Informe quantas mudas saíram (pelo menos 1).' });
     expect(planejarBaixa(reservas, itens, { i1: 0, i2: 2 }, livres)).toEqual({ erro: 'Foram aprovadas 1 mudas de Palmeira; não dá para entregar 2.' });
     expect(planejarBaixa([], itens, { i1: 1, i2: 0 }, livres)).toEqual({ erro: 'Não há mudas prontas suficientes de Ipê no viveiro para esta retirada.' });
+  });
+});
+
+describe('resumoAprovacao', () => {
+  it('diz quantas foram aprovadas de cada espécie, com milhar', () => {
+    expect(resumoAprovacao([{ nome: 'açaí', qtd_pedida: 1600, qtd_aprovada: 1200 }, { nome: 'aroeira', qtd_pedida: 96, qtd_aprovada: 96 }])).toBe('Aprovadas 1.296 de 1.696 mudas: açaí 1.200 de 1.600; aroeira 96 de 96.');
   });
 });

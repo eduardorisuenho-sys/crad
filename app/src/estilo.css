@@ -227,6 +227,9 @@ label.opcao, label.botao-grande { cursor: pointer; }
 .tabela th { color: var(--suave); font-size: 0.85rem; }
 .tabela tfoot th, .tabela tfoot td { font-weight: 800; color: var(--azul-escuro); font-size: 1rem; border-top: 2px solid var(--azul-escuro-25); border-bottom: 0; text-align: right; }
 .tabela tfoot th:first-child { text-align: left; }
+.tabela td.falta { color: var(--erro, #b3261e); font-weight: 700; }
+.tabela input.qtd-aprovar { width: 5em; max-width: 100%; min-height: 40px; padding: 6px 8px; text-align: right; font: inherit; border: 1px solid var(--azul-escuro-25); border-radius: 8px; background: var(--branco); }
+.tabela input.qtd-aprovar:focus { outline: 3px solid var(--azul); border-color: var(--azul); }
 .formulario input[type='file'] { padding: 10px; min-height: auto; }
 .assinatura canvas { width: 100%; height: 180px; border: 2px dashed var(--azul-escuro-25); border-radius: 12px; background: var(--branco); touch-action: none; display: block; }
 .assinatura-rodape { display: flex; justify-content: space-between; color: var(--suave); margin-top: 6px; }

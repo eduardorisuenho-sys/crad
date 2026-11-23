@@ -92,7 +92,6 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await g.goBack();
   await g.getByTestId('plantando-agua').click();
   await expect(g.getByTestId('plantando-agua')).toHaveAttribute('aria-pressed', 'true');
-  await g.getByRole('button', { name: 'Analisar pedido' }).click();
   await g.getByLabel(`Aprovar de ${ESPECIE}`).fill('25');
   await g.getByRole('button', { name: 'Aprovar e reservar' }).click();
   await expect(g.getByText('Pedido aprovado e mudas reservadas.')).toBeVisible();
@@ -204,9 +203,10 @@ test('pedido com várias espécies mostra o total de mudas (pedidas, aprovadas, 
   await entrarComoGestora(page);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
   await page.goto(`/doacao/${d.id}`);
-  await expect(page.getByTestId('total-pedido')).toHaveText(/^Total\s*20\s*—\s*0$/);
-  await page.getByRole('button', { name: 'Analisar pedido' }).click();
-  await expect(page.getByTestId('total-analise')).toContainText('Total: pediu 20');
+  await expect(page.getByTestId('total-pedido')).toHaveText(/^Total\s*20\s*[\d.]+$/);
+  // estoque antes de pedidas; a coluna aprovadas já vem preenchida para editar
+  await expect(page.getByTestId('itens-pedido').locator('thead')).toContainText(/Espécie\s*Estoque\s*Pedidas\s*Aprovadas/);
+  await expect(page.getByTestId('itens-pedido').getByRole('spinbutton')).toHaveCount(2);
   // o pedido é só deste teste: não fica contando como pendência nos outros
   await fetch(`${PB()}/api/collections/doacao/records/${d.id}`, { method: 'PATCH', headers: admin, body: JSON.stringify({ excluido: true }) });
 });

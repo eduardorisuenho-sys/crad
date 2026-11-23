@@ -75,6 +75,19 @@ export function situacaoAposAnalise(itens: { qtd_pedida: number; qtd_aprovada: n
   return itens.every((i) => i.qtd_aprovada >= i.qtd_pedida) ? 'aprovada' : 'aprovada_parcial';
 }
 
+/**
+ * Texto do aviso a quem pediu: quantas mudas foram aprovadas de cada espécie.
+ * Ex.: "Aprovadas 150 de 200 mudas: aroeira 96 de 96; jatobá 54 de 104."
+ */
+export function resumoAprovacao(itens: { nome: string; qtd_pedida: number; qtd_aprovada: number }[]): string {
+  // sem toLocaleString: o servidor (PocketBase) não tem os formatos do pt-BR
+  const fmt = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const pedidas = itens.reduce((s, i) => s + i.qtd_pedida, 0);
+  const aprovadas = itens.reduce((s, i) => s + i.qtd_aprovada, 0);
+  const partes = itens.map((i) => `${i.nome} ${fmt(i.qtd_aprovada)} de ${fmt(i.qtd_pedida)}`);
+  return `Aprovadas ${fmt(aprovadas)} de ${fmt(pedidas)} mudas: ${partes.join('; ')}.`;
+}
+
 /** Quem pode aprovar: perfis definidos pelo gestor (parâmetro perfis_aprovadores). */
 export function podeAprovar(perfis: string[], aprovadores: string[]): boolean {
   return perfis.some((p) => aprovadores.includes(p));

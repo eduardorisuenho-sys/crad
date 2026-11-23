@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { bloqueioRetirada, SITUACOES_APROVADAS, SITUACOES_EM_ANALISE } from '@crads/dominio';
+import { bloqueioRetirada, SITUACOES_APROVADAS, SITUACOES_EM_ANALISE, type Registro } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -44,7 +44,6 @@ export function DetalhePedido() {
   const retirada = useLiveQuery(async () => (doacao ? (await db.colecao('retirada').where('doacao_id').equals(doacao.id).toArray()).find((r) => !r.excluido) : undefined), [doacao?.id]);
 
   const plantio = useLiveQuery(async () => (doacao ? (await db.colecao('plantio').toArray()).find((p) => p.doacao_id === doacao.id && !p.excluido) : undefined), [doacao?.id]);
-  const [analisando, setAnalisando] = useState(false);
   const [aprovadas, setAprovadas] = useState<Record<string, string>>({});
   const [justificativa, setJustificativa] = useState('');
   const [erro, setErro] = useState('');
@@ -55,6 +54,12 @@ export function DetalhePedido() {
   const equipe = perfis.includes('viveirista') || perfis.includes('gestor');
   const situacao = String(doacao.situacao);
   const podeAnalisar = pode('aprovar_doacao', doacao.viveiro_id) && SITUACOES_EM_ANALISE.includes(situacao) && doacao.versao !== 0;
+  // estoque disponível (prontas − reservadas) de cada espécie no viveiro; só a equipe vê
+  const estoque = (i: Registro) => disp?.get(String(i.especie_id)) ?? 0;
+  const verEstoque = equipe && !!disp;
+  // aprovar é opcional: sem digitar, vale o pedido (até o que há em estoque)
+  const sugerido = (i: Registro) => Math.min(Number(i.qtd_pedida ?? 0), estoque(i));
+  const aprovarDe = (i: Registro) => Number(aprovadas[i.id] ?? sugerido(i)) || 0;
   const bloqueio = bloqueioRetirada({ situacao: doacao.situacao, retirar_ate: doacao.retirar_ate }, new Date().toISOString());
 
   function dadosPdf(): DadosPdf {
@@ -88,7 +93,7 @@ export function DetalhePedido() {
     setEnviando(true);
     try {
       const corpo = {
-        itens: itens.map((i) => ({ item_id: i.id, qtd_aprovada: aprovar ? Number(aprovadas[i.id] ?? Math.min(Number(i.qtd_pedida), disp?.get(String(i.especie_id)) ?? 0)) : 0 })),
+        itens: itens.map((i) => ({ item_id: i.id, qtd_aprovada: aprovar ? aprovarDe(i) : 0 })),
         justificativa,
       };
       const r = await fetch(`${sessao!.servidor}/api/crads/doacao/${id}/analisar`, {
@@ -100,7 +105,6 @@ export function DetalhePedido() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.message ?? 'Não foi possível salvar a análise.');
       await sincronizar();
-      setAnalisando(false);
       setMsg(aprovar ? 'Pedido aprovado e mudas reservadas.' : 'Pedido recusado.');
     } catch (e) {
       setErro((e as Error).message);
@@ -171,18 +175,37 @@ export function DetalhePedido() {
           <thead>
             <tr>
               <th>Espécie</th>
+              {verEstoque && <th>Estoque</th>}
               <th>Pedidas</th>
               <th>Aprovadas</th>
-              <th>Entregues</th>
+              {!podeAnalisar && <th>Entregues</th>}
             </tr>
           </thead>
           <tbody>
             {itens.map((i) => (
               <tr key={i.id}>
                 <td>{nomes?.get(String(i.especie_id)) ?? ''}</td>
+                {verEstoque && <td className={estoque(i) < Number(i.qtd_pedida ?? 0) ? 'falta' : undefined}>{estoque(i).toLocaleString('pt-BR')}</td>}
                 <td>{String(i.qtd_pedida ?? 0)}</td>
-                <td>{SITUACOES_EM_ANALISE.includes(situacao) ? '—' : String(i.qtd_aprovada ?? 0)}</td>
-                <td>{entregue(i)}</td>
+                <td>
+                  {podeAnalisar ? (
+                    <input
+                      className="qtd-aprovar"
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max={sugerido(i)}
+                      aria-label={`Aprovar de ${nomes?.get(String(i.especie_id)) ?? ''}`}
+                      value={aprovadas[i.id] ?? String(sugerido(i))}
+                      onChange={(e) => setAprovadas({ ...aprovadas, [i.id]: e.target.value })}
+                    />
+                  ) : SITUACOES_EM_ANALISE.includes(situacao) ? (
+                    '—'
+                  ) : (
+                    String(i.qtd_aprovada ?? 0)
+                  )}
+                </td>
+                {!podeAnalisar && <td>{entregue(i)}</td>}
               </tr>
             ))}
           </tbody>
@@ -190,13 +213,23 @@ export function DetalhePedido() {
             <tfoot>
               <tr data-testid="total-pedido">
                 <th scope="row">Total</th>
+                {verEstoque && <td />}
                 <td>{itens.reduce((t, i) => t + Number(i.qtd_pedida ?? 0), 0).toLocaleString('pt-BR')}</td>
-                <td>{SITUACOES_EM_ANALISE.includes(situacao) ? '—' : itens.reduce((t, i) => t + Number(i.qtd_aprovada ?? 0), 0).toLocaleString('pt-BR')}</td>
-                <td>{itens.reduce((t, i) => t + entregue(i), 0).toLocaleString('pt-BR')}</td>
+                <td data-testid="total-aprovar">
+                  {podeAnalisar
+                    ? itens.reduce((t, i) => t + aprovarDe(i), 0).toLocaleString('pt-BR')
+                    : SITUACOES_EM_ANALISE.includes(situacao)
+                      ? '—'
+                      : itens.reduce((t, i) => t + Number(i.qtd_aprovada ?? 0), 0).toLocaleString('pt-BR')}
+                </td>
+                {!podeAnalisar && <td>{itens.reduce((t, i) => t + entregue(i), 0).toLocaleString('pt-BR')}</td>}
               </tr>
             </tfoot>
           )}
         </table>
+        {podeAnalisar && (
+          <p className="dica">A coluna “Aprovadas” já vem com o pedido (até o que há em estoque). Mude só se for aprovar menos. É essa quantidade que a pessoa vai retirar, e ela recebe o aviso.</p>
+        )}
       </section>
 
       {doacao.termo_texto ? (
@@ -208,43 +241,10 @@ export function DetalhePedido() {
 
       {pode('plantando_agua', doacao.viveiro_id) && <BotaoPlantandoAgua doacao={doacao} editavel={situacao !== 'cancelada'} />}
 
-      {podeAnalisar && !analisando && (
-        <button className="botao-principal" onClick={() => setAnalisando(true)}>
-          <Icone nome="certo" /> Analisar pedido
-        </button>
-      )}
-      {analisando && (
-        <section className="cartao formulario">
+      {podeAnalisar && (
+        <section className="cartao formulario" data-testid="analise">
           <h2>Análise</h2>
           {!online && <p className="mensagem alerta">A análise precisa de internet para reservar as mudas.</p>}
-          {itens.map((i) => {
-            const d = disp?.get(String(i.especie_id)) ?? 0;
-            const sugerido = Math.min(Number(i.qtd_pedida), d);
-            return (
-              <label key={i.id}>
-                {nomes?.get(String(i.especie_id)) ?? ''} · pediu {String(i.qtd_pedida)} · disponível {d}
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min="0"
-                  max={Math.min(Number(i.qtd_pedida), d)}
-                  aria-label={`Aprovar de ${nomes?.get(String(i.especie_id)) ?? ''}`}
-                  value={aprovadas[i.id] ?? String(sugerido)}
-                  onChange={(e) => setAprovadas({ ...aprovadas, [i.id]: e.target.value })}
-                />
-              </label>
-            );
-          })}
-          {itens.length > 1 && (
-            <p className="total-prontas" data-testid="total-analise">
-              Total: pediu <b>{itens.reduce((t, i) => t + Number(i.qtd_pedida ?? 0), 0).toLocaleString('pt-BR')}</b> · vai aprovar{' '}
-              <b>
-                {itens
-                  .reduce((t, i) => t + (Number(aprovadas[i.id] ?? Math.min(Number(i.qtd_pedida), disp?.get(String(i.especie_id)) ?? 0)) || 0), 0)
-                  .toLocaleString('pt-BR')}
-              </b>
-            </p>
-          )}
           <label>
             Observação (obrigatória para recusar)
             <input value={justificativa} onChange={(e) => setJustificativa(e.target.value)} />
@@ -255,7 +255,7 @@ export function DetalhePedido() {
               Recusar
             </button>
             <button className="botao-principal" disabled={enviando} onClick={() => void analisar(true)}>
-              Aprovar e reservar
+              <Icone nome="certo" /> Aprovar e reservar
             </button>
           </div>
         </section>

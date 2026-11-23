@@ -103,6 +103,8 @@ describe.skipIf(!temPocketBase)('cenários: do estoque à retirada, com gente di
     expect(demais).toMatchObject({ status: 400, dados: { message: expect.stringMatching(/Faltam 20 mudas/) } });
     const b = await chamar(s, gestor.token, 'POST', `/api/crads/doacao/${pedidoBruno.doacao}/analisar`, { itens: [{ item_id: pedidoBruno.item, qtd_aprovada: 10 }] });
     expect(b.dados.doacao.situacao).toBe('aprovada_parcial');
+    // quem pediu é avisado de quantas foram aprovadas (sem nome popular, vai o científico)
+    expect(b.dados.doacao.aprovacao_resumo).toBe('Aprovadas 10 de 30 mudas: Importia cenarialis 10 de 30.');
     expect(await noCatalogo(ipe)).toBe(0);
   });
 

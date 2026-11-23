@@ -35,7 +35,11 @@ export function notificacaoPara(colecao: string, antes: Reg | undefined, depois:
       return { titulo: 'Novo pedido de mudas', texto: `O pedido ${codigo} está aguardando análise.`, rota };
     }
     if (mudou(antes, depois, 'situacao') && APROVADA.includes(String(depois.situacao))) {
-      if (meu) return { titulo: 'Seu pedido de mudas foi aprovado!', texto: `Pedido ${codigo}: fale com o viveiro para combinar o dia da retirada.`, rota };
+      if (meu) {
+        const titulo = depois.situacao === 'aprovada_parcial' ? 'Seu pedido de mudas foi aprovado em parte' : 'Seu pedido de mudas foi aprovado!';
+        const resumo = depois.aprovacao_resumo ? ` ${String(depois.aprovacao_resumo)}` : '';
+        return { titulo, texto: `Pedido ${codigo}.${resumo} Fale com o viveiro para combinar o dia da retirada.`, rota };
+      }
       if (temPermissao(ctx, 'retirada', depois.viveiro_id)) return { titulo: 'Pedido aprovado', texto: `O pedido ${codigo} foi aprovado: combine a retirada com quem pediu.`, rota };
     }
     if (meu && mudou(antes, depois, 'situacao') && depois.situacao === 'negada') {

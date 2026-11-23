@@ -507,6 +507,8 @@ var COLECOES = [
       r("analisado_por", "users"),
       d("analisado_em"),
       t("justificativa"),
+      // quantas mudas foram aprovadas de cada espécie (texto do aviso para quem pediu)
+      t("aprovacao_resumo"),
       d("retirar_ate"),
       // retirada combinada entre o viveiro e quem pediu
       d("retirada_combinada"),
@@ -1186,6 +1188,13 @@ function situacaoAposAnalise(itens) {
   if (!aprovado) return "negada";
   return itens.every((i) => i.qtd_aprovada >= i.qtd_pedida) ? "aprovada" : "aprovada_parcial";
 }
+function resumoAprovacao(itens) {
+  const fmt = (n2) => String(Math.round(n2)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const pedidas = itens.reduce((s, i) => s + i.qtd_pedida, 0);
+  const aprovadas = itens.reduce((s, i) => s + i.qtd_aprovada, 0);
+  const partes = itens.map((i) => `${i.nome} ${fmt(i.qtd_aprovada)} de ${fmt(i.qtd_pedida)}`);
+  return `Aprovadas ${fmt(aprovadas)} de ${fmt(pedidas)} mudas: ${partes.join("; ")}.`;
+}
 function prazoRetirada(aprovadoEm, dias) {
   const d2 = /* @__PURE__ */ new Date(`${dia(aprovadoEm)}T12:00:00Z`);
   d2.setUTCDate(d2.getUTCDate() + dias);
@@ -1598,7 +1607,11 @@ function notificacaoPara(colecao2, antes, depois, ctx) {
       return { titulo: "Novo pedido de mudas", texto: `O pedido ${codigo} est\xE1 aguardando an\xE1lise.`, rota };
     }
     if (mudou2(antes, depois, "situacao") && APROVADA.includes(String(depois.situacao))) {
-      if (meu) return { titulo: "Seu pedido de mudas foi aprovado!", texto: `Pedido ${codigo}: fale com o viveiro para combinar o dia da retirada.`, rota };
+      if (meu) {
+        const titulo = depois.situacao === "aprovada_parcial" ? "Seu pedido de mudas foi aprovado em parte" : "Seu pedido de mudas foi aprovado!";
+        const resumo = depois.aprovacao_resumo ? ` ${String(depois.aprovacao_resumo)}` : "";
+        return { titulo, texto: `Pedido ${codigo}.${resumo} Fale com o viveiro para combinar o dia da retirada.`, rota };
+      }
       if (temPermissao(ctx, "retirada", depois.viveiro_id)) return { titulo: "Pedido aprovado", texto: `O pedido ${codigo} foi aprovado: combine a retirada com quem pediu.`, rota };
     }
     if (meu && mudou2(antes, depois, "situacao") && depois.situacao === "negada") {
@@ -2294,12 +2307,19 @@ function analisarDoacao(app, auth, id, corpo) {
     const controle2 = { versao: 1, excluido: false, criado_por: ctx.id, atualizado_por: ctx.id, criado_no_aparelho_em: agora, viveiro_id: viveiroId };
     for (const r2 of plano.reservas) gravar(tx, colecao("reserva"), __spreadProps(__spreadValues(__spreadValues({ id: novoId() }, controle2), r2), { valida_ate: retirarAte, situacao: "ativa" }));
     for (const a of aprovados) gravar(tx, colecao("doacao_item"), __spreadProps(__spreadValues({}, a.item), { qtd_aprovada: a.qtd, versao: Number(a.item.versao) + 1, atualizado_por: ctx.id }));
-    const novo = __spreadProps(__spreadValues({}, doacao), { situacao, analisado_por: ctx.id, analisado_em: agora, justificativa: (_c = corpo.justificativa) != null ? _c : "", retirar_ate: retirarAte, versao: Number(doacao.versao) + 1, atualizado_por: ctx.id });
+    const aprovacaoResumo = situacao === "negada" ? "" : resumoAprovacao(aprovados.map((a) => ({ nome: nomeEspecie(tx, String(a.item.especie_id)), qtd_pedida: Number(a.item.qtd_pedida), qtd_aprovada: a.qtd })));
+    const novo = __spreadProps(__spreadValues({}, doacao), { situacao, analisado_por: ctx.id, analisado_em: agora, justificativa: (_c = corpo.justificativa) != null ? _c : "", aprovacao_resumo: aprovacaoResumo, retirar_ate: retirarAte, versao: Number(doacao.versao) + 1, atualizado_por: ctx.id });
     const salvo = gravar(tx, colecao("doacao"), novo);
     auditar(tx, { colecao: "doacao", registro_id: id, acao: "analisar", antes: { situacao: doacao.situacao }, depois: { situacao, itens: aprovados.map((a) => ({ item: a.item.id, aprovada: a.qtd })), reservas: plano.reservas }, usuario_id: ctx.id });
     resultado2 = { doacao: paraObjeto(colecao("doacao"), salvo), reservas: plano.reservas };
   });
   return resultado2;
+}
+function nomeEspecie(app, especieId) {
+  var _a, _b;
+  const pop = app.findRecordsByFilter("nome_popular", "especie_id = {:e} && excluido = false", "", 1, 0, { e: especieId })[0];
+  if (pop) return pop.getString("nome");
+  return (_b = (_a = buscar(app, "especie", especieId)) == null ? void 0 : _a.getString("nome_cientifico")) != null ? _b : "esp\xE9cie";
 }
 function expirarPrazos(app, hoje = hojeISO()) {
   let reservas = 0;

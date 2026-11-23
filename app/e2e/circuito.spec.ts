@@ -167,7 +167,6 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   await g.goto('/doacao');
   await expect(g.getByTestId('notificacoes')).toContainText('Novo pedido de mudas', { timeout: 20_000 });
   await g.locator('.item-lista', { hasText: pedidoB }).click();
-  await g.getByRole('button', { name: 'Analisar pedido' }).click();
   await g.getByRole('button', { name: 'Recusar' }).click();
   await expect(g.locator('.erro')).toBeVisible();
   await g.getByLabel('Observação (obrigatória para recusar)').fill('Local de plantio fora da área do programa.');
@@ -175,7 +174,6 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   await expect(g.getByText('Pedido recusado.')).toBeVisible();
   await g.goto('/doacao');
   await g.locator('.item-lista', { hasText: pedidoA }).click();
-  await g.getByRole('button', { name: 'Analisar pedido' }).click();
   await g.getByLabel(`Aprovar de ${NOVA}`).fill('25');
   await g.getByLabel(`Aprovar de ${IMPORTADA}`).fill('20');
   await g.getByRole('button', { name: 'Aprovar e reservar' }).click();
@@ -191,7 +189,8 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   await expect(avisos.getByRole('button', { name: 'Ver mais 1 aviso' })).toBeVisible({ timeout: 20_000 });
   await expect(avisos.locator('.notificacao')).toHaveCount(1);
   await avisos.getByRole('button', { name: 'Ver mais 1 aviso' }).click();
-  await expect(avisos).toContainText('Seu pedido de mudas foi aprovado!');
+  await expect(avisos).toContainText('Seu pedido de mudas foi aprovado em parte');
+  await expect(avisos).toContainText(`${NOVA} 25 de 30`); // quem pediu vê o que foi aprovado
   await expect(avisos).toContainText('Seu pedido de mudas não foi aprovado');
   await avisos.getByRole('button', { name: 'Fechar todos' }).click();
   await expect(avisos).toHaveCount(0);

@@ -53,6 +53,7 @@ import {
   type Registro,
   type ResultadoOperacao,
   notificacaoPara,
+  resumoAprovacao,
   loteDaColeta,
 } from '../../dominio/src/index';
 
@@ -851,12 +852,20 @@ export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { it
     const controle = { versao: 1, excluido: false, criado_por: ctx.id, atualizado_por: ctx.id, criado_no_aparelho_em: agora, viveiro_id: viveiroId };
     for (const r of plano.reservas) gravar(tx, colecao('reserva'), { id: novoId(), ...controle, ...r, valida_ate: retirarAte, situacao: 'ativa' });
     for (const a of aprovados) gravar(tx, colecao('doacao_item'), { ...a.item, qtd_aprovada: a.qtd, versao: Number(a.item.versao) + 1, atualizado_por: ctx.id });
-    const novo = { ...doacao, situacao, analisado_por: ctx.id, analisado_em: agora, justificativa: corpo.justificativa ?? '', retirar_ate: retirarAte, versao: Number(doacao.versao) + 1, atualizado_por: ctx.id };
+    const aprovacaoResumo = situacao === 'negada' ? '' : resumoAprovacao(aprovados.map((a: { item: Registro; qtd: number }) => ({ nome: nomeEspecie(tx, String(a.item.especie_id)), qtd_pedida: Number(a.item.qtd_pedida), qtd_aprovada: a.qtd })));
+    const novo = { ...doacao, situacao, analisado_por: ctx.id, analisado_em: agora, justificativa: corpo.justificativa ?? '', aprovacao_resumo: aprovacaoResumo, retirar_ate: retirarAte, versao: Number(doacao.versao) + 1, atualizado_por: ctx.id };
     const salvo = gravar(tx, colecao('doacao'), novo);
     auditar(tx, { colecao: 'doacao', registro_id: id, acao: 'analisar', antes: { situacao: doacao.situacao }, depois: { situacao, itens: aprovados.map((a: { item: Registro; qtd: number }) => ({ item: a.item.id, aprovada: a.qtd })), reservas: plano.reservas }, usuario_id: ctx.id });
     resultado = { doacao: paraObjeto(colecao('doacao'), salvo), reservas: plano.reservas };
   });
   return resultado;
+}
+
+/** Nome que o povo conhece (o primeiro nome popular) ou o científico. */
+function nomeEspecie(app: App, especieId: string): string {
+  const pop = app.findRecordsByFilter('nome_popular', 'especie_id = {:e} && excluido = false', '', 1, 0, { e: especieId })[0];
+  if (pop) return pop.getString('nome');
+  return buscar(app, 'especie', especieId)?.getString('nome_cientifico') ?? 'espécie';
 }
 
 /** Reservas e pedidos com prazo vencido (roda todo dia e pode ser chamada à mão). */

@@ -146,7 +146,6 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, pe
   await expect(g.getByTestId('notificacoes')).toContainText('Novo pedido de mudas', { timeout: 20_000 });
   await expect(g.getByTestId('notificacoes')).toContainText(codigo);
   await g.locator('.item-lista', { hasText: codigo }).click();
-  await g.getByRole('button', { name: 'Analisar pedido' }).click();
   await g.getByLabel('Aprovar de Árvore-do-estoque').fill('10');
   await g.getByRole('button', { name: 'Aprovar e reservar' }).click();
   await expect(g.getByText('Pedido aprovado e mudas reservadas.')).toBeVisible();
