@@ -2323,7 +2323,8 @@ function analisarDoacao(app, auth, id, corpo) {
   });
   return resultado2;
 }
-function liberarLotesProntos(app, hoje = hojeISO()) {
+var hojeTocantins = () => new Date(Date.now() - 3 * 36e5).toISOString();
+function liberarLotesProntos(app, hoje = hojeTocantins()) {
   let lotes = 0;
   app.runInTransaction((tx) => {
     const candidatos = tx.findRecordsByFilter("lote_mudas", "excluido = false && fase_atual != 'pronta' && pronta_em != ''", "", 0, 0).map((r2) => paraObjeto(colecao("lote_mudas"), r2));

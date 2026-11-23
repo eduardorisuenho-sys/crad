@@ -869,7 +869,10 @@ export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { it
  * quando a data chega, o lote passa a "pronta" e entra para doação sozinho.
  * Roda a cada 15 minutos (e pode ser chamada à mão).
  */
-export function liberarLotesProntos(app: App, hoje = hojeISO()) {
+// o dia vira no horário do Tocantins (UTC−3), não à meia-noite UTC (21h daqui)
+const hojeTocantins = () => new Date(Date.now() - 3 * 3600_000).toISOString();
+
+export function liberarLotesProntos(app: App, hoje = hojeTocantins()) {
   let lotes = 0;
   app.runInTransaction((tx: App) => {
     const candidatos = tx.findRecordsByFilter('lote_mudas', "excluido = false && fase_atual != 'pronta' && pronta_em != ''", '', 0, 0).map((r: RecordPB) => paraObjeto(colecao('lote_mudas'), r));
