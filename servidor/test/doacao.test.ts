@@ -102,7 +102,7 @@ describe.skipIf(!temPocketBase)('doação: análise com reservas no servidor', (
 
   it('prazo vencido: a reserva expira e as mudas voltam ao catálogo', async () => {
     const r = await chamar(s, s.admin, 'POST', '/api/crads/manutencao/expirar', { hoje: '2099-01-01' });
-    expect(r.dados).toEqual({ reservas: 2, pedidos: 1 });
+    expect(r.dados).toEqual({ reservas: 2, pedidos: 1, lotes: 0 });
     expect(await catalogo()).toBe(130);
   });
 });

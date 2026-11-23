@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
-import { bloqueiosEstoqueInicial, escreverXlsx, lerCsv, lerXlsx, modeloPlanilhaEstoque, normalizarBusca, planejarEstoqueInicial, type ItemEstoqueInicial } from '@crads/dominio';
+import { bloqueiosEstoqueInicial, escreverXlsx, somarMeses, lerCsv, lerXlsx, modeloPlanilhaEstoque, normalizarBusca, planejarEstoqueInicial, type ItemEstoqueInicial } from '@crads/dominio';
 import { Icone } from '../../componentes/Icone';
 import { Tela } from '../../componentes/Tela';
 import { useApp } from '../../contexto';
@@ -18,8 +18,12 @@ import { MiniaturaBlob } from '../../componentes/Miniatura';
 import { gravarFoto, prepararFoto, type FotoPendente } from '../matrizes/fotos';
 
 type Modo = 'escolher' | 'uma' | 'lista' | 'planilha';
-// As mudas que já estavam no viveiro entram prontas para doação.
+// As mudas que já estavam no viveiro entram prontas para doação…
 const fase = 'pronta';
+// …ou, se ainda não estão, crescendo até o dia indicado (aí entram sozinhas para doação).
+const FASE_ESPERANDO = 'crescimento';
+const MESES = [1, 2, 3, 6];
+const dataBR = (dia: string) => dia.split('-').reverse().join('/');
 
 export function EstoqueInicial() {
   const { db, repo, pode, viveiroId } = useApp();
@@ -34,6 +38,9 @@ export function EstoqueInicial() {
   const [especie, setEspecie] = useState('');
   const [qtd, setQtd] = useState('');
   const [canteiro, setCanteiro] = useState('');
+  const [prontas, setProntas] = useState(true);
+  const [prontaEm, setProntaEm] = useState('');
+  const hoje = new Date().toLocaleDateString('sv-SE');
 
   // ---- lista
   const [busca, setBusca] = useState('');
@@ -124,13 +131,15 @@ export function EstoqueInicial() {
           className="formulario"
           onSubmit={async (e) => {
             e.preventDefault();
-            const ok = await gravar([{ especie_id: especie, quantidade: Number(qtd), fase, canteiro }], '');
+            const ok = await gravar([prontas ? { especie_id: especie, quantidade: Number(qtd), fase, canteiro } : { especie_id: especie, quantidade: Number(qtd), fase: FASE_ESPERANDO, pronta_em: prontaEm, canteiro }], prontas ? '' : `Entram para doação sozinhas em ${dataBR(prontaEm)}.`);
             if (ok && foto) await gravarFoto(db, repo, 'lote_mudas', ok[0], viveiroId ?? undefined, foto);
             if (ok) {
               setFoto(null);
               setEspecie('');
               setQtd('');
               setCanteiro('');
+              setProntas(true);
+              setProntaEm('');
             }
           }}
         >
@@ -139,6 +148,37 @@ export function EstoqueInicial() {
             Quantas mudas?
             <input className="campo-grande" inputMode="numeric" pattern="[0-9]*" value={qtd} onChange={(e) => setQtd(e.target.value.replace(/\D/g, ''))} required autoFocus />
           </label>
+          <fieldset className="meses" data-testid="prontas">
+            <legend>Já estão prontas para doação?</legend>
+            <button type="button" className={`chip ${prontas ? 'ativo' : ''}`} aria-pressed={prontas} onClick={() => setProntas(true)}>
+              Já estão prontas
+            </button>
+            <button type="button" className={`chip ${!prontas ? 'ativo' : ''}`} aria-pressed={!prontas} onClick={() => setProntas(false)}>
+              Ainda não
+            </button>
+          </fieldset>
+          {!prontas && (
+            <fieldset className="meses" data-testid="quando-prontas">
+              <legend>Quando ficam prontas?</legend>
+              {MESES.map((m) => {
+                const dia = somarMeses(hoje, m);
+                return (
+                  <button type="button" key={m} className={`chip ${prontaEm === dia ? 'ativo' : ''}`} aria-pressed={prontaEm === dia} onClick={() => setProntaEm(dia)}>
+                    {m === 1 ? 'Daqui a 1 mês' : `Daqui a ${m} meses`}
+                  </button>
+                );
+              })}
+              <label>
+                Ou escolha o dia
+                <input type="date" min={hoje} value={prontaEm} onChange={(e) => setProntaEm(e.target.value)} />
+              </label>
+              <p className="dica">
+                {prontaEm
+                  ? `Até ${dataBR(prontaEm)} as mudas ficam fora da doação. Nesse dia entram sozinhas para doação.`
+                  : 'Até lá as mudas ficam fora da doação. No dia indicado, entram sozinhas.'}
+              </p>
+            </fieldset>
+          )}
           <div className="linha-foto">
             {foto && <MiniaturaBlob blob={foto.miniatura} alt="Foto das mudas" tamanho={72} data={foto.tirada_em} />}
             <BotaoFoto aoEscolher={async (f) => setFoto(await prepararFoto(f, 'muda', null))} className="botao-secundario">

@@ -38,12 +38,19 @@ export interface ItemEstoqueInicial {
   fase: string;
   canteiro?: string;
   observacao?: string;
+  /** ainda não pronta: o dia em que entra sozinha para doação (AAAA-MM-DD) */
+  pronta_em?: string;
   /** linha da planilha (1 = cabeçalho) */
   linha?: number;
 }
 
-export function bloqueiosEstoqueInicial(itens: { quantidade: number; fase: string }[]): string[] {
+export function bloqueiosEstoqueInicial(itens: { quantidade: number; fase: string; pronta_em?: string }[], hoje = new Date().toLocaleDateString('sv-SE')): string[] {
   const b: string[] = [];
+  for (const i of itens) {
+    if (i.fase === 'pronta') continue;
+    if (!i.pronta_em || !/^\d{4}-\d{2}-\d{2}$/.test(i.pronta_em)) b.push('Diga quando as mudas ficam prontas para doação.');
+    else if (i.pronta_em <= hoje) b.push('A data em que ficam prontas precisa ser depois de hoje. Se já estão prontas, marque “Já estão prontas”.');
+  }
   if (!itens.some((i) => i.quantidade > 0)) b.push('Informe a quantidade de pelo menos uma espécie.');
   for (const i of itens) {
     if (i.quantidade && (!Number.isInteger(i.quantidade) || i.quantidade < 0)) b.push('Use números inteiros nas quantidades.');
@@ -99,4 +106,22 @@ export function planejarEstoqueInicial(linhas: unknown[][], especies: Reg[], nom
     itens.push({ especie_id: especie, quantidade, fase, canteiro: texto(cCant), observacao: texto(cObs), linha });
   });
   return { itens, erros };
+}
+
+/** Somar meses a uma data (AAAA-MM-DD), parando no último dia do mês quando ele é menor. */
+export function somarMeses(dia: string, meses: number): string {
+  const [a, m, d] = dia.slice(0, 10).split('-').map(Number);
+  const alvo = new Date(Date.UTC(a, m - 1 + meses, 1));
+  const ultimo = new Date(Date.UTC(alvo.getUTCFullYear(), alvo.getUTCMonth() + 1, 0)).getUTCDate();
+  alvo.setUTCDate(Math.min(d, ultimo));
+  return alvo.toISOString().slice(0, 10);
+}
+
+/**
+ * Lotes de mudas que chegaram ao dia indicado para ficarem prontas: entram
+ * sozinhos para doação (fase "pronta"). Lote encerrado ou apagado fica de fora.
+ */
+export function lotesParaLiberar(lotes: Reg[], hoje: string): Reg[] {
+  const dia = hoje.slice(0, 10);
+  return lotes.filter((l) => !l.excluido && l.situacao !== 'encerrado' && l.fase_atual !== 'pronta' && typeof l.pronta_em === 'string' && l.pronta_em !== '' && l.pronta_em.slice(0, 10) <= dia);
 }

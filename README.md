@@ -39,6 +39,12 @@ mudas**:
   QR. O código definitivo vem do servidor na sincronização.
 - Entram **prontas para doação** (catálogo, pedidos, reservas e retirada). Como são as mais antigas, saem primeiro nas
   reservas.
+- **Mudas que ainda não estão prontas** (uma espécie por vez → “Ainda
+  não”): quem registra diz quando ficam prontas (daqui a 1, 2, 3 ou 6
+  meses, ou um dia escolhido). Até lá o lote fica no viveiro, **fora da
+  doação**, e o app mostra “Pronta para doação em dd/mm/aaaa”. No dia, o
+  servidor coloca o lote **sozinho** como pronto para doação (confere todo
+  dia de madrugada), com registro no histórico do lote e na auditoria.
 - **Toda muda pronta aparece sozinha no catálogo**, de qualquer espécie
   (inclusive as importadas da lista oficial). Não precisa publicar nem
   liberar a espécie.

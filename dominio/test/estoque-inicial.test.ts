@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { colecao } from '../src/esquema';
 import { codigoEstoqueInicial, lerCodigo, proximoCodigoEstoqueInicial, proximoCodigoLoteMudas } from '../src/codigos';
-import { bloqueiosEstoqueInicial, lerFase, modeloPlanilhaEstoque, planejarEstoqueInicial } from '../src/estoque-inicial';
+import { bloqueiosEstoqueInicial, lotesParaLiberar, somarMeses, lerFase, modeloPlanilhaEstoque, planejarEstoqueInicial } from '../src/estoque-inicial';
 import { matrizPadrao, normalizarMatriz } from '../src/permissoes';
 import { violacaoRegra } from '../src/regras-escrita';
 import { montarRastreio } from '../src/catalogo';
@@ -68,5 +68,34 @@ describe('estoque inicial (mudas que já estavam no viveiro)', () => {
     const r = montarRastreio({ id: 'l', codigo: 'LM-2026-I-001', viveiro_id: 'v', fase_atual: 'pronta', origem: 'estoque_inicial' }, { viveiros: [{ id: 'v', nome: 'Viveiro Um' }], lotesSementes: [], ligacoes: [], coletas: [], matrizes: [], municipios: [] });
     expect(r.lote_mudas.estoque_inicial).toBe(true);
     expect(r.lote_sementes).toBeUndefined();
+  });
+});
+
+describe('mudas que ainda não estão prontas: entram sozinhas para doação na data indicada', () => {
+  it('quem registra diz quando ficam prontas (depois de hoje)', () => {
+    const hoje = '2026-11-23';
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento' }], hoje)).toEqual(['Diga quando as mudas ficam prontas para doação.']);
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento', pronta_em: '2026-11-23' }], hoje)[0]).toMatch(/^A data em que ficam prontas precisa ser depois de hoje/);
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento', pronta_em: '2027-02-23' }], hoje)).toEqual([]);
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'pronta' }], hoje)).toEqual([]);
+  });
+
+  it('daqui a N meses (fim de mês não pula para o outro mês)', () => {
+    expect(somarMeses('2026-11-23', 3)).toBe('2027-02-23');
+    expect(somarMeses('2026-11-30', 3)).toBe('2027-02-28');
+    expect(somarMeses('2026-12-15', 1)).toBe('2027-01-15');
+  });
+
+  it('libera só os lotes que chegaram à data, ainda não prontos e ativos', () => {
+    const lotes = [
+      { id: 'chegou', fase_atual: 'crescimento', situacao: 'ativo', pronta_em: '2027-02-23 00:00:00.000Z' },
+      { id: 'antes', fase_atual: 'crescimento', situacao: 'ativo', pronta_em: '2027-01-10' },
+      { id: 'depois', fase_atual: 'crescimento', situacao: 'ativo', pronta_em: '2027-02-24' },
+      { id: 'ja-pronta', fase_atual: 'pronta', situacao: 'ativo', pronta_em: '2027-01-01' },
+      { id: 'sem-data', fase_atual: 'crescimento', situacao: 'ativo' },
+      { id: 'encerrado', fase_atual: 'crescimento', situacao: 'encerrado', pronta_em: '2027-01-01' },
+      { id: 'apagado', fase_atual: 'crescimento', situacao: 'ativo', pronta_em: '2027-01-01', excluido: true },
+    ];
+    expect(lotesParaLiberar(lotes, '2027-02-23').map((l) => l.id)).toEqual(['chegou', 'antes']);
   });
 });

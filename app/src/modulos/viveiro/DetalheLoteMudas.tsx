@@ -140,6 +140,12 @@ export function DetalheLoteMudas() {
           {ROTULO_FASE[faseAtual]}
           {atrasado(previsao, faseAtual, hoje) ? ' (atrasado)' : ''}
         </dd>
+        {faseAtual !== 'pronta' && !!lote.pronta_em && (
+          <>
+            <dt>Entra para doação</dt>
+            <dd data-testid="pronta-em">em {String(lote.pronta_em).slice(0, 10).split('-').reverse().join('/')} (sozinha, sem precisar fazer nada)</dd>
+          </>
+        )}
         <dt>Mudas no lote</dt>
         <dd data-testid="saldo-mudas">{saldo}</dd>
         {!inicial && (

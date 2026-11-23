@@ -11,6 +11,7 @@ import {
   TIPOS_COM_ANO,
   colecao,
   disponivelPorLote,
+  lotesParaLiberar,
   bloqueiosPedido,
   parametro,
   planejarReservas,
@@ -879,7 +880,40 @@ export function expirarPrazos(app: App, hoje = hojeISO()) {
       }
     }
   });
-  return { reservas, pedidos };
+  return { reservas, pedidos, lotes: liberarLotesProntos(app, hoje) };
+}
+
+/**
+ * Mudas registradas antes de ficarem prontas: no dia indicado (pronta_em), o
+ * lote entra sozinho para doação (fase "pronta"), com registro no histórico do
+ * lote e na auditoria. Roda junto com a expiração diária.
+ */
+export function liberarLotesProntos(app: App, hoje = hojeISO()): number {
+  let n = 0;
+  app.runInTransaction((tx: App) => {
+    const dia = hoje.slice(0, 10);
+    const agora = hojeISO();
+    for (const l of lotesParaLiberar(todos(tx, 'lote_mudas'), dia) as Registro[]) {
+      gravar(tx, colecao('lote_mudas'), { ...l, fase_atual: 'pronta', versao: Number(l.versao) + 1, atualizado_por: 'sistema' });
+      gravar(tx, colecao('evento_lote_mudas'), {
+        id: novoId(),
+        versao: 1,
+        excluido: false,
+        criado_por: 'sistema',
+        atualizado_por: 'sistema',
+        criado_no_aparelho_em: agora,
+        viveiro_id: l.viveiro_id,
+        lote_mudas_id: l.id,
+        tipo: 'mudanca_fase',
+        data: dia,
+        fase_nova: 'pronta',
+        observacao: 'Pronta para doação na data indicada no registro (liberada automaticamente).',
+      });
+      auditar(tx, { colecao: 'lote_mudas', registro_id: l.id, acao: 'liberar_para_doacao', antes: { fase_atual: l.fase_atual }, depois: { fase_atual: 'pronta', pronta_em: l.pronta_em }, usuario_id: 'sistema' });
+      n++;
+    }
+  });
+  return n;
 }
 
 // ---------------------------------------------------------------------------

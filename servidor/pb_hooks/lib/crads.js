@@ -65,6 +65,7 @@ __export(crads_exports, {
   expirarPrazos: () => expirarPrazos,
   fotoMudaPublica: () => fotoMudaPublica,
   inscreverPush: () => inscreverPush,
+  liberarLotesProntos: () => liberarLotesProntos,
   lixeira: () => lixeira,
   lixeiraApagar: () => lixeiraApagar,
   lixeiraRestaurar: () => lixeiraRestaurar,
@@ -458,7 +459,8 @@ var COLECOES = [
     porViveiro: true,
     prefixoCodigo: "LM",
     // origem "estoque_inicial": mudas que já estavam no viveiro antes do app (sem lote de sementes).
-    campos: [t("codigo", true), o("origem", ["semeadura", "estoque_inicial"]), r("lote_sementes_id", "lote_sementes"), t("observacao_origem"), r("especie_id", "especie", true), d("data_semeadura"), n("sementes_semeadas"), n("sementes_semeadas_g"), o("recipiente", RECIPIENTES), t("canteiro"), o("fase_atual", FASES_MUDA), o("situacao", ["ativo", "encerrado"])],
+    // pronta_em: mudas que ainda não estão prontas entram para doação sozinhas nesta data.
+    campos: [t("codigo", true), o("origem", ["semeadura", "estoque_inicial"]), r("lote_sementes_id", "lote_sementes"), t("observacao_origem"), r("especie_id", "especie", true), d("data_semeadura"), n("sementes_semeadas"), n("sementes_semeadas_g"), o("recipiente", RECIPIENTES), t("canteiro"), o("fase_atual", FASES_MUDA), o("situacao", ["ativo", "encerrado"]), d("pronta_em")],
     indices: ["codigo", "lote_sementes_id", "especie_id", "fase_atual"],
     leitura: TODOS_EXCETO_SOLICITANTE,
     escrita: EQUIPE_VIVEIRO
@@ -1504,6 +1506,12 @@ var UF_CODIGO = {
 };
 var UF_POR_CODIGO = Object.fromEntries(Object.entries(UF_CODIGO).map(([uf, c]) => [c, uf]));
 
+// ../dominio/src/estoque-inicial.ts
+function lotesParaLiberar(lotes, hoje) {
+  const dia4 = hoje.slice(0, 10);
+  return lotes.filter((l) => !l.excluido && l.situacao !== "encerrado" && l.fase_atual !== "pronta" && typeof l.pronta_em === "string" && l.pronta_em !== "" && l.pronta_em.slice(0, 10) <= dia4);
+}
+
 // ../dominio/src/lixeira.ts
 var COLECOES_LIXEIRA = [
   { nome: "matriz", rotulo: "Matrizes" },
@@ -2320,7 +2328,34 @@ function expirarPrazos(app, hoje = hojeISO()) {
       }
     }
   });
-  return { reservas, pedidos };
+  return { reservas, pedidos, lotes: liberarLotesProntos(app, hoje) };
+}
+function liberarLotesProntos(app, hoje = hojeISO()) {
+  let n2 = 0;
+  app.runInTransaction((tx) => {
+    const dia4 = hoje.slice(0, 10);
+    const agora = hojeISO();
+    for (const l of lotesParaLiberar(todos(tx, "lote_mudas"), dia4)) {
+      gravar(tx, colecao("lote_mudas"), __spreadProps(__spreadValues({}, l), { fase_atual: "pronta", versao: Number(l.versao) + 1, atualizado_por: "sistema" }));
+      gravar(tx, colecao("evento_lote_mudas"), {
+        id: novoId(),
+        versao: 1,
+        excluido: false,
+        criado_por: "sistema",
+        atualizado_por: "sistema",
+        criado_no_aparelho_em: agora,
+        viveiro_id: l.viveiro_id,
+        lote_mudas_id: l.id,
+        tipo: "mudanca_fase",
+        data: dia4,
+        fase_nova: "pronta",
+        observacao: "Pronta para doa\xE7\xE3o na data indicada no registro (liberada automaticamente)."
+      });
+      auditar(tx, { colecao: "lote_mudas", registro_id: l.id, acao: "liberar_para_doacao", antes: { fase_atual: l.fase_atual }, depois: { fase_atual: "pronta", pronta_em: l.pronta_em }, usuario_id: "sistema" });
+      n2++;
+    }
+  });
+  return n2;
 }
 function todos(app, nome) {
   const col = colecao(nome);
