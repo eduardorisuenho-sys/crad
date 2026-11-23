@@ -2283,7 +2283,9 @@ function analisarDoacao(app, auth, id, corpo) {
     for (const [itemId, q] of pedidoAprovado) {
       const item = itens.find((i) => i.id === itemId);
       if (!item) throw new Error("Item do pedido n\xE3o encontrado.");
-      if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error("Quantidade aprovada inv\xE1lida.");
+      if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) {
+        throw new Error(`Quantidade aprovada inv\xE1lida para ${nomeEspecie(tx, String(item.especie_id))}: use um n\xFAmero inteiro de 0 a ${Number(item.qtd_pedida)} (o que foi pedido).`);
+      }
     }
     const aprovados = itens.map((i) => {
       var _a2;

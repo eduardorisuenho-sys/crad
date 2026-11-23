@@ -831,7 +831,9 @@ export function analisarDoacao(app: App, auth: RecordPB, id: string, corpo: { it
     for (const [itemId, q] of pedidoAprovado) {
       const item = itens.find((i: Registro) => i.id === itemId);
       if (!item) throw new Error('Item do pedido não encontrado.');
-      if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) throw new Error('Quantidade aprovada inválida.');
+      if (!Number.isInteger(q) || q < 0 || q > Number(item.qtd_pedida)) {
+        throw new Error(`Quantidade aprovada inválida para ${nomeEspecie(tx, String(item.especie_id))}: use um número inteiro de 0 a ${Number(item.qtd_pedida)} (o que foi pedido).`);
+      }
     }
     const aprovados = itens.map((i: Registro) => ({ item: i, qtd: pedidoAprovado.get(i.id) ?? 0 }));
     const situacao = situacaoAposAnalise(aprovados.map((a: { item: Registro; qtd: number }) => ({ qtd_pedida: Number(a.item.qtd_pedida), qtd_aprovada: a.qtd })));

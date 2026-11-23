@@ -90,6 +90,18 @@ export function DetalhePedido() {
 
   async function analisar(aprovar: boolean) {
     setErro('');
+    if (aprovar) {
+      // confere antes de enviar e diz qual espécie está errada
+      for (const i of itens) {
+        const nome = nomes?.get(String(i.especie_id)) ?? 'uma espécie';
+        const texto = String(aprovadas[i.id] ?? sugerido(i)).trim();
+        const q = Number(texto);
+        const max = Math.min(Number(i.qtd_pedida ?? 0), estoque(i));
+        if (!/^\d+$/.test(texto)) return setErro(`${nome}: digite um número inteiro, sem vírgula nem ponto.`);
+        if (q > Number(i.qtd_pedida ?? 0)) return setErro(`${nome}: foram pedidas ${Number(i.qtd_pedida ?? 0)}; não dá para aprovar ${q}.`);
+        if (disp && q > max) return setErro(`${nome}: só há ${estoque(i)} em estoque; não dá para aprovar ${q}.`);
+      }
+    }
     setEnviando(true);
     try {
       const corpo = {
