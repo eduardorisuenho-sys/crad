@@ -130,7 +130,7 @@ export function DetalhePedido() {
       )}
       {params.get('retirado') && (
         <p className="mensagem">
-          {params.get('sempdf') ? 'Retirada registrada: as mudas saíram do estoque. O termo não pôde ser gerado agora; baixe em “Termo de doação (PDF)”.' : 'Retirada registrada: as mudas saíram do estoque e o termo foi gerado.'}
+          {params.get('sempdf') ? 'Retirada registrada: as mudas saíram do estoque. O termo não pôde ser gerado agora; baixe em “Termo de entrega (PDF)”.' : 'Retirada registrada: as mudas saíram do estoque e o termo foi gerado.'}
         </p>
       )}
       {situacao === 'retirada' && baixado && itens.length > 0 && itens.every((i) => !entregue(i)) && pode('retirada', doacao.viveiro_id) && (
@@ -314,7 +314,7 @@ export function DetalhePedido() {
               abrirPdf(await termoDoacao({ ...dadosPdf(), recebedor: String(retirada?.recebedor_nome ?? ''), assinatura: ass ?? null, entreguePor: sessao?.nome }), `termo-${String(doacao.codigo)}.pdf`);
             }}
           >
-            Termo de doação (PDF)
+            Termo de entrega (PDF)
           </button>
         )}
       </div>

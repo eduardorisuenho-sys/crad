@@ -98,7 +98,7 @@ export function EstoqueInicial() {
 
       {modo === 'escolher' && (
         <div className="lista-grande">
-          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. Elas entram como prontas para doação. A origem das sementes fica como “não registrada”.</p>
+          <p className="dica">Cadastre as mudas que já existiam no viveiro antes do app. Elas entram como prontas para ir ao campo, ou na data que você indicar se ainda não estiverem. A origem das sementes fica como “não registrada”.</p>
           <button className="botao-grande" onClick={() => setModo('uma')}>
             <Icone nome="muda" tamanho={40} />
             <span>
@@ -131,7 +131,7 @@ export function EstoqueInicial() {
           className="formulario"
           onSubmit={async (e) => {
             e.preventDefault();
-            const ok = await gravar([prontas ? { especie_id: especie, quantidade: Number(qtd), fase, canteiro } : { especie_id: especie, quantidade: Number(qtd), fase: FASE_ESPERANDO, pronta_em: prontaEm, canteiro }], prontas ? '' : `Entram para doação sozinhas em ${dataBR(prontaEm)}.`);
+            const ok = await gravar([prontas ? { especie_id: especie, quantidade: Number(qtd), fase, canteiro } : { especie_id: especie, quantidade: Number(qtd), fase: FASE_ESPERANDO, pronta_em: prontaEm, canteiro }], prontas ? '' : `Ficam prontas para ir ao campo sozinhas em ${dataBR(prontaEm)}.`);
             if (ok && foto) await gravarFoto(db, repo, 'lote_mudas', ok[0], viveiroId ?? undefined, foto);
             if (ok) {
               setFoto(null);
@@ -149,7 +149,7 @@ export function EstoqueInicial() {
             <input className="campo-grande" inputMode="numeric" pattern="[0-9]*" value={qtd} onChange={(e) => setQtd(e.target.value.replace(/\D/g, ''))} required autoFocus />
           </label>
           <fieldset className="meses" data-testid="prontas">
-            <legend>Já estão prontas para doação?</legend>
+            <legend>Já estão prontas para ir ao campo?</legend>
             <button type="button" className={`chip ${prontas ? 'ativo' : ''}`} aria-pressed={prontas} onClick={() => setProntas(true)}>
               Já estão prontas
             </button>
@@ -174,8 +174,8 @@ export function EstoqueInicial() {
               </label>
               <p className="dica">
                 {prontaEm
-                  ? `Até ${dataBR(prontaEm)} as mudas ficam fora da doação. Nesse dia entram sozinhas para doação.`
-                  : 'Até lá as mudas ficam fora da doação. No dia indicado, entram sozinhas.'}
+                  ? `Até ${dataBR(prontaEm)} as mudas ficam fora do catálogo. Nesse dia ficam prontas para ir ao campo sozinhas.`
+                  : 'Até lá as mudas ficam fora do catálogo. No dia indicado, ficam prontas sozinhas.'}
               </p>
             </fieldset>
           )}

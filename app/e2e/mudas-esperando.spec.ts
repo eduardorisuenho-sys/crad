@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { somarMeses } from '../../dominio/src/index';
 import { entrarComoViveirista, lerDoServidor, noCatalogo, PB } from './apoio';
 
-test('mudas ainda não prontas: quem registra diz quando ficam prontas; o app não libera antes; no dia, entram sozinhas para doação', async ({ page }) => {
+test('mudas ainda não prontas: quem registra diz quando ficam prontas; o app não libera antes; no dia, ficam prontas sozinhas para ir ao campo', async ({ page }) => {
   const admin = { authorization: process.env.CRADS_PB_ADMIN!, 'content-type': 'application/json' };
   const criar = async (col: string, dados: object) => (await (await fetch(`${PB()}/api/collections/${col}/records`, { method: 'POST', headers: admin, body: JSON.stringify(dados) })).json()) as { id: string };
   const esp = await criar('especie', { nome_cientifico: 'Esperia demonstrativa', familia: 'Testaceae', publicada: true });
@@ -18,15 +18,15 @@ test('mudas ainda não prontas: quem registra diz quando ficam prontas; o app n�
   await page.getByRole('button', { name: 'Ainda não' }).click();
   // sem dizer quando ficam prontas, não salva
   await page.getByRole('button', { name: 'Salvar' }).click();
-  await expect(page.getByRole('alert')).toHaveText('Diga quando as mudas ficam prontas para doação.');
+  await expect(page.getByRole('alert')).toHaveText('Diga quando as mudas ficam prontas para ir ao campo.');
 
   const hoje = new Date().toLocaleDateString('sv-SE');
   const dia = somarMeses(hoje, 3);
   const br = dia.split('-').reverse().join('/');
   await page.getByRole('button', { name: 'Daqui a 3 meses' }).click();
-  await expect(page.getByTestId('quando-prontas')).toContainText(`Até ${br} as mudas ficam fora da doação. Nesse dia entram sozinhas para doação.`);
+  await expect(page.getByTestId('quando-prontas')).toContainText(`Até ${br} as mudas ficam fora do catálogo. Nesse dia ficam prontas para ir ao campo sozinhas.`);
   await page.getByRole('button', { name: 'Salvar' }).click();
-  await expect(page.getByTestId('estoque-ok')).toContainText(`25 mudas de 1 espécie(s) cadastradas. Entram para doação sozinhas em ${br}.`);
+  await expect(page.getByTestId('estoque-ok')).toContainText(`25 mudas de 1 espécie(s) cadastradas. Ficam prontas para ir ao campo sozinhas em ${br}.`);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 20_000 });
 
   // no viveiro: ainda não está pronta, e o app mostra o dia
@@ -34,7 +34,7 @@ test('mudas ainda não prontas: quem registra diz quando ficam prontas; o app n�
   expect(lote).toMatchObject({ fase_atual: 'crescimento' });
   expect(String(lote.pronta_em).slice(0, 10)).toBe(dia);
   await page.goto('/viveiro');
-  await expect(page.locator('.item-lista', { hasText: 'Árvore-que-espera' })).toContainText(`Pronta para doação em ${br} · 25 mudas`);
+  await expect(page.locator('.item-lista', { hasText: 'Árvore-que-espera' })).toContainText(`Pronta para ir ao campo em ${br} · 25 mudas`);
   await page.locator('.item-lista', { hasText: 'Árvore-que-espera' }).click();
   await expect(page.getByTestId('pronta-em')).toHaveText(`em ${br} (sozinha, sem precisar fazer nada)`);
   expect(await noCatalogo('Árvore-que-espera')).toBe(0);

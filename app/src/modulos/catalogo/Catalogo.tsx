@@ -64,7 +64,7 @@ export function Catalogo() {
 
   return (
     <Pagina titulo="Catálogo de mudas">
-      <p className="dica">Mudas nativas prontas para doação. A quantidade já desconta as mudas reservadas para pedidos aprovados.</p>
+      <p className="dica">Mudas nativas prontas para ir ao campo. A quantidade já desconta as mudas reservadas para pedidos aprovados.</p>
       {guardado && (
         <p className="mensagem alerta">
           <Icone nome="semSinal" tamanho={20} /> Sem internet: mostrando o catálogo de {new Date(guardado).toLocaleString('pt-BR')}.
@@ -141,7 +141,7 @@ export function Catalogo() {
             gerarFichasPdf(
               servidor,
               'Catálogo de mudas nativas',
-              `Mudas prontas para doação${viveiro ? ` · ${viveiros.find(([v]) => v === viveiro)?.[1] ?? ''}` : ''} · ${new Date().toLocaleDateString('pt-BR')}`,
+              `Mudas prontas para ir ao campo${viveiro ? ` · ${viveiros.find(([v]) => v === viveiro)?.[1] ?? ''}` : ''} · ${new Date().toLocaleDateString('pt-BR')}`,
               lista.map((i) => {
                 const qtd = viveiro ? i.por_viveiro.find((v) => v.viveiro_id === viveiro)?.disponivel ?? 0 : i.total;
                 return { especie_id: i.especie_id, destaque: `${qtd} mudas prontas`, reserva: i };
@@ -162,7 +162,7 @@ export function Catalogo() {
       {/* quem só pede mudas não vê os resultados das doações; a equipe vê */}
       {sessao && perfis.some((p) => p !== 'solicitante') && (
         <Link to="/transparencia" className="botao-grande">
-          <Icone nome="relatorio" /> Resultados das doações (transparência)
+          <Icone nome="relatorio" /> Resultados das entregas (transparência)
         </Link>
       )}
     </Pagina>

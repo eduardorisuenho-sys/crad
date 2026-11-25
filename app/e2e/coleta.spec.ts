@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { entrarComoColetor, entrarComoViveirista, lerDoServidor } from './apoio';
+import { abrirModulo, entrarComoColetor, entrarComoViveirista, lerDoServidor } from './apoio';
 
 test.use({ permissions: ['geolocation'], geolocation: { latitude: -10.1905, longitude: -48.3405, accuracy: 8 } });
 
@@ -20,7 +20,7 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   expect(alturaMarca).toBeLessThan((await coletor.getByRole('heading', { name: 'Olá, Coletor' }).boundingBox())!.y);
   if (process.env.CRADS_FOTO_INICIO) { await coletor.evaluate(() => window.scrollTo(0, 0)); await coletor.screenshot({ path: process.env.CRADS_FOTO_INICIO, clip: { x: 0, y: 0, width: 400, height: 520 } }); }
   await ctxColetor.setOffline(true);
-  await coletor.getByRole('link', { name: 'Coleta e sementes' }).click();
+  await abrirModulo(coletor, 'Sementes');
 
   // rota: a matriz aprovada aparece com fruto maduro e distância
   await coletor.getByRole('link', { name: 'Rota de coleta' }).click();
@@ -80,7 +80,7 @@ test('coletor registra coleta sem internet; a coleta vira lote sozinha; viveiris
   const loteId = String((await lotesDaColeta())[0].lote_sementes_id);
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await ctx.setOffline(true);
-  await page.getByRole('link', { name: 'Coleta e sementes' }).click();
+  await abrirModulo(page, 'Sementes');
 
   // sem botões de Lotes de sementes e Armazenamento: a coleta abre o seu lote
   await expect(page.getByRole('link', { name: 'Lotes de sementes' })).toHaveCount(0);

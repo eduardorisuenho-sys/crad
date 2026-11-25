@@ -36,7 +36,7 @@ export default defineConfig({
       manifest: {
         name: 'CRAD — Mudas Nativas',
         short_name: 'CRAD',
-        description: 'Da árvore matriz ao plantio: matrizes, sementes, viveiro, doação e pós-plantio.',
+        description: 'Da árvore matriz ao plantio: matrizes, sementes, viveiro, entrega de mudas e pós-plantio.',
         lang: 'pt-BR',
         start_url: '/',
         display: 'standalone',

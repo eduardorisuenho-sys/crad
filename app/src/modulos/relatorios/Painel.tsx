@@ -65,8 +65,8 @@ export function PainelRelatorios() {
     ['Coletas', r.coletas.total, `${mostrarNumero(r.coletas.kg)} kg`],
     ['Sementes em estoque', `${mostrarNumero(Math.round(r.sementes.estoque_g) / 1000)} kg`, `${r.sementes.lotes} lotes`],
     ['Mudas prontas', r.mudas.prontas, `germinação ${r.mudas.taxa_germinacao == null ? '—' : mostrarNumero(r.mudas.taxa_germinacao) + '%'}${r.mudas.estoque_inicial ? ` · ${r.mudas.estoque_inicial} do estoque inicial` : ''}`],
-    ['Mudas doadas', r.doacoes.mudas_entregues, `${r.doacoes.pedidos} pedidos · ${r.doacoes.em_analise} em análise`],
-    ['Plantando Água', r.doacoes.programa, 'doações marcadas'],
+    ['Mudas entregues', r.doacoes.mudas_entregues, `${r.doacoes.pedidos} pedidos · ${r.doacoes.em_analise} em análise`],
+    ['Plantando Água', r.doacoes.programa, 'pedidos marcados'],
     ['Mudas plantadas', r.plantio.plantadas, `${r.plantio.plantios} plantios`],
     ['Sobrevivência', r.plantio.sobrevivencia == null ? '—' : `${mostrarNumero(r.plantio.sobrevivencia)}%`, 'pelo último acompanhamento'],
   ];
@@ -96,7 +96,7 @@ export function PainelRelatorios() {
         <IconeAgua tamanho={32} />
         <span>
           <strong>Só Plantando Água</strong>
-          <small>{soPrograma ? 'Mostrando só as doações do programa' : 'Toque para ver só o programa'}</small>
+          <small>{soPrograma ? 'Mostrando só os pedidos do programa' : 'Toque para ver só o programa'}</small>
         </span>
       </button>
 
@@ -115,7 +115,7 @@ export function PainelRelatorios() {
         <Barras
           titulo="Mudas no viveiro (agora)"
           itens={[
-            { rotulo: 'Prontas para doação', valor: r.mudas.por_fase.pronta ?? 0 },
+            { rotulo: 'Prontas para ir ao campo', valor: r.mudas.por_fase.pronta ?? 0 },
             { rotulo: 'Em formação', valor: Object.entries(r.mudas.por_fase).reduce((s, [f, n]) => s + (f === 'pronta' ? 0 : n), 0) },
           ].filter((i) => i.valor)}
         />
@@ -131,7 +131,7 @@ export function PainelRelatorios() {
                   <th>Viveiro</th>
                   <th>Matrizes</th>
                   <th>Prontas</th>
-                  <th>Doadas</th>
+                  <th>Entregues</th>
                   <th>Plantadas</th>
                 </tr>
               </thead>
@@ -168,7 +168,7 @@ export function PainelRelatorios() {
           <Icone nome="lupa" /> Rastrear um código
         </Link>
         <Link to="/transparencia" className="botao-grande">
-          <Icone nome="compartilhar" /> Resultados das doações (transparência)
+          <Icone nome="compartilhar" /> Resultados das entregas (transparência)
         </Link>
       </div>
     </Tela>

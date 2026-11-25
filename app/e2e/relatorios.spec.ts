@@ -13,7 +13,7 @@ test('gestora vê os indicadores e baixa planilha e mapa sem internet; rastreia 
   await g.getByRole('button', { name: 'Tudo' }).click();
   const cartoes = g.getByTestId('indicadores');
   await expect(cartoes).toContainText('Matrizes');
-  await expect(cartoes.locator('li', { hasText: 'Mudas doadas' }).locator('strong')).not.toHaveText('0');
+  await expect(cartoes.locator('li', { hasText: 'Mudas entregues' }).locator('strong')).not.toHaveText('0');
 
   await g.getByRole('button', { name: 'Só Plantando Água' }).click();
   await expect(g.getByTestId('recorte')).toContainText('Plantando Água');
@@ -71,8 +71,8 @@ test('transparência: só para a equipe (sem login ou só pedindo mudas não há
   await p.goto('/catalogo');
   await p.getByRole('link', { name: /transparência/ }).click();
   const t = p.getByTestId('transparencia');
-  await expect(t).toContainText('Mudas doadas');
-  const doadas = Number((await t.locator('li', { hasText: 'Mudas doadas' }).locator('strong').innerText()).replace(/\D/g, ''));
+  await expect(t).toContainText('Mudas entregues');
+  const doadas = Number((await t.locator('li', { hasText: 'Mudas entregues' }).locator('strong').innerText()).replace(/\D/g, ''));
   expect(doadas).toBeGreaterThanOrEqual(20);
   await expect(p.getByText('Árvore-da-doação')).toBeVisible();
   // nada de dados pessoais na página
@@ -82,6 +82,6 @@ test('transparência: só para a equipe (sem login ou só pedindo mudas não há
   await ctx.setOffline(true);
   await p.reload();
   await expect(p.getByText(/Sem internet: mostrando os dados/)).toBeVisible();
-  await expect(p.getByTestId('transparencia')).toContainText('Mudas doadas');
+  await expect(p.getByTestId('transparencia')).toContainText('Mudas entregues');
   await ctx.close();
 });

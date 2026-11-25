@@ -69,7 +69,7 @@ export function InicioViveiro() {
           Todas
         </button>
         <button className={`chip ${fase === 'pronta' ? 'ativo' : ''}`} onClick={() => setFase('pronta')}>
-          Prontas para doação ({totalProntas})
+          Prontas para ir ao campo ({totalProntas})
         </button>
         {totalFormacao > 0 && (
           <button className={`chip ${fase === 'formacao' ? 'ativo' : ''}`} onClick={() => setFase('formacao')}>
@@ -91,7 +91,7 @@ export function InicioViveiro() {
                     {String(lote.codigo)} · {nomes?.get(String(lote.especie_id)) ?? ''}
                   </strong>
                   <small>
-                    {lote.fase_atual === 'pronta' ? 'Pronta para doação' : lote.pronta_em ? `Pronta para doação em ${String(lote.pronta_em).slice(0, 10).split('-').reverse().join('/')}` : 'Em formação'} · {saldo} mudas{taxa !== null ? ` · germinação ${mostrarNumero(taxa)}%` : ''}
+                    {lote.fase_atual === 'pronta' ? 'Pronta para ir ao campo' : lote.pronta_em ? `Pronta para ir ao campo em ${String(lote.pronta_em).slice(0, 10).split('-').reverse().join('/')}` : 'Em formação'} · {saldo} mudas{taxa !== null ? ` · germinação ${mostrarNumero(taxa)}%` : ''}
                   </small>
                 </div>
                 {atrasado(previsao, lote.fase_atual as string, hoje) && <span className="selo">atrasado</span>}

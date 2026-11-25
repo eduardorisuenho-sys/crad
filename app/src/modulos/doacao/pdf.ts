@@ -36,7 +36,7 @@ export interface DadosPdf {
 }
 
 export const TEXTO_TERMO_PADRAO =
-  'Declaro ter recebido as mudas nativas relacionadas acima, doadas pelo Centro de Recuperação de Áreas Degradadas (CRAD), e me comprometo a plantá-las no local informado, cuidar delas e informar o plantio e o acompanhamento quando solicitado.';
+  'Declaro ter recebido as mudas nativas relacionadas acima, fornecidas pelo Centro de Recuperação de Áreas Degradadas (CRAD), e me comprometo a plantá-las no local informado, cuidar delas e informar o plantio e o acompanhamento quando solicitado.';
 
 async function dataUrl(blob: Blob): Promise<string> {
   return new Promise((ok) => {
@@ -133,10 +133,10 @@ export function textoSolicitacao(d: Pick<DadosPdf, 'solicitante' | 'instituicao'
   const quem = d.instituicao ? `${d.solicitante}, representando ${d.instituicao},` : `${d.solicitante}`;
   const onde = [d.local, d.municipio].filter(Boolean).join(', ');
   return (
-    `Eu, ${quem} solicito ao Centro de Recuperação de Áreas Degradadas (CRAD)${d.viveiro ? `, ${d.viveiro},` : ''} a doação das mudas nativas relacionadas acima` +
+    `Eu, ${quem} solicito ao Centro de Recuperação de Áreas Degradadas (CRAD)${d.viveiro ? `, ${d.viveiro},` : ''} o fornecimento das mudas nativas relacionadas acima` +
     `${d.finalidade ? `, para ${d.finalidade.toLowerCase()}` : ''}${onde ? `, no local: ${onde}` : ''}. ` +
     'Comprometo-me a plantar e cuidar das mudas no local informado e a informar o plantio e o acompanhamento quando solicitado. ' +
-    'Declaro estar ciente de que a quantidade doada depende da análise do órgão ambiental e do estoque disponível no momento da aprovação.'
+    'Declaro estar ciente de que a quantidade fornecida depende da análise do órgão ambiental e do estoque disponível no momento da aprovação.'
   );
 }
 
@@ -183,7 +183,7 @@ export async function relatorioPedido(d: DadosPdf): Promise<Blob> {
 
 /** Termo de doação assinado na retirada. */
 export async function termoDoacao(d: DadosPdf): Promise<Blob> {
-  const { pdf, y: y0 } = await documento('Termo de doação de mudas', d);
+  const { pdf, y: y0 } = await documento('Termo de entrega de mudas', d);
   let y = y0;
   pdf.setFontSize(10);
   const texto = pdf.splitTextToSize(d.textoTermo || TEXTO_TERMO_PADRAO, 180);

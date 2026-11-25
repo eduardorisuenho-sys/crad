@@ -65,7 +65,7 @@ test('catálogo: cada viveiro mostra só as mudas dele, e o aviso de mudas fora 
   await expect(cartao('Árvore-só-do-um')).toHaveCount(0);
   // aviso: só o lote deste viveiro, com o dia em que entra sozinho para doação
   await expect(aviso).not.toContainText('LM-2026-I-805');
-  await expect(aviso.locator('.item-lista', { hasText: 'LM-2026-I-806' })).toContainText(`Entra para doação sozinha em ${prontaEm.split('-').reverse().join('/')}.`);
+  await expect(aviso.locator('.item-lista', { hasText: 'LM-2026-I-806' })).toContainText(`Fica pronta para ir ao campo sozinha em ${prontaEm.split('-').reverse().join('/')}.`);
 
   await page.getByRole('button', { name: 'Viveiro Teste', exact: true }).click();
   await expect(cartao('Árvore-só-do-um')).toContainText('30 mudas');

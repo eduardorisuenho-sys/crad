@@ -22,16 +22,16 @@ interface Bloco {
 
 // Os sete módulos, na ordem do caminho da muda.
 export const BLOCOS: Bloco[] = [
-  { rota: '/matrizes', rotulo: 'Matrizes', icone: 'arvore', perfis: ['coletor', 'gestor'], permissoes: ['cadastrar_matriz', 'validar_matriz'] },
-  { rota: '/coleta', rotulo: 'Coleta e sementes', icone: 'semente', perfis: ['coletor', 'viveirista', 'gestor'] },
+  { rota: '/matrizes', rotulo: 'Árvores', icone: 'arvore', perfis: ['coletor', 'gestor'], permissoes: ['cadastrar_matriz', 'validar_matriz'] },
+  { rota: '/coleta', rotulo: 'Sementes', icone: 'semente', perfis: ['coletor', 'viveirista', 'gestor'] },
   { rota: '/viveiro', rotulo: 'Viveiro', icone: 'muda', perfis: ['viveirista', 'gestor'], permissoes: ['producao', 'inventario'] },
   { rota: '/catalogo', rotulo: 'Catálogo', icone: 'catalogo', perfis: 'todos' },
-  { rota: '/doacao', rotulo: 'Doação de mudas', icone: 'doacao', perfis: ['viveirista', 'gestor', 'solicitante'], permissoes: ['pedir_mudas', 'aprovar_doacao', 'retirada'] },
+  { rota: '/doacao', rotulo: 'Mudas', icone: 'doacao', perfis: ['viveirista', 'gestor', 'solicitante'], permissoes: ['pedir_mudas', 'aprovar_doacao', 'retirada'] },
   { rota: '/pos-plantio', rotulo: 'Pós-plantio', icone: 'plantio', perfis: ['viveirista', 'gestor', 'solicitante'], permissoes: ['registrar_plantio', 'vistoria'] },
   { rota: '/relatorios', rotulo: 'Relatórios', icone: 'relatorio', perfis: [], permissoes: ['relatorios'] },
-  { rota: '/identificar', rotulo: 'Identificar árvore', icone: 'lupa', perfis: ['coletor', 'viveirista', 'gestor'] },
+  { rota: '/identificar', rotulo: 'Identificar', icone: 'lupa', perfis: ['coletor', 'viveirista', 'gestor'] },
   { rota: '/especies', rotulo: 'Espécies', icone: 'folha', perfis: ['coletor', 'viveirista', 'gestor'] },
-  { rota: '/viveiros', rotulo: 'Cadastrar viveiros', icone: 'viveiro', perfis: [], permissoes: ['viveiros'] },
+  { rota: '/viveiros', rotulo: 'Viveiros', icone: 'viveiro', perfis: [], permissoes: ['viveiros'] },
   { rota: '/equipe', rotulo: 'Equipe', icone: 'pessoas', perfis: [], permissoes: ['equipe'] },
   { rota: '/lixeira', rotulo: 'Lixeira', icone: 'lixo', perfis: [], permissoes: ['lixeira'] },
 ];

@@ -28,7 +28,7 @@ export function Transparencia() {
 
   return (
     <Pagina titulo="Transparência">
-      <p className="dica">Resultados das doações de mudas nativas do CRAD. Os pontos do mapa são aproximados (cerca de 1 km) para proteger as propriedades.</p>
+      <p className="dica">Resultados das mudas nativas entregues pelo CRAD. Os pontos do mapa são aproximados (cerca de 1 km) para proteger as propriedades.</p>
       {guardado && (
         <p className="mensagem alerta">
           <Icone nome="semSinal" tamanho={20} /> Sem internet: mostrando os dados de {new Date(guardado).toLocaleString('pt-BR')}.
@@ -40,9 +40,9 @@ export function Transparencia() {
         <>
           <ul className="indicadores" data-testid="transparencia">
             <li>
-              <small>Mudas doadas</small>
+              <small>Mudas entregues</small>
               <strong>{mostrarNumero(t.mudas_doadas)}</strong>
-              <span>{t.doacoes} doações</span>
+              <span>{t.doacoes} pedidos entregues</span>
             </li>
             <li>
               <small>Mudas plantadas</small>
@@ -58,14 +58,14 @@ export function Transparencia() {
                 <IconeAgua tamanho={18} /> Plantando Água
               </small>
               <strong>{mostrarNumero(t.plantando_agua.mudas_doadas)}</strong>
-              <span>mudas em {t.plantando_agua.doacoes} doações</span>
+              <span>mudas em {t.plantando_agua.doacoes} pedidos</span>
             </li>
           </ul>
           <section className="cartao">
-            <Barras titulo="Mudas doadas por ano" itens={t.por_ano.map((a) => ({ rotulo: a.ano || 'sem data', valor: a.mudas_doadas }))} />
+            <Barras titulo="Mudas entregues por ano" itens={t.por_ano.map((a) => ({ rotulo: a.ano || 'sem data', valor: a.mudas_doadas }))} />
           </section>
           <section className="cartao">
-            <Barras titulo="Espécies mais doadas (mudas)" itens={t.especies_mais_distribuidas.map((e) => ({ rotulo: e.especie, valor: e.mudas }))} />
+            <Barras titulo="Espécies mais entregues (mudas)" itens={t.especies_mais_distribuidas.map((e) => ({ rotulo: e.especie, valor: e.mudas }))} />
           </section>
           <section className="cartao">
             <h2>Onde as mudas foram plantadas</h2>

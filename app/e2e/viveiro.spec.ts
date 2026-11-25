@@ -75,7 +75,7 @@ test('viveirista semeia, conta germinação, registra perda, marca como pronta e
   await expect(page.getByTestId('resumo-lm')).toContainText('Em formação');
   await registrar('Marcar como pronta');
   await registrar('Registrar');
-  await expect(page.getByTestId('resumo-lm')).toContainText('Pronta para doação');
+  await expect(page.getByTestId('resumo-lm')).toContainText('Pronta para ir ao campo');
   await expect(page.getByRole('button', { name: 'Marcar como pronta', exact: true })).toHaveCount(0);
 
   // Inventário: contou 137 → ajuste de −3

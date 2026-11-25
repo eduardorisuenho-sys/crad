@@ -16,7 +16,7 @@ test('coletor cadastra matriz em campo sem internet, com GPS, fotos, plaqueta e 
   await page.getByRole('button', { name: 'Voltar' }).click();
 
   await context.setOffline(true);
-  await page.getByRole('link', { name: 'Matrizes' }).click();
+  await page.getByRole('link', { name: 'Árvores' }).click();
   await page.getByRole('link', { name: 'Cadastrar matriz' }).click();
 
   // 1. GPS

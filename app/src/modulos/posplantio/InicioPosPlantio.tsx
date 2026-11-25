@@ -29,7 +29,7 @@ export function InicioPosPlantio() {
 
   return (
     <Tela titulo="Pós-plantio">
-      <p className="dica">{equipe ? 'Plantios das doações retiradas neste viveiro.' : 'Conte como foi o plantio das mudas que você recebeu.'}</p>
+      <p className="dica">{equipe ? 'Plantios dos pedidos retirados neste viveiro.' : 'Conte como foi o plantio das mudas que você recebeu.'}</p>
       <ul className="lista">
         {(linhas ?? []).map(({ doacao, plantio, solicitante, resumo }) => (
           <li key={doacao.id}>
@@ -47,7 +47,7 @@ export function InicioPosPlantio() {
             </Link>
           </li>
         ))}
-        {linhas && !linhas.length && <li className="vazio">Nenhuma doação retirada ainda.</li>}
+        {linhas && !linhas.length && <li className="vazio">Nenhum pedido retirado ainda.</li>}
       </ul>
     </Tela>
   );

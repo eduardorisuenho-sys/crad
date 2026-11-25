@@ -25,6 +25,12 @@ O app funciona **sem internet** em campo e roda no navegador do celular
 | 7. Módulo 6, Pós-plantio | **pronta** |
 | 8. Módulo 7, Relatórios e transparência | **pronta** |
 
+Nomes no menu principal: **Árvores** (as matrizes), **Sementes** (coleta e
+lotes de sementes), **Viveiro**, **Catálogo**, **Mudas** (pedidos, entrega e
+Plantando Água), **Pós-plantio**, **Relatórios**, **Identificar**,
+**Espécies**, **Viveiros** (cadastro dos viveiros). O app não fala em
+“doação”: as mudas ficam **prontas para ir ao campo**.
+
 Mudas que já estavam no viveiro (estoque inicial), em Viveiro → **Registrar
 mudas**:
 
@@ -187,11 +193,11 @@ Identificar com ajuda do Google Lens (com internet):
   2. **Escolher a espécie sugerida**: a pessoa escolhe a espécie na lista do
      app. Ela fica como **provável**, com a marca "com ajuda do Google Lens",
      até o gestor confirmar.
-- Em Identificar árvore também dá para tirar uma foto e mandar ao Lens.
+- Em Identificar também dá para tirar uma foto e mandar ao Lens.
 - O Lens só sugere: nada é gravado sem a pessoa escolher, e só espécies que
   já existem no cadastro podem ser escolhidas.
 
-Relatório de serviço do coletor (Coleta e sementes → Relatório de serviço):
+Relatório de serviço do coletor (Sementes → Relatório de serviço):
 
 - Comprova o trabalho de campo num período (este mês, mês passado, este ano
   ou outras datas):
@@ -507,13 +513,13 @@ O que a etapa 1 entrega:
 - **Número vermelho de pendências** no canto do botão de cada módulo, na
   tela inicial (funciona sem internet). Conta só o que a pessoa pode
   resolver com as permissões que tem:
-  - **Doação de mudas**: pedido para analisar; aprovado aguardando a retirada
+  - **Mudas**: pedido para analisar; aprovado aguardando a retirada
     (para quem entrega e para quem vai buscar); retirado sem as mudas terem
     saído do estoque.
   - **Pós-plantio**: mudas retiradas sem o plantio registrado (quem pediu);
     plantio sem vistoria técnica (equipe).
-  - **Matrizes**: sem espécie ou com a espécie ainda não confirmada.
-  - **Coleta e sementes**: lote sem o peso das sementes limpas; lote vencido
+  - **Árvores** (matrizes): sem espécie ou com a espécie ainda não confirmada.
+  - **Sementes**: lote sem o peso das sementes limpas; lote vencido
     ainda com sementes (testar ou descartar).
   - **Viveiro**: lote com mudas atrasado (passou da data prevista sem ficar
     pronto); inventário aberto.
@@ -532,7 +538,7 @@ O que a etapa 1 entrega:
   Segue o padrão dos "badges" (Material Design): até "99+", vermelho de erro
   com borda branca, aparece com uma animação curta (sem animação para quem
   pediu menos movimento no celular). O leitor de tela ouve o número no nome
-  do botão ("Doação de mudas, 3 pendências"). O total vai também para o
+  do botão ("Mudas, 3 pendências"). O total vai também para o
   título da aba, "(3) CRAD", e para o ícone do app instalado (Badging API:
   iPhone/iPad com notificações permitidas, Windows e macOS; no Android o
   sistema mostra a bolinha quando chega notificação).

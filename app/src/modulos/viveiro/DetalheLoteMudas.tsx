@@ -23,7 +23,7 @@ const ROTULO_EVENTO: Record<string, string> = {
   semeadura: 'Semeadura',
   contagem_germinacao: 'Contagem de germinação',
   repicagem: 'Repicagem',
-  mudanca_fase: 'Ficou pronta para doação',
+  mudanca_fase: 'Ficou pronta para ir ao campo',
   medicao: 'Medição',
   perda: 'Perda',
   transferencia: 'Transferência',
@@ -142,7 +142,7 @@ export function DetalheLoteMudas() {
         </dd>
         {faseAtual !== 'pronta' && !!lote.pronta_em && (
           <>
-            <dt>Entra para doação</dt>
+            <dt>Fica pronta para ir ao campo</dt>
             <dd data-testid="pronta-em">em {String(lote.pronta_em).slice(0, 10).split('-').reverse().join('/')} (sozinha, sem precisar fazer nada)</dd>
           </>
         )}
@@ -207,7 +207,7 @@ export function DetalheLoteMudas() {
                 </div>
               </>
             )}
-            {acao === 'pronta' && <p>As {saldo} mudas deste lote vão ficar disponíveis para doação.</p>}
+            {acao === 'pronta' && <p>As {saldo} mudas deste lote vão ficar prontas para ir ao campo.</p>}
             {acao === 'medicao' && (
               <label>
                 Altura média (cm)

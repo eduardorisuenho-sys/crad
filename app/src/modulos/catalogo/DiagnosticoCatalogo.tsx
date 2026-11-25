@@ -13,13 +13,13 @@ import { nomesEspecies } from '../coleta/dados';
 export const TEXTO_MOTIVO: Record<MotivoForaDoCatalogo, string> = {
   recusado: 'O servidor recusou este cadastro: abra Avisos (barra do alto) para ver o motivo e corrija.',
   em_formacao: 'Em formação: abra o lote e toque em “Marcar como pronta”.',
-  aguardando_data: 'Entra para doação sozinha no dia marcado.',
+  aguardando_data: 'Fica pronta para ir ao campo sozinha no dia marcado.',
   reservadas: 'Todas as mudas já estão reservadas para pedidos aprovados.',
   nao_enviado: 'Ainda não foi enviado ao servidor: abra o app com internet e espere “Tudo enviado”.',
   servidor_desatualizado: 'O servidor está desatualizado: rode a atualização do servidor (comando de instalação).',
   sem_entrada_no_servidor: 'O lote chegou ao servidor, mas a quantidade de mudas não chegou. Abra o lote e registre a quantidade de novo (Inventário).',
   especie_apagada: 'A espécie deste lote foi apagada no servidor: restaure a espécie na Lixeira ou apague o lote.',
-  esgotado_no_servidor: 'No servidor, as mudas deste lote já saíram (doação ou perda). Confira o lote.',
+  esgotado_no_servidor: 'No servidor, as mudas deste lote já saíram (entrega ou perda). Confira o lote.',
   nao_esta_no_servidor: 'O servidor não tem este lote (ele se perdeu no envio). Toque em “Reenviar ao servidor”.',
   outra_especie: 'No servidor este lote está ligado a outra espécie (cadastro repetido da espécie?). Confira a espécie do lote e junte as espécies repetidas.',
   servidor: 'O servidor ainda não mostrou este lote: toque em Enviar (barra do alto) e abra o catálogo de novo.',
@@ -72,7 +72,7 @@ export function DiagnosticoCatalogo({ noCatalogo, regras, noServidor, viveiro = 
                 <strong>
                   {f.codigo} · {nomes?.get(f.especie_id) ?? ''} · {f.saldo} mudas
                 </strong>
-                <small data-motivo={f.motivo}>{f.pronta_em ? `Entra para doação sozinha em ${f.pronta_em.split('-').reverse().join('/')}.` : TEXTO_MOTIVO[f.motivo]}</small>
+                <small data-motivo={f.motivo}>{f.pronta_em ? `Fica pronta para ir ao campo sozinha em ${f.pronta_em.split('-').reverse().join('/')}.` : TEXTO_MOTIVO[f.motivo]}</small>
               </div>
             </Link>
           </li>

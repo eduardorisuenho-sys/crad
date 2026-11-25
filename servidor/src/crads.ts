@@ -907,7 +907,7 @@ export function liberarLotesProntos(app: App, hoje = hojeISO()): number {
         tipo: 'mudanca_fase',
         data: dia,
         fase_nova: 'pronta',
-        observacao: 'Pronta para doação na data indicada no registro (liberada automaticamente).',
+        observacao: 'Pronta para ir ao campo na data indicada no registro (liberada automaticamente).',
       });
       auditar(tx, { colecao: 'lote_mudas', registro_id: l.id, acao: 'liberar_para_doacao', antes: { fase_atual: l.fase_atual }, depois: { fase_atual: 'pronta', pronta_em: l.pronta_em }, usuario_id: 'sistema' });
       n++;

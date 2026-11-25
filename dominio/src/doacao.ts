@@ -178,7 +178,7 @@ export function marcadaNoPrograma(historico: Reg[], doacaoId: string, programaId
 
 /** Desmarcar depois da retirada pede justificativa. */
 export function bloqueioDesmarcar(doacao: { situacao?: unknown }, motivo: string): string | null {
-  if (doacao.situacao === 'retirada' && !motivo.trim()) return 'A doação já foi retirada: diga o motivo para tirar do programa.';
+  if (doacao.situacao === 'retirada' && !motivo.trim()) return 'O pedido já foi retirado: diga o motivo para tirar do programa.';
   return null;
 }
 
@@ -230,5 +230,5 @@ export function retiradasSemComprovacao(doacoes: Reg[], plantios: Reg[], fotos: 
 export function mensagemSemComprovacao(pendentes: Reg[]): string {
   const codigos = pendentes.map((d) => String(d.codigo ?? '')).filter(Boolean);
   const quais = codigos.length > 1 ? `dos pedidos ${codigos.slice(0, -1).join(', ')} e ${codigos[codigos.length - 1]}` : `do pedido ${codigos[0] ?? 'anterior'}`;
-  return `Antes de pedir mudas de novo, comprove o plantio ${quais}: em Pós-plantio, registre o plantio com fotos. (Doações do Plantando Água não precisam.)`;
+  return `Antes de pedir mudas de novo, comprove o plantio ${quais}: em Pós-plantio, registre o plantio com fotos. (Pedidos do Plantando Água não precisam.)`;
 }

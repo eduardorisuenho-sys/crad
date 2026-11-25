@@ -122,7 +122,7 @@ test('lote zerado some do viveiro (fica no histórico e nos relatórios)', async
   await expect(page.getByTestId('barra-sync')).toContainText('Tudo enviado', { timeout: 15_000 });
   await page.goto('/viveiro');
   await expect(page.locator('.item-lista', { hasText: 'LM-2026-I-902' })).toHaveCount(0);
-  await page.getByRole('button', { name: /Prontas para doação/ }).click();
+  await page.getByRole('button', { name: /Prontas para ir ao campo/ }).click();
   await expect(page.locator('.item-lista', { hasText: 'LM-2026-I-902' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Sem mudas/ })).toHaveCount(0);
   // continua no histórico: o rastreio do lote abre

@@ -566,7 +566,7 @@ var PARAMETROS_PADRAO = {
   min_matrizes_por_lote: { valor: 12, descricao: "M\xEDnimo de matrizes num lote de sementes antes do alerta de diversidade" },
   distancia_min_matrizes_m: { valor: 100, descricao: "Dist\xE2ncia m\xEDnima entre matrizes da mesma esp\xE9cie (metros)" },
   prazo_retirada_dias: { valor: 30, descricao: "Dias para retirar as mudas depois da aprova\xE7\xE3o" },
-  perfis_aprovadores: { valor: ["gestor"], descricao: "Perfis que podem aprovar doa\xE7\xF5es" },
+  perfis_aprovadores: { valor: ["gestor"], descricao: "Perfis que podem aprovar pedidos de mudas" },
   dias_sessao_offline: { valor: 30, descricao: "Dias que o aparelho pode ficar sem entrar na internet antes de pedir login de novo" },
   fotos_obrigatorias_matriz: { valor: ["arvore", "folha"], descricao: "Fotos que o coletor precisa tirar para salvar a matriz" },
   precisao_gps_maxima_m: { valor: 30, descricao: "Precis\xE3o do GPS (metros) a partir da qual o app aceita o ponto sem perguntar" },
@@ -662,10 +662,10 @@ var FUNCIONALIDADES = [
   { chave: "producao", grupo: "Viveiro", rotulo: "Semear e cuidar das mudas", padrao: ["viveirista", "gestor"], escrita: ["lote_mudas", "evento_lote_mudas", "movimento_estoque_mudas"] },
   { chave: "estoque_inicial", grupo: "Viveiro", rotulo: "Cadastrar mudas que j\xE1 estavam no viveiro", padrao: ["viveirista", "gestor"], escrita: ["lote_mudas", "movimento_estoque_mudas"] },
   { chave: "inventario", grupo: "Viveiro", rotulo: "Fazer invent\xE1rio", padrao: ["viveirista", "gestor"], escrita: ["inventario", "inventario_item", "movimento_estoque_mudas"] },
-  { chave: "pedir_mudas", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Pedir mudas", padrao: ["viveirista", "gestor", "solicitante"], escrita: ["doacao", "doacao_item"], solicitantePode: true },
-  { chave: "aprovar_doacao", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Aprovar pedidos de mudas", padrao: ["gestor"] },
-  { chave: "retirada", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Entregar mudas (retirada)", padrao: ["viveirista", "gestor"], escrita: ["retirada", "reserva", "doacao_item_lote", "movimento_estoque_mudas"] },
-  { chave: "plantando_agua", grupo: "Doa\xE7\xE3o de mudas", rotulo: "Marcar Plantando \xC1gua", padrao: ["viveirista", "gestor"], escrita: ["doacao_programa", "doacao_programa_historico"] },
+  { chave: "pedir_mudas", grupo: "Mudas", rotulo: "Pedir mudas", padrao: ["viveirista", "gestor", "solicitante"], escrita: ["doacao", "doacao_item"], solicitantePode: true },
+  { chave: "aprovar_doacao", grupo: "Mudas", rotulo: "Aprovar pedidos de mudas", padrao: ["gestor"] },
+  { chave: "retirada", grupo: "Mudas", rotulo: "Entregar mudas (retirada)", padrao: ["viveirista", "gestor"], escrita: ["retirada", "reserva", "doacao_item_lote", "movimento_estoque_mudas"] },
+  { chave: "plantando_agua", grupo: "Mudas", rotulo: "Marcar Plantando \xC1gua", padrao: ["viveirista", "gestor"], escrita: ["doacao_programa", "doacao_programa_historico"] },
   { chave: "registrar_plantio", grupo: "P\xF3s-plantio", rotulo: "Registrar plantio e acompanhamento", padrao: ["viveirista", "gestor", "solicitante"], escrita: ["plantio", "plantio_item", "monitoramento", "monitoramento_item"], solicitantePode: true },
   { chave: "vistoria", grupo: "P\xF3s-plantio", rotulo: "Fazer vistoria t\xE9cnica", padrao: ["viveirista", "gestor"] },
   { chave: "especies", grupo: "Esp\xE9cies", rotulo: "Editar e importar esp\xE9cies", padrao: ["gestor"], escrita: ["especie", "sinonimo", "nome_popular", "especie_ocorrencia", "especie_municipio", "especie_confusao", "especie_foto", "pergunta", "opcao", "especie_opcao"] },
@@ -1213,7 +1213,7 @@ function mensagemSemComprovacao(pendentes) {
     return String((_a2 = d2.codigo) != null ? _a2 : "");
   }).filter(Boolean);
   const quais = codigos.length > 1 ? `dos pedidos ${codigos.slice(0, -1).join(", ")} e ${codigos[codigos.length - 1]}` : `do pedido ${(_a = codigos[0]) != null ? _a : "anterior"}`;
-  return `Antes de pedir mudas de novo, comprove o plantio ${quais}: em P\xF3s-plantio, registre o plantio com fotos. (Doa\xE7\xF5es do Plantando \xC1gua n\xE3o precisam.)`;
+  return `Antes de pedir mudas de novo, comprove o plantio ${quais}: em P\xF3s-plantio, registre o plantio com fotos. (Pedidos do Plantando \xC1gua n\xE3o precisam.)`;
 }
 
 // ../dominio/src/catalogo.ts
@@ -1518,7 +1518,7 @@ var COLECOES_LIXEIRA = [
   { nome: "coleta", rotulo: "Coletas" },
   { nome: "lote_sementes", rotulo: "Lotes de sementes" },
   { nome: "lote_mudas", rotulo: "Lotes de mudas" },
-  { nome: "doacao", rotulo: "Pedidos de doa\xE7\xE3o" },
+  { nome: "doacao", rotulo: "Pedidos de mudas" },
   { nome: "plantio", rotulo: "Plantios" },
   { nome: "monitoramento", rotulo: "Acompanhamentos" },
   { nome: "especie", rotulo: "Esp\xE9cies" },
@@ -1580,7 +1580,7 @@ function dependentesAtivos(nomeColecao, id, registrosDe) {
   return [...contagem].map(([colecao2, regs]) => ({ colecao: colecao2, quantidade: regs.length, exemplos: regs.slice(0, 3).map((r2) => rotuloRegistro(colecao2, r2)) }));
 }
 function mensagemDependentes(d2) {
-  const nome = (c) => c.replace(/_/g, " ").replace("lote mudas", "lote de mudas").replace("lote sementes", "lote de sementes").replace("inventario item", "item de invent\xE1rio").replace("doacao item lote", "entrega de doa\xE7\xE3o").replace("doacao item", "item de pedido").replace("doacao", "pedido");
+  const nome = (c) => c.replace(/_/g, " ").replace("lote mudas", "lote de mudas").replace("lote sementes", "lote de sementes").replace("inventario item", "item de invent\xE1rio").replace("doacao item lote", "entrega de mudas").replace("doacao item", "item de pedido").replace("doacao", "pedido");
   const exemplos = (x) => {
     var _a;
     return ((_a = x.exemplos) == null ? void 0 : _a.length) && x.exemplos.some((e) => e && !/^[a-z0-9]{15}$/.test(e)) ? `: ${x.exemplos.join(", ")}${x.quantidade > x.exemplos.length ? "\u2026" : ""}` : "";
@@ -2349,7 +2349,7 @@ function liberarLotesProntos(app, hoje = hojeISO()) {
         tipo: "mudanca_fase",
         data: dia4,
         fase_nova: "pronta",
-        observacao: "Pronta para doa\xE7\xE3o na data indicada no registro (liberada automaticamente)."
+        observacao: "Pronta para ir ao campo na data indicada no registro (liberada automaticamente)."
       });
       auditar(tx, { colecao: "lote_mudas", registro_id: l.id, acao: "liberar_para_doacao", antes: { fase_atual: l.fase_atual }, depois: { fase_atual: "pronta", pronta_em: l.pronta_em }, usuario_id: "sistema" });
       n2++;

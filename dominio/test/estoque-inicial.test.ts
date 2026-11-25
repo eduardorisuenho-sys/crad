@@ -74,7 +74,7 @@ describe('estoque inicial (mudas que já estavam no viveiro)', () => {
 describe('mudas que ainda não estão prontas: entram sozinhas para doação na data indicada', () => {
   it('quem registra diz quando ficam prontas (depois de hoje)', () => {
     const hoje = '2026-11-23';
-    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento' }], hoje)).toEqual(['Diga quando as mudas ficam prontas para doação.']);
+    expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento' }], hoje)).toEqual(['Diga quando as mudas ficam prontas para ir ao campo.']);
     expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento', pronta_em: '2026-11-23' }], hoje)[0]).toMatch(/^A data em que ficam prontas precisa ser depois de hoje/);
     expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'crescimento', pronta_em: '2027-02-23' }], hoje)).toEqual([]);
     expect(bloqueiosEstoqueInicial([{ quantidade: 10, fase: 'pronta' }], hoje)).toEqual([]);

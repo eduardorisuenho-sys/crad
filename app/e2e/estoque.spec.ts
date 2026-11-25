@@ -193,7 +193,7 @@ test('mudas que já estavam no viveiro: foto, aparecem sozinhas no catálogo, pe
   await expect(v.getByTestId('resumo-pedido')).toContainText('retirado');
   await expect.poll(async () => (await lerDoServidor('movimento_estoque_mudas')).filter((m) => m.lote_mudas_id === lotes[0].id && m.tipo === 'saida_doacao').map((m) => m.quantidade), { timeout: 20_000 }).toEqual([10]);
   await v.goto('/viveiro');
-  await expect(v.locator('.item-lista', { hasText: 'Árvore-do-estoque' })).toContainText('Pronta para doação · 30 mudas');
+  await expect(v.locator('.item-lista', { hasText: 'Árvore-do-estoque' })).toContainText('Pronta para ir ao campo · 30 mudas');
   expect(await noCatalogo('Árvore-do-estoque')).toBe(30);
   await cv.close();
 });

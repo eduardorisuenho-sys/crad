@@ -34,7 +34,7 @@ export function BotaoPlantandoAgua({ doacao, editavel }: { doacao: Registro; edi
 
   async function alternar() {
     let motivo = '';
-    if (marcada && doacao.situacao === 'retirada') motivo = prompt('A doação já foi retirada. Por que tirar do Plantando Água?') ?? '';
+    if (marcada && doacao.situacao === 'retirada') motivo = prompt('O pedido já foi retirado. Por que tirar do Plantando Água?') ?? '';
     const b = marcada ? bloqueioDesmarcar({ situacao: doacao.situacao }, motivo) : null;
     if (b) return alert(b);
     await marcarPrograma(db, repo, doacao, !marcada, sessao?.nome ?? '', motivo);
@@ -47,7 +47,7 @@ export function BotaoPlantandoAgua({ doacao, editavel }: { doacao: Registro; edi
         <IconeAgua tamanho={32} />
         <span>
           <strong>Plantando Água</strong>
-          <small>{marcada ? 'Doação do programa' : editavel ? 'Toque se as mudas vão para o programa' : 'Fora do programa'}</small>
+          <small>{marcada ? 'Pedido do programa' : editavel ? 'Toque se as mudas vão para o programa' : 'Fora do programa'}</small>
         </span>
       </button>
       {historico.length > 0 && (

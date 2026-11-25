@@ -29,14 +29,14 @@ export function RastreioInterno() {
         { titulo: 'Coletas', icone: 'semente', itens: cadeia.coletas.map((c) => ({ id: c.id, texto: String(c.data ?? '').slice(0, 10).split('-').reverse().join('/'), detalhe: c.quantidade ? `${mostrarNumero(c.quantidade)} ${c.unidade ?? ''}` : '', link: '' })) },
         { titulo: 'Lotes de sementes', icone: 'semente', itens: cadeia.lotesSementes.map((l) => ({ id: l.id, texto: String(l.codigo), detalhe: nomes.get(String(l.especie_id)), link: `/coleta/lotes/${l.id}` })) },
         { titulo: 'Lotes de mudas', icone: 'muda', itens: cadeia.lotesMudas.map((l) => ({ id: l.id, texto: String(l.codigo), detalhe: nomes.get(String(l.especie_id)), link: `/viveiro/lotes/${l.id}` })) },
-        { titulo: 'Doações', icone: 'doacao', itens: cadeia.doacoes.map((d) => ({ id: d.id, texto: String(d.codigo), detalhe: String(d.situacao ?? ''), link: `/doacao/${d.id}` })) },
+        { titulo: 'Pedidos de mudas', icone: 'doacao', itens: cadeia.doacoes.map((d) => ({ id: d.id, texto: String(d.codigo), detalhe: String(d.situacao ?? ''), link: `/doacao/${d.id}` })) },
         { titulo: 'Plantios', icone: 'plantio', itens: cadeia.plantios.map((p) => ({ id: p.id, texto: String(p.data ?? '').slice(0, 10).split('-').reverse().join('/'), detalhe: String(cadeia.doacoes.find((d) => d.id === p.doacao_id)?.codigo ?? ''), link: `/pos-plantio/${p.id}` })) },
       ]
     : [];
 
   return (
     <Tela titulo="Rastrear código">
-      <p className="dica">Digite o código de uma matriz (MT), lote de sementes (LS), lote de mudas (LM) ou doação (DO).</p>
+      <p className="dica">Digite o código de uma matriz (MT), lote de sementes (LS), lote de mudas (LM) ou pedido de mudas (DO).</p>
       <form className="linha-form" onSubmit={buscar}>
         <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Ex.: LM-2026-045-A" aria-label="Código" autoCapitalize="characters" />
         <button className="botao-secundario">Rastrear</button>

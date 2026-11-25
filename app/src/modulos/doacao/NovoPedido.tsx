@@ -153,8 +153,8 @@ export function NovoPedido() {
           {!publico && !erroCatalogo && <p className="vazio">Carregando o catálogo…</p>}
           {publico && !publico.viveiros.length && (
             <div className="cartao" data-testid="sem-mudas">
-              <p>Nenhum viveiro tem mudas prontas para doação neste momento.</p>
-              <p className="dica">As mudas aparecem aqui assim que o viveiro marcar um lote como pronto para doação. Tente de novo mais tarde.</p>
+              <p>Nenhum viveiro tem mudas prontas para ir ao campo neste momento.</p>
+              <p className="dica">As mudas aparecem aqui assim que o viveiro marcar um lote como pronto para ir ao campo. Tente de novo mais tarde.</p>
               <Link to="/catalogo" className="botao-secundario">
                 Ver o catálogo
               </Link>

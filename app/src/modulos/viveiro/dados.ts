@@ -9,7 +9,7 @@ export const ROTULO_FASE: Record<string, string> = {
   repicagem: 'Em formação',
   crescimento: 'Em formação',
   rustificacao: 'Em formação',
-  pronta: 'Pronta para doação',
+  pronta: 'Pronta para ir ao campo',
 };
 export const RECIPIENTES = [
   { valor: 'tubete', rotulo: 'Tubete' },

@@ -48,7 +48,7 @@ export function bloqueiosEstoqueInicial(itens: { quantidade: number; fase: strin
   const b: string[] = [];
   for (const i of itens) {
     if (i.fase === 'pronta') continue;
-    if (!i.pronta_em || !/^\d{4}-\d{2}-\d{2}$/.test(i.pronta_em)) b.push('Diga quando as mudas ficam prontas para doação.');
+    if (!i.pronta_em || !/^\d{4}-\d{2}-\d{2}$/.test(i.pronta_em)) b.push('Diga quando as mudas ficam prontas para ir ao campo.');
     else if (i.pronta_em <= hoje) b.push('A data em que ficam prontas precisa ser depois de hoje. Se já estão prontas, marque “Já estão prontas”.');
   }
   if (!itens.some((i) => i.quantidade > 0)) b.push('Informe a quantidade de pelo menos uma espécie.');

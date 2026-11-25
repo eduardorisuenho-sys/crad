@@ -126,7 +126,7 @@ test('circuito completo: da semente ao plantio, com casos simples e difíceis', 
   await expect(v).toHaveURL(urlLote);
   await registrar('Marcar como pronta');
   await registrar('Registrar');
-  await expect(v.getByTestId('resumo-lm')).toContainText('Pronta para doação');
+  await expect(v.getByTestId('resumo-lm')).toContainText('Pronta para ir ao campo');
   // perda depois de pronta: 90 → 85
   await registrar('Perda');
   await v.getByLabel('Quantas mudas morreram ou foram descartadas').fill('5');

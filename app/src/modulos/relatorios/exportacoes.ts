@@ -48,7 +48,7 @@ export function tabelas(d: DadosRelatorio, f: FiltroRelatorio, programa?: Set<st
       ],
     },
     {
-      nome: 'Doações',
+      nome: 'Pedidos de mudas',
       linhas: [
         ['Código', 'Situação', 'Espécie', 'Pedidas', 'Aprovadas', 'Entregues', 'Finalidade', 'Local', 'Viveiro', 'Plantando Água'],
         ...d.doacaoItens
@@ -75,11 +75,11 @@ export function indicadoresEmLinhas(r: Indicadores): unknown[][] {
     ['Taxa de germinação (%)', r.mudas.taxa_germinacao],
     ['Perdas no viveiro', r.mudas.perdas],
     ['Mudas do estoque inicial (sem semeadura registrada)', r.mudas.estoque_inicial],
-    ['Mudas prontas para doação', r.mudas.por_fase.pronta ?? 0],
+    ['Mudas prontas para ir ao campo', r.mudas.por_fase.pronta ?? 0],
     ['Mudas em formação', Object.entries(r.mudas.por_fase).reduce((s, [f, n]) => s + (f === 'pronta' ? 0 : n), 0)],
-    ['Pedidos de doação', r.doacoes.pedidos],
+    ['Pedidos de mudas', r.doacoes.pedidos],
     ['Mudas entregues', r.doacoes.mudas_entregues],
-    ['Doações do Plantando Água', r.doacoes.programa],
+    ['Pedidos do Plantando Água', r.doacoes.programa],
     ['Mudas plantadas', r.plantio.plantadas],
     ['Sobrevivência (%)', r.plantio.sobrevivencia],
   ];

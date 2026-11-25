@@ -10,6 +10,6 @@ describe('solicitação de mudas (substitui o ofício)', () => {
     expect(t).toContain('Comprometo-me a plantar');
   });
   it('sem instituição nem local, o texto continua correto', () => {
-    expect(textoSolicitacao({ solicitante: 'João', viveiro: '' })).toMatch(/^Eu, João solicito ao Centro de Recuperação de Áreas Degradadas \(CRAD\) a doação/);
+    expect(textoSolicitacao({ solicitante: 'João', viveiro: '' })).toMatch(/^Eu, João solicito ao Centro de Recuperação de Áreas Degradadas \(CRAD\) o fornecimento das mudas/);
   });
 });

@@ -45,7 +45,7 @@ export function InicioDoacao() {
   );
 
   return (
-    <Tela titulo={equipe ? 'Doação de mudas' : 'Meus pedidos de mudas'}>
+    <Tela titulo={equipe ? 'Mudas' : 'Meus pedidos de mudas'}>
       <Link to="/doacao/novo" className="botao-principal">
         <Icone nome="doacao" /> {equipe ? 'Registrar pedido no balcão' : 'Pedir mudas'}
       </Link>

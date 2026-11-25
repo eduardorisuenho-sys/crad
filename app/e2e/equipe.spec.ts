@@ -28,7 +28,7 @@ test('coletor cria a conta pelo celular, a gestora aprova e libera "semear" na t
   await c.getByRole('button', { name: 'Criar conta' }).click();
   await expect(c.getByTestId('aguardando-acesso')).toContainText('coletor');
   await expect(c.getByTestId('aguardando-acesso')).toContainText('Viveiro Teste');
-  await expect(c.locator('.grade-blocos').getByRole('link', { name: 'Matrizes' })).toHaveCount(0);
+  await expect(c.locator('.grade-blocos').getByRole('link', { name: 'Árvores' })).toHaveCount(0);
 
   // ---- a gestora aprova
   const cg = await browser.newContext();
@@ -44,7 +44,7 @@ test('coletor cria a conta pelo celular, a gestora aprova e libera "semear" na t
   // ---- o coletor já vê os módulos da equipe (o app confere sozinho; o botão adianta)
   const verificar = c.getByRole('button', { name: 'Verificar agora' });
   if (await verificar.isVisible()) await verificar.click();
-  await expect(c.locator('.grade-blocos').getByRole('link', { name: 'Matrizes', exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(c.locator('.grade-blocos').getByRole('link', { name: 'Árvores', exact: true })).toBeVisible({ timeout: 15_000 });
   await expect(c.locator('.grade-blocos').getByRole('link', { name: 'Viveiro', exact: true })).toHaveCount(0);
 
   // ---- tabela de permissões: a gestora (administradora) deixa o coletor semear
@@ -82,7 +82,7 @@ test('solicitante cria a conta e já pode pedir mudas', async ({ page }) => {
   await page.getByLabel(/^Senha/).fill('senha-curta');
   await page.getByRole('button', { name: 'Criar conta' }).click();
   await expect(page.getByRole('heading', { name: 'Olá, Produtora' })).toBeVisible();
-  await expect(page.locator('.grade-blocos').getByRole('link', { name: 'Doação de mudas' })).toBeVisible();
+  await expect(page.locator('.grade-blocos').getByRole('link', { name: 'Mudas', exact: true })).toBeVisible();
   await expect(page.getByTestId('aguardando-acesso')).toHaveCount(0);
 });
 

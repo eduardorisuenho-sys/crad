@@ -13,7 +13,7 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   const cs = await browser.newContext({ acceptDownloads: true });
   const s = await cs.newPage();
   await entrarComoSolicitante(s);
-  await abrirModulo(s, 'Doação de mudas');
+  await abrirModulo(s, 'Mudas');
   await s.getByRole('link', { name: 'Pedir mudas' }).click();
   // um viveiro só no catálogo: vai direto para as mudas
   await s.getByLabel(`Quantidade de ${ESPECIE}`).fill('200');
@@ -78,7 +78,7 @@ test('pedido do solicitante, Plantando Água, aprovação com reserva e retirada
   await expect(g.getByTestId('pendencias-doacao')).toHaveText(/^\d+\+?$/);
   const antes = Number(await g.getByTestId('pendencias-doacao').innerText());
   // leitor de tela ouve o número no nome do botão; o total vai no título (e no ícone do app, onde houver)
-  await expect(g.locator('.grade-blocos').getByRole('link', { name: /^Doação de mudas, \d+ pendências?$/ })).toBeVisible();
+  await expect(g.locator('.grade-blocos').getByRole('link', { name: /^Mudas, \d+ pendências?$/ })).toBeVisible();
   await expect(g).toHaveTitle(/^\(\d+\+?\) CRAD$/);
   if (process.env.CRADS_FOTO_PENDENCIAS) await g.locator('.grade-blocos').screenshot({ path: process.env.CRADS_FOTO_PENDENCIAS });
   await g.goto('/doacao');

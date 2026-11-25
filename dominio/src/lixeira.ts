@@ -13,7 +13,7 @@ export const COLECOES_LIXEIRA: { nome: string; rotulo: string }[] = [
   { nome: 'coleta', rotulo: 'Coletas' },
   { nome: 'lote_sementes', rotulo: 'Lotes de sementes' },
   { nome: 'lote_mudas', rotulo: 'Lotes de mudas' },
-  { nome: 'doacao', rotulo: 'Pedidos de doação' },
+  { nome: 'doacao', rotulo: 'Pedidos de mudas' },
   { nome: 'plantio', rotulo: 'Plantios' },
   { nome: 'monitoramento', rotulo: 'Acompanhamentos' },
   { nome: 'especie', rotulo: 'Espécies' },
@@ -104,7 +104,7 @@ export function dependentesAtivos(nomeColecao: string, id: string, registrosDe: 
 }
 
 export function mensagemDependentes(d: Dependente[]): string {
-  const nome = (c: string) => c.replace(/_/g, ' ').replace('lote mudas', 'lote de mudas').replace('lote sementes', 'lote de sementes').replace('inventario item', 'item de inventário').replace('doacao item lote', 'entrega de doação').replace('doacao item', 'item de pedido').replace('doacao', 'pedido');
+  const nome = (c: string) => c.replace(/_/g, ' ').replace('lote mudas', 'lote de mudas').replace('lote sementes', 'lote de sementes').replace('inventario item', 'item de inventário').replace('doacao item lote', 'entrega de mudas').replace('doacao item', 'item de pedido').replace('doacao', 'pedido');
   const exemplos = (x: Dependente) => (x.exemplos?.length && x.exemplos.some((e) => e && !/^[a-z0-9]{15}$/.test(e)) ? `: ${x.exemplos.join(', ')}${x.quantidade > x.exemplos.length ? '…' : ''}` : '');
   return `Ainda há registros ligados a este: ${d.map((x) => `${x.quantidade} em ${nome(x.colecao)}${exemplos(x)}`).join('; ')}. Exclua ou corrija esses antes.`;
 }

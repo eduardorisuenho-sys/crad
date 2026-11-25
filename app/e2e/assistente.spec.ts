@@ -34,7 +34,7 @@ test('assistente identifica uma espécie sem internet, uma pergunta por vez', as
   await context.setOffline(true);
   await page.goto('/');
 
-  await page.getByRole('link', { name: 'Identificar árvore' }).click();
+  await page.getByRole('link', { name: 'Identificar', exact: true }).click();
   await page.getByRole('button', { name: 'Só folhas · Continuar' }).click();
 
   // Responde como se estivesse diante da "Ficticia aurea".

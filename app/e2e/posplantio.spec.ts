@@ -12,7 +12,7 @@ test('quem retirou mudas e não comprovou o plantio não faz pedido novo: o app 
   const aviso = page.getByTestId('comprovar-plantio');
   await expect(aviso).toContainText('Antes de pedir mudas de novo, comprove o plantio');
   await expect(aviso).toContainText('DO-2026-901');
-  await expect(aviso).toContainText('Doações do Plantando Água não precisam.');
+  await expect(aviso).toContainText('Pedidos do Plantando Água não precisam.');
   await expect(page.getByLabel(/^Quantidade de/)).toHaveCount(0);
   await aviso.getByRole('link', { name: 'Registrar o plantio do pedido DO-2026-901 com fotos' }).click();
   await expect(page).toHaveURL(/\/pos-plantio\/novo\//);

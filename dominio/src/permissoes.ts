@@ -24,7 +24,7 @@ export interface Funcionalidade {
   soAdministrador?: boolean;
 }
 
-export const GRUPOS_PERMISSAO = ['Matrizes', 'Coleta e sementes', 'Viveiro', 'Doação de mudas', 'Pós-plantio', 'Espécies', 'Relatórios', 'Gestão'] as const;
+export const GRUPOS_PERMISSAO = ['Matrizes', 'Coleta e sementes', 'Viveiro', 'Mudas', 'Pós-plantio', 'Espécies', 'Relatórios', 'Gestão'] as const;
 
 export const FUNCIONALIDADES: Funcionalidade[] = [
   { chave: 'cadastrar_matriz', grupo: 'Matrizes', rotulo: 'Cadastrar matriz e rota de campo', padrao: ['coletor', 'gestor'], escrita: ['matriz', 'rota_campo'] },
@@ -35,10 +35,10 @@ export const FUNCIONALIDADES: Funcionalidade[] = [
   { chave: 'producao', grupo: 'Viveiro', rotulo: 'Semear e cuidar das mudas', padrao: ['viveirista', 'gestor'], escrita: ['lote_mudas', 'evento_lote_mudas', 'movimento_estoque_mudas'] },
   { chave: 'estoque_inicial', grupo: 'Viveiro', rotulo: 'Cadastrar mudas que já estavam no viveiro', padrao: ['viveirista', 'gestor'], escrita: ['lote_mudas', 'movimento_estoque_mudas'] },
   { chave: 'inventario', grupo: 'Viveiro', rotulo: 'Fazer inventário', padrao: ['viveirista', 'gestor'], escrita: ['inventario', 'inventario_item', 'movimento_estoque_mudas'] },
-  { chave: 'pedir_mudas', grupo: 'Doação de mudas', rotulo: 'Pedir mudas', padrao: ['viveirista', 'gestor', 'solicitante'], escrita: ['doacao', 'doacao_item'], solicitantePode: true },
-  { chave: 'aprovar_doacao', grupo: 'Doação de mudas', rotulo: 'Aprovar pedidos de mudas', padrao: ['gestor'] },
-  { chave: 'retirada', grupo: 'Doação de mudas', rotulo: 'Entregar mudas (retirada)', padrao: ['viveirista', 'gestor'], escrita: ['retirada', 'reserva', 'doacao_item_lote', 'movimento_estoque_mudas'] },
-  { chave: 'plantando_agua', grupo: 'Doação de mudas', rotulo: 'Marcar Plantando Água', padrao: ['viveirista', 'gestor'], escrita: ['doacao_programa', 'doacao_programa_historico'] },
+  { chave: 'pedir_mudas', grupo: 'Mudas', rotulo: 'Pedir mudas', padrao: ['viveirista', 'gestor', 'solicitante'], escrita: ['doacao', 'doacao_item'], solicitantePode: true },
+  { chave: 'aprovar_doacao', grupo: 'Mudas', rotulo: 'Aprovar pedidos de mudas', padrao: ['gestor'] },
+  { chave: 'retirada', grupo: 'Mudas', rotulo: 'Entregar mudas (retirada)', padrao: ['viveirista', 'gestor'], escrita: ['retirada', 'reserva', 'doacao_item_lote', 'movimento_estoque_mudas'] },
+  { chave: 'plantando_agua', grupo: 'Mudas', rotulo: 'Marcar Plantando Água', padrao: ['viveirista', 'gestor'], escrita: ['doacao_programa', 'doacao_programa_historico'] },
   { chave: 'registrar_plantio', grupo: 'Pós-plantio', rotulo: 'Registrar plantio e acompanhamento', padrao: ['viveirista', 'gestor', 'solicitante'], escrita: ['plantio', 'plantio_item', 'monitoramento', 'monitoramento_item'], solicitantePode: true },
   { chave: 'vistoria', grupo: 'Pós-plantio', rotulo: 'Fazer vistoria técnica', padrao: ['viveirista', 'gestor'] },
   { chave: 'especies', grupo: 'Espécies', rotulo: 'Editar e importar espécies', padrao: ['gestor'], escrita: ['especie', 'sinonimo', 'nome_popular', 'especie_ocorrencia', 'especie_municipio', 'especie_confusao', 'especie_foto', 'pergunta', 'opcao', 'especie_opcao'] },
