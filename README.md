@@ -31,6 +31,20 @@ Plantando Água), **Pós-plantio**, **Relatórios**, **Identificar**,
 **Espécies**, **Viveiros** (cadastro dos viveiros). O app não fala em
 “doação”: as mudas ficam **prontas para ir ao campo**.
 
+**Logomarca da instituição** que usa o app (Ajustes → Logomarca da
+instituição, só o administrador): escolha a imagem (PNG ou JPG) e ela vai
+sozinha, em todos os aparelhos e sem internet, para:
+
+- o **cabeçalho de todos os documentos em PDF**, no canto direito (o símbolo
+  do CRAD fica no esquerdo): solicitação de mudas, termo de entrega, fichas
+  das espécies e catálogo, relatório de serviço do coletor, relatório do
+  plantio e relatório de indicadores;
+- o **cabeçalho do termo de compromisso** que quem pede mudas lê e aceita;
+- o **rodapé de todas as telas**, inclusive a entrada e o catálogo sem login.
+
+Dá para baixar a imagem de volta e tirar a logomarca. As plaquetas dos lotes
+(etiquetas pequenas com QR) ficam sem ela, por falta de espaço.
+
 Mudas que já estavam no viveiro (estoque inicial), em Viveiro → **Registrar
 mudas**:
 

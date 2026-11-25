@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { codigosRestantes } from '@crads/dominio';
 import { AjusteAvisos } from '../componentes/AjusteAvisos';
+import { EditarLogomarca } from '../componentes/EditarLogomarca';
 import { EditarTermo } from '../componentes/EditarTermo';
 import { useInstalacao } from '../plataforma/instalacao';
 import { sairDosAvisos } from '../plataforma/notificar';
@@ -55,6 +56,7 @@ export function Configuracoes() {
           <Icone nome="aviso" /> Resolver {avisosAbertos} aviso(s) da sincronização
         </Link>
       )}
+      {sessao?.gestorGeral && <EditarLogomarca />}
       {sessao?.gestorGeral && <EditarTermo />}
       {/* convidar alguém: a mensagem leva à página de baixar o app (celular ou computador) */}
       <a className="botao-secundario" href={linkWhatsApp(window.location.origin)} target="_blank" rel="noopener noreferrer" data-testid="convidar-whatsapp">

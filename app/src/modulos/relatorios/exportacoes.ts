@@ -1,6 +1,7 @@
 /** Planilha, CSV, KML e PDF dos relatórios, gerados no aparelho. */
 import { escreverCsv, escreverKml, escreverXlsx, pontoDoPlantio, type AbaExportar, type DadosRelatorio, type FiltroRelatorio, type Indicadores } from '@crads/dominio';
 import { ROTULO_FASE } from '../viveiro/dados';
+import { logomarcaNoPdf } from '../../plataforma/logomarca';
 import { nomesDe } from './dados';
 
 const dia = (v: unknown) => String(v ?? '').slice(0, 10);
@@ -153,6 +154,7 @@ export async function pdfIndicadores(titulo: string, subtitulo: string, r: Indic
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);
   pdf.text(titulo, 38, 18);
+  logomarcaNoPdf(pdf, { y: 10, larguraMax: 34, alturaMax: 22 });
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
   pdf.setTextColor(51, 97, 141);

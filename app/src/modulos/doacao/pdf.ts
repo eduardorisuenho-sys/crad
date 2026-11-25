@@ -1,3 +1,4 @@
+import { logomarcaNoPdf } from '../../plataforma/logomarca';
 /**
  * PDFs do Módulo 5, gerados no próprio aparelho (funcionam sem internet):
  * solicitação de mudas (o próprio documento do pedido, não precisa de ofício)
@@ -72,12 +73,15 @@ async function documento(titulo: string, d: DadosPdf) {
   pdf.setTextColor(...AZUL_ESCURO);
   pdf.text(d.orgao, 38, 24);
   pdf.text(`Centro de Recuperação de Áreas Degradadas · ${d.viveiro}`, 38, 29);
+  // logomarca da instituição (Ajustes) no canto direito; código e data logo abaixo dela
+  const comLogo = logomarcaNoPdf(pdf, { y: 8, larguraMax: 36, alturaMax: 14 }) > 0;
+  const yCodigo = comLogo ? 28 : 18;
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(12);
-  pdf.text(d.codigo, 195, 18, { align: 'right' });
+  pdf.text(d.codigo, 195, yCodigo, { align: 'right' });
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
-  pdf.text(d.data, 195, 24, { align: 'right' });
+  pdf.text(d.data, 195, yCodigo + 5, { align: 'right' });
   pdf.setDrawColor(...AZUL_ESCURO);
   pdf.line(15, 40, 195, 40);
 

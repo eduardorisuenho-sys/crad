@@ -5,6 +5,7 @@
  * - etiquetas com QR para fixar nas mudas dentro do viveiro.
  * Só entra o que está cadastrado na espécie.
  */
+import { logomarcaNoPdf } from './logomarca';
 import QRCode from 'qrcode';
 
 export interface FichaPdf {
@@ -101,6 +102,7 @@ export async function fichasPdf(titulo: string, subtitulo: string, fichas: Ficha
     pdf.setFontSize(9);
     pdf.setTextColor(...AZUL_ESCURO);
     pdf.text(subtitulo, 31, 21);
+    logomarcaNoPdf(pdf, { y: 7, larguraMax: 34, alturaMax: 18 });
     pdf.setDrawColor(...AZUL_ESCURO);
     pdf.line(15, 28, 195, 28);
   };

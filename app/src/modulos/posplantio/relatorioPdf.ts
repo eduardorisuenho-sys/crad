@@ -1,3 +1,4 @@
+import { logomarcaNoPdf } from '../../plataforma/logomarca';
 /**
  * Relatório detalhado do plantio em PDF (gerado no aparelho): é o
  * "Relatório simplificado de execução" pedido no termo de compromisso.
@@ -123,6 +124,7 @@ export async function relatorioPlantio(d: DadosRelatorioPlantio): Promise<Blob> 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(15);
   pdf.text('Relatório simplificado de execução do plantio', 38, 18);
+  logomarcaNoPdf(pdf, { y: 10, larguraMax: 34, alturaMax: 22 });
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(...AZUL_ESCURO);

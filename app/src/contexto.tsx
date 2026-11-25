@@ -9,6 +9,8 @@ import { idDispositivo, perfisNoViveiro, renovar, sessaoSalva, type Sessao } fro
 import { SemConexao, SessaoExpirada, Sincronizador } from './dados/sincronizador';
 import { TransporteHttp } from './dados/transporte-http';
 import { pedirArmazenamentoPersistente } from './plataforma/armazenamento';
+import { buscarLogomarcaPublica, CHAVE_LOGOMARCA, definirLogomarca, type Logomarca } from './plataforma/logomarca';
+import { servidorPublico } from './modulos/catalogo/api';
 import { inscreverAvisosComAppFechado, notificarNoAparelho, permissaoNotificacao, tocarSom } from './plataforma/notificar';
 
 export type EstadoSync = 'parado' | 'sincronizando' | 'sem_sinal' | 'entrar_de_novo' | 'erro';
@@ -165,6 +167,14 @@ export function ProvedorApp({ children }: { children: ReactNode }) {
     const t = window.setTimeout(() => void sincronizar(), 2_000);
     return () => window.clearTimeout(t);
   }, [pendentes, sessao?.id, sincronizar]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Logomarca da instituição (Ajustes): vai para os documentos, o termo e o rodapé.
+  // Com login vem do parâmetro sincronizado; antes do login, pergunta ao servidor.
+  const registroLogomarca = parametros.find((p) => p.chave === CHAVE_LOGOMARCA && !p.viveiro_id);
+  useEffect(() => {
+    if (registroLogomarca) definirLogomarca(registroLogomarca.excluido ? null : (registroLogomarca.valor as Logomarca | null));
+    else if (navigator.onLine) void buscarLogomarcaPublica(servidorPublico(sessao?.servidor));
+  }, [registroLogomarca?.id, registroLogomarca?.versao, registroLogomarca?.excluido, sessao?.servidor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const escolherViveiro = useCallback(async (id: string) => {
     await db.gravarMeta('viveiro_atual', id);

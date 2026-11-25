@@ -119,6 +119,12 @@ routerAdd("POST", "/api/crads/manutencao/expirar", (e) => {
   return e.json(200, crads.expirarPrazos($app, hoje || undefined));
 }, $apis.requireSuperuserAuth());
 
+// Logomarca da instituição que usa o app (pública: entrada, catálogo e documentos).
+routerAdd("GET", "/api/crads/publico/logomarca", (e) => {
+  const crads = require(`${__hooks}/lib/crads.js`);
+  return e.json(200, crads.logomarcaPublica($app));
+});
+
 // Contas criadas pelo próprio celular e equipe do viveiro.
 routerAdd("GET", "/api/crads/publico/viveiros", (e) => {
   const crads = require(`${__hooks}/lib/crads.js`);

@@ -485,6 +485,16 @@ function viveiroAtivo(app: App, id: string) {
 }
 
 /** GET /api/crads/publico/viveiros — para escolher o viveiro ao criar a conta. */
+/**
+ * GET /api/crads/publico/logomarca — a logomarca da instituição que usa o app
+ * (Ajustes). Pública: aparece também na entrada e no catálogo, antes do login.
+ */
+export function logomarcaPublica(app: App): { logomarca: unknown } {
+  const p = todos(app, 'parametro').find((r) => r.chave === 'logomarca_instituicao' && !r.viveiro_id);
+  const v = p?.valor as { imagem?: unknown } | null | undefined;
+  return { logomarca: v && typeof v.imagem === 'string' && v.imagem.startsWith('data:image/') ? v : null };
+}
+
 export function viveirosPublicos(app: App) {
   return todos(app, 'viveiro')
     .filter((v) => v.ativo !== false)

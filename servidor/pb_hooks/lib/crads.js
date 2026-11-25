@@ -69,6 +69,7 @@ __export(crads_exports, {
   lixeira: () => lixeira,
   lixeiraApagar: () => lixeiraApagar,
   lixeiraRestaurar: () => lixeiraRestaurar,
+  logomarcaPublica: () => logomarcaPublica,
   loteAutomatico: () => loteAutomatico,
   lotesAutomaticosPendentes: () => lotesAutomaticosPendentes,
   paraObjeto: () => paraObjeto,
@@ -1990,6 +1991,11 @@ function viveiroAtivo(app, id) {
   const v = buscar(app, "viveiro", id);
   if (!v || v.getBool("excluido") || v.getBool("ativo") === false) throw new Error("Escolha um viveiro.");
   return v;
+}
+function logomarcaPublica(app) {
+  const p = todos(app, "parametro").find((r2) => r2.chave === "logomarca_instituicao" && !r2.viveiro_id);
+  const v = p == null ? void 0 : p.valor;
+  return { logomarca: v && typeof v.imagem === "string" && v.imagem.startsWith("data:image/") ? v : null };
 }
 function viveirosPublicos(app) {
   return todos(app, "viveiro").filter((v) => v.ativo !== false).map((v) => {

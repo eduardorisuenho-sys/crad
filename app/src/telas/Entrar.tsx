@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { RodapeLogomarca } from '../componentes/RodapeLogomarca';
 import { Link } from 'react-router-dom';
 import { Icone } from '../componentes/Icone';
 import { BotaoInstalar } from '../componentes/BotaoInstalar';
@@ -58,6 +59,7 @@ export function Entrar() {
           <Icone nome="video" /> Vídeos de ajuda
         </Link>
       </form>
+      <RodapeLogomarca />
     </div>
   );
 }

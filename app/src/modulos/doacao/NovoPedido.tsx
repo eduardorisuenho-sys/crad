@@ -16,6 +16,7 @@ import { nomesEspecies } from '../coleta/dados';
 import { listaMunicipios, municipioDoNome, municipioDoPonto } from '../municipios/dados';
 import { IconeAgua } from './BotaoPlantandoAgua';
 import { consultarComprovacao, type Consulta } from './comprovacao';
+import { useLogomarca } from '../../plataforma/logomarca';
 import { disponivelLocal, disponivelPublico, FINALIDADES, marcarPrograma } from './dados';
 
 type Etapa = 'viveiro' | 'mudas' | 'plantio' | 'pessoa' | 'conferir';
@@ -47,6 +48,7 @@ export function NovoPedido() {
   const [publico, setPublico] = useState<Awaited<ReturnType<typeof disponivelPublico>> | null>(null);
   const [erroCatalogo, setErroCatalogo] = useState('');
   // quem já retirou mudas comprova o plantio com fotos antes de pedir de novo (Plantando Água não precisa)
+  const logomarca = useLogomarca();
   const [semComprovar, setSemComprovar] = useState<Consulta | null>(null);
   const [conferindo, setConferindo] = useState(false);
 
@@ -357,6 +359,11 @@ export function NovoPedido() {
             </button>
           )}
           <section className="cartao termo" data-testid="termo">
+            {/* cabeçalho do termo: símbolo do CRAD e a logomarca da instituição (Ajustes) */}
+            <div className="cabecalho-termo" data-testid="cabecalho-termo">
+              <img src="/marca/simbolo.png" alt="CRAD" width={40} height={42} />
+              {logomarca && <img src={logomarca.imagem} alt="Logomarca da instituição" />}
+            </div>
             <h2>Termo de compromisso e declaração</h2>
             <p className="dica">{equipe ? 'Leia o termo para quem está pedindo as mudas.' : 'Para receber as mudas, você se compromete com o plantio e o acompanhamento.'}</p>
             <button type="button" className="botao-secundario" aria-expanded={lerTermo} onClick={() => setLerTermo(!lerTermo)}>

@@ -1,6 +1,7 @@
 /** PDF do relatório de serviço do coletor (gerado no aparelho, funciona sem internet). */
 import type { ServicoColetor } from '@crads/dominio';
 import { mostrarNumero } from '../../plataforma/numero';
+import { logomarcaNoPdf } from '../../plataforma/logomarca';
 import { ROTULO_CERTEZA as CERTEZA } from '../matrizes/ListaMatrizes';
 
 const AZUL_ESCURO: [number, number, number] = [51, 97, 141];
@@ -54,6 +55,7 @@ export async function pdfServicoColetor(d: DadosPdfServico): Promise<Blob> {
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);
   pdf.text('Relatório de serviço do coletor', 38, 18);
+  logomarcaNoPdf(pdf, { y: 10, larguraMax: 34, alturaMax: 22 });
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
   pdf.setTextColor(...AZUL_ESCURO);
