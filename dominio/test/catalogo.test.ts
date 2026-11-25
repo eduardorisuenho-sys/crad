@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { saldoMudas } from '../src/viveiro';
-import { dataDaFoto, diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio, resumoCatalogo } from '../src/catalogo';
+import { chaveCatalogo, dataDaFoto, diagnosticoCatalogo, fichaPublica, montarCatalogo, montarRastreio, resumoCatalogo } from '../src/catalogo';
 
 const base = {
   especies: [
@@ -144,6 +144,22 @@ describe('diagnóstico: por que a muda não aparece no catálogo', () => {
       'LM-P-X-1': 'nao_enviado',
       'LM-6': 'servidor',
     });
+  });
+
+  it('confere viveiro por viveiro: a espécie no catálogo de outro viveiro não esconde o lote deste', () => {
+    const lotes = [
+      { id: 'pal', codigo: 'LM-P', especie_id: 'ipe', fase_atual: 'pronta', versao: 2, viveiro_id: 'palmas' },
+      { id: 'gur', codigo: 'LM-G', especie_id: 'ipe', fase_atual: 'crescimento', versao: 2, viveiro_id: 'gurupi' },
+    ];
+    const dd = { especies: [{ id: 'ipe', nome_cientifico: 'Ipê' }], lotesMudas: lotes, movimentos: lotes.map((l) => ({ id: `m-${l.id}`, lote_mudas_id: l.id, tipo: 'entrada', quantidade: 5, versao: 2 })), reservas: [] };
+    const r = diagnosticoCatalogo(dd, new Set([chaveCatalogo('palmas', 'ipe')]), 3);
+    expect(r).toEqual([expect.objectContaining({ codigo: 'LM-G', motivo: 'em_formacao', viveiro_id: 'gurupi' })]);
+  });
+
+  it('lote ainda não pronto com data marcada: diz o dia em que entra sozinho', () => {
+    const lotes = [{ id: 'esp', codigo: 'LM-E', especie_id: 'ipe', fase_atual: 'crescimento', versao: 2, viveiro_id: 'gurupi', pronta_em: '2027-02-23 00:00:00.000Z' }];
+    const dd = { especies: [{ id: 'ipe', nome_cientifico: 'Ipê' }], lotesMudas: lotes, movimentos: [{ id: 'm', lote_mudas_id: 'esp', tipo: 'entrada', quantidade: 5, versao: 2 }], reservas: [] };
+    expect(diagnosticoCatalogo(dd, new Set(), 3)).toEqual([expect.objectContaining({ motivo: 'aguardando_data', pronta_em: '2027-02-23' })]);
   });
 
   it('servidor sem as regras novas: avisa que precisa atualizar', () => {

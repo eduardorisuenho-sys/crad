@@ -10,11 +10,11 @@ import { lotesDeMudas, ROTULO_FASE } from './dados';
 import { useMarcarVisto } from '../../dados/usePendencias';
 
 export function Inventario() {
-  const { repo, db, sessao } = useApp();
+  const { repo, db, sessao, viveiroId } = useApp();
   // abrir esta tela tira a pendência do número vermelho
   useMarcarVisto('inventario:');
   // lote zerado não entra no inventário (só no histórico); o recusado pelo servidor entra para recontar
-  const lotes = useLiveQuery(async () => (await lotesDeMudas(repo)).filter((l) => l.lote.situacao !== 'encerrado' && (l.saldo > 0 || l.recusado)), [repo]) ?? [];
+  const lotes = useLiveQuery(async () => (await lotesDeMudas(repo)).filter((l) => l.lote.situacao !== 'encerrado' && (l.saldo > 0 || l.recusado)), [repo, viveiroId]) ?? [];
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const [contagem, setContagem] = useState<Record<string, string>>({});
   const [feito, setFeito] = useState('');

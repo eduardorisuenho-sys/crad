@@ -13,6 +13,7 @@ import { nomesEspecies } from '../coleta/dados';
 export const TEXTO_MOTIVO: Record<MotivoForaDoCatalogo, string> = {
   recusado: 'O servidor recusou este cadastro: abra Avisos (barra do alto) para ver o motivo e corrija.',
   em_formacao: 'Em formação: abra o lote e toque em “Marcar como pronta”.',
+  aguardando_data: 'Entra para doação sozinha no dia marcado.',
   reservadas: 'Todas as mudas já estão reservadas para pedidos aprovados.',
   nao_enviado: 'Ainda não foi enviado ao servidor: abra o app com internet e espere “Tudo enviado”.',
   servidor_desatualizado: 'O servidor está desatualizado: rode a atualização do servidor (comando de instalação).',
@@ -24,19 +25,20 @@ export const TEXTO_MOTIVO: Record<MotivoForaDoCatalogo, string> = {
   servidor: 'O servidor ainda não mostrou este lote: toque em Enviar (barra do alto) e abra o catálogo de novo.',
 };
 
-export function DiagnosticoCatalogo({ noCatalogo, regras, noServidor }: { noCatalogo: Set<string>; regras: number | undefined; noServidor: Map<string, string | { situacao: string; especie_id?: string }> }) {
+/** `viveiro`: só os lotes deste viveiro (o filtro escolhido no catálogo); vazio = todos. */
+export function DiagnosticoCatalogo({ noCatalogo, regras, noServidor, viveiro = '' }: { noCatalogo: Set<string>; regras: number | undefined; noServidor: Map<string, string | { situacao: string; especie_id?: string }>; viveiro?: string }) {
   const { db, repo, sincronizar } = useApp();
   const [reenviados, setReenviados] = useState('');
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const fora = useLiveQuery(async () => {
     const todos = async (n: string) => (await db.colecao(n).toArray()) as Registro[];
     return diagnosticoCatalogo(
-      { lotesMudas: await todos('lote_mudas'), movimentos: await todos('movimento_estoque_mudas'), reservas: await todos('reserva'), especies: await todos('especie') },
+      { lotesMudas: (await todos('lote_mudas')).filter((l) => !viveiro || l.viveiro_id === viveiro), movimentos: await todos('movimento_estoque_mudas'), reservas: await todos('reserva'), especies: await todos('especie') },
       noCatalogo,
       regras,
       noServidor,
     );
-  }, [db, noCatalogo, regras, noServidor]);
+  }, [db, noCatalogo, regras, noServidor, viveiro]);
   if (!fora?.length) return null;
   const desatualizado = fora.some((f) => f.motivo === 'servidor_desatualizado');
   return (
@@ -70,7 +72,7 @@ export function DiagnosticoCatalogo({ noCatalogo, regras, noServidor }: { noCata
                 <strong>
                   {f.codigo} · {nomes?.get(f.especie_id) ?? ''} · {f.saldo} mudas
                 </strong>
-                <small data-motivo={f.motivo}>{TEXTO_MOTIVO[f.motivo]}</small>
+                <small data-motivo={f.motivo}>{f.pronta_em ? `Entra para doação sozinha em ${f.pronta_em.split('-').reverse().join('/')}.` : TEXTO_MOTIVO[f.motivo]}</small>
               </div>
             </Link>
           </li>

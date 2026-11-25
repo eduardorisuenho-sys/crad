@@ -1,7 +1,7 @@
 /** Catálogo público: espécies com mudas prontas para doação, sem login. */
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { normalizarBusca, type ItemCatalogo, type ResumoCatalogo } from '@crads/dominio';
+import { chaveCatalogo, normalizarBusca, type ItemCatalogo, type ResumoCatalogo } from '@crads/dominio';
 import { BotaoPdf } from '../../componentes/BotaoPdf';
 import { Icone } from '../../componentes/Icone';
 import { dataCarimbo } from '../../componentes/Miniatura';
@@ -49,7 +49,8 @@ export function Catalogo() {
     () => new Map<string, string | { situacao: string; especie_id?: string }>(resumo?.lotes_servidor ? resumo.lotes_servidor.map((l) => [l.codigo, { situacao: l.situacao, especie_id: l.especie_id }]) : (resumo?.fora ?? []).map((f) => [f.codigo, f.situacao as string])),
     [resumo],
   );
-  const noCatalogo = useMemo(() => new Set((itens ?? []).map((i) => i.especie_id)), [itens]);
+  // a espécie está no catálogo de qual viveiro (confere lote por lote, cada um no seu viveiro)
+  const noCatalogo = useMemo(() => new Set((itens ?? []).flatMap((i) => i.por_viveiro.filter((v) => v.disponivel > 0).map((v) => chaveCatalogo(v.viveiro_id, i.especie_id)))), [itens]);
   const lista = (itens ?? []).filter((i) => {
     if (viveiro && !i.por_viveiro.some((v) => v.viveiro_id === viveiro)) return false;
     if (!busca) return true;
@@ -84,7 +85,7 @@ export function Catalogo() {
         </div>
       )}
       {itens === null && !erro && <p className="vazio">Carregando…</p>}
-      {equipe && itens && !guardado && <DiagnosticoCatalogo noCatalogo={noCatalogo} regras={regras} noServidor={noServidor} />}
+      {equipe && itens && !guardado && <DiagnosticoCatalogo noCatalogo={noCatalogo} regras={regras} noServidor={noServidor} viveiro={viveiro} />}
       <ul className="grade-catalogo">
         {lista.map((i) => {
           const qtd = viveiro ? i.por_viveiro.find((v) => v.viveiro_id === viveiro)?.disponivel ?? 0 : i.total;

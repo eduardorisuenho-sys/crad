@@ -184,6 +184,7 @@ export type MotivoForaDoCatalogo =
   | 'recusado'
   | 'nao_enviado'
   | 'em_formacao'
+  | 'aguardando_data'
   | 'reservadas'
   | 'servidor_desatualizado'
   | 'sem_entrada_no_servidor'
@@ -199,12 +200,19 @@ export interface LoteForaDoCatalogo {
   especie_id: string;
   saldo: number;
   motivo: MotivoForaDoCatalogo;
+  viveiro_id: string;
+  /** aguardando_data: o dia em que entra sozinho para doação (AAAA-MM-DD) */
+  pronta_em?: string;
 }
+
+/** Chave "viveiro|espécie": a espécie está no catálogo daquele viveiro. */
+export const chaveCatalogo = (viveiroId: unknown, especieId: unknown) => `${String(viveiroId ?? '')}|${String(especieId ?? '')}`;
 
 /**
  * Por que as mudas deste aparelho não aparecem no catálogo do servidor:
  * olha cada lote com mudas e diz o motivo (para a equipe resolver sozinha).
- * `noCatalogo` = espécies que vieram no catálogo do servidor; `noServidor` =
+ * `noCatalogo` = espécies que vieram no catálogo do servidor (o id da espécie,
+ * ou `chaveCatalogo(viveiro, espécie)` para conferir viveiro por viveiro); `noServidor` =
  * a situação de cada lote fora do catálogo, como o servidor vê (pelo código).
  */
 export function diagnosticoCatalogo(
@@ -224,13 +232,14 @@ export function diagnosticoCatalogo(
     const saldo = saldoMudas(doLote.map((m) => ({ ...m, _rejeitado: false })) as never);
     if (saldo <= 0) continue;
     const especie_id = String(l.especie_id);
-    if (noCatalogo.has(especie_id)) continue;
+    if (noCatalogo.has(especie_id) || noCatalogo.has(chaveCatalogo(l.viveiro_id, especie_id))) continue;
     const noSrv = noServidor.get(String(l.codigo ?? ''));
     const situacao = typeof noSrv === 'string' ? noSrv : noSrv?.situacao;
     // o servidor manda todos os lotes (versão nova): dá para saber se ele tem este
     const servidorListaTodos = [...noServidor.values()].some((v) => typeof v === 'object');
     let motivo: MotivoForaDoCatalogo;
     if (l._rejeitado || doLote.some((m) => m._rejeitado)) motivo = 'recusado';
+    else if (l.fase_atual !== 'pronta' && typeof l.pronta_em === 'string' && l.pronta_em) motivo = 'aguardando_data';
     else if (l.fase_atual !== 'pronta') motivo = 'em_formacao';
     else if ((disp.get(l.id) ?? 0) <= 0) motivo = 'reservadas';
     else if (l.versao === 0 || doLote.some((m) => m.versao === 0)) motivo = 'nao_enviado';
@@ -241,7 +250,7 @@ export function diagnosticoCatalogo(
     else if (servidorListaTodos && !noSrv) motivo = 'nao_esta_no_servidor';
     else if (typeof noSrv === 'object' && noSrv.especie_id && noSrv.especie_id !== especie_id) motivo = 'outra_especie';
     else motivo = 'servidor';
-    fora.push({ lote_id: l.id, codigo: String(l.codigo ?? ''), especie_id, saldo, motivo });
+    fora.push({ lote_id: l.id, codigo: String(l.codigo ?? ''), especie_id, saldo, motivo, viveiro_id: String(l.viveiro_id ?? ''), ...(motivo === 'aguardando_data' ? { pronta_em: String(l.pronta_em).slice(0, 10) } : {}) });
   }
   return fora;
 }

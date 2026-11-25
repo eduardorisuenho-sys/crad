@@ -25,7 +25,7 @@ const A = 300;
 const MARGEM = 24;
 
 export function RotaColeta() {
-  const { repo, db } = useApp();
+  const { repo, db, viveiroId } = useApp();
   const [gps, setGps] = useState<PosicaoGps | null>(null);
   const [soFruto, setSoFruto] = useState(false);
   const [satelite, setSatelite] = useState(true);
@@ -40,7 +40,7 @@ export function RotaColeta() {
     window.scrollTo({ top: 0 });
   };
   useEffect(() => acompanharPosicao(setGps, () => {}), []);
-  const matrizes = useLiveQuery(() => repo.listar('matriz'), [repo]) ?? [];
+  const matrizes = useLiveQuery(() => repo.listar('matriz'), [repo, viveiroId]) ?? [];
   const feno = useLiveQuery(() => ultimaFenologia(db), [db]);
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
 

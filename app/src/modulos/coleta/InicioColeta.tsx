@@ -13,10 +13,10 @@ import { mostrarNumero } from '../../plataforma/numero';
 import { nomesEspecies } from './dados';
 
 export function InicioColeta() {
-  const { repo, db, perfis, sessao, pode } = useApp();
+  const { repo, db, perfis, sessao, pode, viveiroId } = useApp();
   const equipeViveiro = perfis.includes('viveirista') || perfis.includes('gestor');
-  const coletas = useLiveQuery(async () => (await repo.listar('coleta')).sort((a, b) => String(b.data).localeCompare(String(a.data))), [repo]) ?? [];
-  const matrizes = useLiveQuery(async () => new Map((await repo.listar('matriz')).map((m) => [m.id, m])), [repo]);
+  const coletas = useLiveQuery(async () => (await repo.listar('coleta')).sort((a, b) => String(b.data).localeCompare(String(a.data))), [repo, viveiroId]) ?? [];
+  const matrizes = useLiveQuery(async () => new Map((await repo.listar('matriz')).map((m) => [m.id, m])), [repo, viveiroId]);
   const nomes = useLiveQuery(() => nomesEspecies(db), [db]);
   const [params] = useSearchParams();
   // o viveiro vê as coletas de todos (para pesar e semear); o coletor, as suas
@@ -27,7 +27,7 @@ export function InicioColeta() {
     const lotes = new Set((await repo.listar('lote_sementes')).map((l) => l.id));
     const ligs = (await db.colecao('lote_sementes_coleta').toArray()).filter((l) => !l.excluido && lotes.has(String(l.lote_sementes_id)));
     return new Map(ligs.map((l) => [String(l.coleta_id), String(l.lote_sementes_id)]));
-  }, [repo, db]);
+  }, [repo, db, viveiroId]);
 
   return (
     <Tela titulo="Coleta e sementes">
